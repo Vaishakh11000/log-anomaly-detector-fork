@@ -66,18 +66,80 @@ credible, it is probably not worth doing.
 
 ---
 
+## 1b. The Pre-Registered Kill Point
+
+> **Registered 2026-08-17, before any Stage 1 code was written.**
+> **This criterion may not be moved, softened, or reinterpreted after seeing results.**
+> A kill point you can move is not a kill point.
+
+The entire roadmap rests on one unverified assumption: **that v1's robustness gap
+survives contact with rules the author did not write.** v1's headline collapse
+(baseline recall 0.94 → 0.07 under `realistic-combo`, system 0.86 → 0.78) was measured
+against *self-written, frequency-threshold* rules, which `slow` defeats almost by
+definition. A mature third-party ruleset degrades by a different mechanism, and those
+numbers do not transfer. Nobody knows the answer yet — that is the point.
+
+So the assumption gets tested **first, cheaply, before anything is built on it.**
+
+### The experiment
+
+Third-party ruleset (**Sigma** primary, **Wazuh** if it cooperates) vs. this detector,
+on a real OpenSSH corpus slice with attacks injected, all seven v1 camouflage strategies
+applied, pooled over ≥5 seeds.
+
+**Batch mode. One machine. No streaming, no two-machine split, no GPU dependency.**
+Those are amplifiers — they make a good result more impressive and a mushy result
+equally mushy. Nothing important may be sequenced behind them.
+
+**Deadline: 4 weeks from the day Stage 1 starts.**
+
+### The measurement
+
+For each camouflage strategy, the drop in instance detection for each system. The
+deciding number is the **differential between those drops**.
+
+| Result | Decision |
+|---|---|
+| **≥25pt** differential on at least one strategy | **Continue.** The thesis survived third-party rules. Build the roadmap — streaming, bake-off, two-machine, GPU |
+| **10-25pt** | **Partial.** Real but not dramatic. Cheap stages only; skip the amplifiers |
+| **<10pt**, or the SIEM degrades *less* than this system does | **Stop.** Write it up as an honest negative result and move on |
+
+Calibration: v1's differential was 87pt vs 8pt. 25pt is a far lower bar and still
+clearly visible in a live demo.
+
+### If it lands in the bottom row, publish that
+
+*"A production SIEM ruleset is more robust to camouflage than an embedding detector"*
+is a genuinely useful finding that nobody has written down, and it costs one month
+instead of six. The temptation in that case will be to tune until the result looks
+better — **that is the single biggest risk to this project's integrity**, larger than
+any technical risk in it. v1 already faced this exact choice with the contamination
+retune and got it right (see `docs/CLAUDE.v1.md`, 2026-08-16). Do it again.
+
+**Do not script the demo narrative before this measurement exists.** Measure, then
+write the story around what actually happened. Scripting first creates pressure to tune
+until reality agrees.
+
+---
+
 ## 2. Hard Constraints (kept from v1 — do not violate)
 
 These survive the fork because they are physical or because they are genuine design
 positions, not timeline excuses.
 
-- **Hardware: 16GB RAM, no dedicated GPU, CPU-only.** In practice **~5GB is actually
-  free** with a desktop session running. This is the binding constraint on the whole
-  roadmap — it rules out running Ollama, a full Elastic/Wazuh stack, and multi-source
-  ingestion simultaneously. Measure memory before assuming something fits.
+- **CPU is the supported floor, GPU is an accelerator.** The system must always run,
+  end to end, on the CPU-only machine. "Runs on a laptop with no GPU" is a genuine
+  differentiator — it is why a team with no SOC budget could deploy this. The moment
+  a GPU becomes *required*, this becomes one more ML security tool with infrastructure
+  demands. See §2c for hardware tiers.
 - **Local-first.** No *required* cloud API. Optional cloud enrichment is acceptable
   only if the system degrades gracefully to fully-local operation.
-- **No fine-tuning, no training loops, no models >8B params.** No GPU.
+- **No LLM fine-tuning. No models >8B params.** Training small task-specific models
+  (sequence models over template IDs) is now allowed — see §2c. Fine-tuning the
+  narrative LLM is not: it does not fix the detection problem, and it makes results
+  much harder to reproduce in a write-up.
+- **Single-box mode must always work.** The two-machine split (§2c) is a deployment
+  *option*, never a requirement. A dead network link must downgrade the demo, not end it.
 - **No auto-response / SOAR / blocking actions.** This is a deliberate product
   stance, not a scope cut: the system is decision support for an analyst. It may
   *recommend* actions. It must never take them.
@@ -103,6 +165,73 @@ Explicitly now **allowed**, and mostly required:
 
 ---
 
+## 2c. Hardware Tiers
+
+Two physical machines, split by **role, not by clustering.**
+
+| | Machine A — "monitored host" | Machine B — "analyzer" |
+|---|---|---|
+| Hardware | Arch, 16GB RAM, **no GPU**, ~5GB free | Laptop, **RTX 4060 8GB VRAM** |
+| Role | Emits logs (journald), runs the third-party SIEM (Wazuh/Sigma), plays the box under attack | Embeddings, sequence models, Ollama, dashboard, API |
+| Also serves as | **The CPU-floor benchmark target** — this is what proves "runs on CPU" is measured, not claimed | Primary dev machine for detection work |
+
+**Do not cluster them for compute.** Every model in this project fits on one 8GB GPU
+(phi3-mini q4 ≈ 2.3GB, llama3:8b q4 ≈ 4.7GB, MiniLM ≈ 0.1GB, sequence models
+negligible). Splitting a model that already fits, across a link three orders of
+magnitude slower than on-card memory, makes inference *slower* while adding
+`torch.distributed`/Ray complexity and a new class of demo-day failure.
+
+Role-splitting is different, and it is worth it: it resolves the RAM squeeze (Wazuh on
+A, Ollama on B), it *is* the collector/analyzer split from Stage 7 pulled forward, and
+an examiner watching logs originate on one physical machine and alerts appear on
+another is much harder to dismiss than two panes of one Streamlit app.
+
+### The link
+
+**Direct gigabit ethernet.** Machine A has *no ethernet port and no Thunderbolt/USB4
+controller* (verified 2026-08-17: only `wlo1`; Alder Lake PCH with plain USB 3.2 xHCI,
+no JHL chip). So: one USB-C/USB-A gigabit adapter for A, any Cat5e/Cat6 cable,
+auto-MDIX handles the rest. A plain USB-C cable between two laptops does **not**
+provide networking without Thunderbolt/USB4 on both ends.
+
+Thunderbolt is not an option on this hardware, and it would buy nothing anyway —
+**bandwidth is not the constraint.** 10k log lines/sec at ~200 bytes is ~2 MB/s, about
+1.6% of a gigabit link. Optimise for reliability, not throughput.
+
+Do not build the link on campus WiFi (`SJCEM`, measured -76 dBm): AP client isolation
+very commonly blocks laptop-to-laptop traffic entirely, and it is undebuggable in a
+demo room.
+
+```bash
+# Machine A, once the adapter is attached (find the name with: ip -br link)
+nmcli con add type ethernet ifname enp0s20u1 con-name direct-link ip4 10.10.10.1/24
+nmcli con mod direct-link ipv4.never-default yes   # or WiFi internet dies mid-demo
+nmcli con up direct-link
+# Machine B: same, 10.10.10.2/24. No gateway, no DNS, no DHCP on this link.
+```
+
+### Reliability is in the shipping code, not the cable
+
+- Disk-backed buffer on the collector — a 3-second analyzer restart must not silently eat data
+- Track a byte offset into the source log so reconnects neither duplicate nor skip
+- HTTP POST with retry, never a raw socket: resume is trivial over one and painful over the other
+- Link health + lag visible on the dashboard — "is it connected?" must be answerable by
+  looking, not by inferring from an absence of alerts
+- Test the exact adapter and cable you will present with, not an equivalent one
+
+### What the 4060 unlocks, and what it does not
+
+Unlocks: real-time narration (seconds, not 40-60s — this is what makes "explains it as
+it happens" honest rather than an apology), llama3:8b instead of phi3, sequence-model
+training, full-corpus LogHub runs, Wazuh's full stack alongside Ollama.
+
+Does not: 70B models, full fine-tuning, transformer pretraining. None of which are needed.
+
+Note mobile 4060s throttle under sustained load — expect long eval runs to report
+slower per-item numbers than short ones, and plug in.
+
+---
+
 ## 3. Progress Tracker
 
 > **Agent: update this section at the end of every session.**
@@ -117,19 +246,43 @@ Explicitly now **allowed**, and mostly required:
       points), pytest replacing the v1 `__main__` smoke-test convention, GitHub Actions
       CI, and a persistence layer (SQLite or DuckDB) replacing CSV/JSON files.
       Unglamorous; everything else depends on it.
-- [ ] **Stage 1 — Benchmark platform.** ⭐ *Comes before any detection change.*
-      Automated eval suite that re-runs on every commit and reports deltas vs
-      `docs/results.v1/`. Third-party baselines: **Wazuh manager** (analysis engine
-      only — the full indexer/dashboard stack will not fit in RAM) with **Sigma**
-      as the low-risk fallback. Real data: LogHub OpenSSH + Linux corpora.
+- [ ] **Stage 1 — Benchmark platform.** ⭐ *Comes before any detection change, and it
+      carries the §1b kill point.* Automated eval suite that re-runs on every commit and
+      reports deltas vs `docs/results.v1/`. Third-party baselines: **Sigma** (primary —
+      pure Python, no daemon, no Arch packaging pain) and **Wazuh manager** (analysis
+      engine only; the full indexer/dashboard stack will not fit in RAM). Real data:
+      **LogHub OpenSSH + Linux** — see §3b for why not HDFS/BGL.
       This is where "rules written by people who never saw my data" replaces the
       self-written baseline — v1's single biggest credibility hole.
+      **Build the harness to run in streaming mode with an injector-driven ground-truth
+      feed, not just batch-over-a-file** — do that and Stage 2b falls out nearly free.
 - [ ] **Stage 2 — Live ingestion.** Split fit-from-score and persist fitted models
       (fit on history, score on stream). File tailer + micro-batches; **journald as a
       real live source** (this machine is Arch — `journalctl -f` is genuine live
       traffic); replay mode for demos; FastAPI service so the dashboard is not the
-      only interface. LLM narration is **on-demand, not real-time** — 40-60s/incident
-      is the CPU floor and must be stated honestly, never hidden.
+      only interface. On CPU, LLM narration is **on-demand, not real-time** —
+      40-60s/incident is a floor, not a tuning problem, and must be stated honestly
+      rather than hidden. On the 4060 it becomes genuinely near-real-time; report both
+      numbers, never quote the GPU one as if it were the CPU one.
+- [ ] **Stage 2b — Live Bake-Off.** ⭐ *The demo. Depends on Stage 1 + Stage 2.*
+      Benign traffic streams continuously into a tailed file; an **injection grid
+      (attack type × camouflage level)** lets the audience fire attacks at both
+      detectors on the same stream, side by side, with live precision/recall.
+      Attack types: v1's brute force / impossible travel / enumeration, plus persistence
+      (SSH key, cron), privilege-escalation chain, lateral movement. Levels: none /
+      `slow` / `mimicry` / `ip_rotate` / `realistic-combo`.
+      **Because the injector generates the attacks, ground truth is automatic** — both
+      systems can be scored live. That is what makes it a running experiment rather
+      than a slideshow, and it is the reason to build it this way.
+      The three-act structure is: quiet baseline → obvious attack, *where the SIEM wins
+      and we say so* → camouflaged attack, where the gap shows. **Act 2 is not "we fail
+      to detect"** — v1 detects 100% of instances on clean data. It is "we both catch
+      it; the SIEM hands you one clean alert, we hand you a pile of noise." That
+      admission is what makes Act 3 believable.
+      Un-rigging measures, all mandatory: third-party rules only; camouflage strategies
+      pre-registered in git before the demo; **the examiner picks** attack and level
+      from the grid rather than watching a scripted sequence; and include conditions
+      where we lose — a demo that never loses reads as rigged even when it isn't.
 - [ ] **Stage 3 — Detection depth.**
       **Drain3** online template mining replacing hand-written regex (makes the system
       source-agnostic; it is also what the log-anomaly literature uses).
@@ -181,6 +334,62 @@ Explicitly now **allowed**, and mostly required:
   Moot once pytest lands in Stage 0.
 - v1's severity tiers do not cleanly separate precision by tier (medium is noisier than
   low). Informal calls against a 45-line ground truth, never calibrated. Stage 3.
+
+---
+
+## 3b. Dataset Strategy
+
+**Note:** HDFS and BGL *are* LogHub datasets — LogHub is the collection containing HDFS,
+BGL, Thunderbird, OpenSSH, Linux, Hadoop and others. The choice is *which corpus*, and
+it splits along a line that matters enormously here.
+
+| Corpus | Size (verify before use) | Labels | Contains attacks? | Use here |
+|---|---|---|---|---|
+| **OpenSSH** | ~655k lines | none | **Yes** — real brute force / enumeration from the open internet | ⭐ **primary** |
+| **Linux** | ~25k lines | none | some real auth events | companion |
+| **BGL** | ~4.7M lines | per **line** | no — hardware/kernel faults | optional, secondary |
+| **HDFS** | ~11M lines | per **block** | no — disk/replication faults | **skip** |
+| v1 synthetic | 751 lines | full ground truth | yes, authored | keep as regression corpus |
+
+### Why not HDFS or BGL as primary
+
+They are labelled, which is why the literature uses them. But their "anomalies" are
+**system faults, not adversarial behaviour** — no attacker chose to be there. Three
+consequences, all fatal to this project's actual contributions:
+
+- **MITRE mapping has nothing to map.** There is no technique ID for a failed block replication.
+- **Attack narrative has no attacker.** Novelty pillar #1 goes dark.
+- **Camouflage is meaningless.** You cannot hide a disk failure — there is no adversary
+  making choices. The north star (§1) goes dark too.
+
+Running on HDFS/BGL would benchmark the *anomaly detection layer* — the layer this
+project explicitly does not claim as its contribution — while switching off both things
+that make it distinctive.
+
+If literature comparability is later wanted, prefer **BGL over HDFS**: its per-line
+labels drop straight into the existing line-level P/R/F1 harness, whereas HDFS's
+block-level labels force restructuring the entire evaluation to block granularity for
+no gain to any claim this project makes.
+
+### Evaluating OpenSSH without labels
+
+OpenSSH has no ground truth and 655k lines cannot be hand-labelled. Two complementary
+methods, neither requiring full labelling:
+
+1. **Precision@k with manual verification** — run the pipeline, take the top 20-50
+   ranked incidents, verify each by hand, report what fraction are genuine. A legitimate
+   and commonly used method for unlabelled corpora, costs an afternoon, and *"it found
+   real attacks in real logs nobody labelled for it"* is a stronger claim than any F1 on
+   authored data.
+2. **Inject v1's attack scenarios into the real benign traffic** — gives exact ground
+   truth for the injected instances against a realistic background, which is what the
+   §1b kill-point experiment needs.
+
+### Note for Stage 3
+
+Sequence modelling **cannot be trained on the 751-line synthetic corpus** — it is far
+too thin. It depends on real data landing first, which is another reason Stage 1
+precedes Stage 3.
 
 ---
 
@@ -293,7 +502,19 @@ Changed from v1 where noted.
 Revised for the fork. Several v1 anti-goals are gone (see section 2b); these remain,
 plus new ones that only become risks now that the timeline pressure is off.
 
-- ❌ **Fine-tuning an LLM** — no GPU. Still true, still non-negotiable.
+- ❌ **Moving, softening, or reinterpreting the §1b kill point after seeing results.**
+  The most important rule in this file.
+- ❌ **Scripting the demo narrative before the measurement exists** — it creates
+  pressure to tune until reality agrees with the script.
+- ❌ **Fine-tuning the narrative LLM.** QLoRA on a 3-8B model is technically possible
+  on the 4060, which is exactly why this needs to stay an explicit anti-goal rather
+  than a hardware limitation. It does not fix the detection problem, and it makes
+  results much harder to reproduce.
+- ❌ **Clustering the two laptops for compute** — every model fits on one 8GB GPU;
+  splitting across a gigabit link makes inference slower and adds a demo-day failure
+  class. Split by *role* (§2c), never by compute.
+- ❌ **Making the GPU or the two-machine link required** — CPU single-box is the floor
+  and must always work.
 - ❌ **Auto-response / blocking (SOAR)** — deliberate product stance. Recommend, never act.
 - ❌ **Letting the LLM choose MITRE technique IDs** — the whole grounding design.
 - ❌ **Hand-writing detection rules for attacks you also authored** — this is the subtle
@@ -357,3 +578,8 @@ The frozen demo folder deliberately commits it instead — do not copy that choi
 | 2026-08-17 | Wazuh is to be run as **manager/analysis-engine only**, offline, with alerts exported for comparison — not as the full indexer+dashboard stack, and not live during a demo | The full stack wants ~6GB; this machine has ~5GB free with Ollama also needing a large share. Comparing exported alerts inside our own dashboard is both memory-safe and a better demo than alt-tabbing between two web UIs |
 | 2026-08-17 | Sequence modelling identified as the highest-value detection change, ahead of any embedding or threshold work | v1 scores every line independently, which is the structural cause of precision 0.29 — one unusual line is inherently weak evidence. The contamination sweep already proved thresholds cannot fix this without costing robustness. Modelling *order* changes what evidence is available rather than re-weighting the same evidence |
 | 2026-08-17 | "Real-time" is defined as file-tail + micro-batch scoring against pre-fitted models, and LLM narration stays **on-demand** | Honest scoping. Tailing with micro-batches is genuinely how many detection deployments work, and splitting fit-from-score ("fit on history, score on stream") is better engineering than v1's single-pass fit-and-score. But phi3 at 40-60s/incident on CPU is a floor, not a tuning problem — claiming real-time narration would be a lie the demo itself would expose |
+| 2026-08-17 | **A kill point was pre-registered (§1b) before any Stage 1 code was written**: ≥25pt robustness differential against a third-party ruleset → continue; 10-25pt → cheap stages only; <10pt → stop and publish the negative result. 4-week deadline, batch mode, one machine | The entire roadmap rests on one unverified assumption — that v1's gap survives rules the author did not write. v1's 0.94→0.07 collapse was against *self-written frequency-threshold* rules that `slow` defeats by construction; a mature third-party ruleset degrades by a different mechanism and those numbers do not transfer. The failure mode for a project like this is not the tech failing, it is spending months building infrastructure around an assumption nobody checked in month one. Registering the criterion in advance is what makes it binding — after seeing results, any threshold becomes negotiable |
+| 2026-08-17 | **OpenSSH (+ Linux) chosen as the real-data corpus; HDFS rejected and BGL demoted to optional** | HDFS and BGL are labelled, which is why the literature uses them, but their anomalies are *system faults, not adversarial behaviour*. With no attacker there is nothing for MITRE to map, no narrative to tell, and camouflage is semantically undefined — so both novelty pillars go dark, and what remains is a benchmark of the one layer this project does not claim as its contribution. OpenSSH has real internet brute-force and enumeration in the same log format the preprocessing already handles. Its lack of labels is solved with precision@k plus manual verification, not by switching corpus. BGL over HDFS if comparability is later wanted: per-line labels fit the existing harness, block-level labels would force restructuring the whole evaluation |
+| 2026-08-17 | Two laptops split by **role** (monitored host + SIEM / analyzer), explicitly **not clustered for compute**; direct gigabit ethernet, not Thunderbolt or WiFi | Clustering solves "the model does not fit", which is not a problem here — phi3 q4 ≈ 2.3GB and llama3:8b q4 ≈ 4.7GB both fit an 8GB 4060 with headroom, so splitting across a link three orders of magnitude slower than on-card memory makes inference *slower* while adding distributed-training complexity and demo-day failure modes. Role-splitting instead resolves the RAM squeeze, is the Stage 7 collector/analyzer split pulled forward, and is visibly harder to dismiss than two panes of one app. Thunderbolt is not merely unnecessary but *impossible* — machine A has no TB/USB4 controller (verified: Alder Lake PCH, plain USB 3.2 xHCI, no JHL chip) and no ethernet port at all. Bandwidth was never the constraint: 10k lines/sec ≈ 2 MB/s ≈ 1.6% of gigabit. Campus WiFi is excluded because AP client isolation commonly blocks peer-to-peer traffic and is undebuggable in a demo room |
+| 2026-08-17 | GPU is an **accelerator, never a requirement**; CPU single-box remains the supported floor and machine A is kept as the CPU benchmark target | "Runs on a laptop with no GPU" is a genuine differentiator — it is the reason a team with no SOC budget could deploy this. Requiring a GPU turns the project into one more ML security tool with infrastructure demands. Keeping both machines as benchmark targets also turns "runs on CPU, much faster on GPU" from a claim into a measured result on two real machines |
+| 2026-08-17 | Bake-off Act 2 is framed as **"we both detect it, but we bury you in noise"**, not "we fail to detect it" | The user's original framing had the system failing on the obvious attack. It does not — v1 detects 100% of instances on clean data; what it fails at is precision (94 incidents for 9 attacks). The accurate admission is also the more useful one: it names the real weakness, and conceding a loss before showing a win is what makes the win credible rather than staged |

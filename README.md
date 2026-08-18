@@ -39,6 +39,12 @@ Benchmark platform comes before detection work on purpose: without automated
 measurement you cannot tell whether a change helped, and detection changes *feel*
 better far more often than they measure better.
 
+**The roadmap is gated.** A kill point is pre-registered in `CLAUDE.md` §1b: Stage 1
+tests whether v1's robustness gap survives against a ruleset the author did not write,
+in batch mode on one machine, within 4 weeks. ≥25pt differential → build the rest;
+&lt;10pt → stop and publish the negative result. Everything past Stage 1 is contingent
+on that number.
+
 ## The numbers to beat
 
 | Metric | v1 |
@@ -79,8 +85,18 @@ uv run python src/evaluate.py        # baseline comparison, ~5 min
 uv run streamlit run src/dashboard.py
 ```
 
-## Hardware reality
+## Hardware
 
-CPU-only, 16GB RAM, **~5GB actually free** with a desktop session running. This is the
-binding constraint on the roadmap — Ollama, a full Wazuh/Elastic stack, and multi-source
-ingestion cannot all run at once on this machine. Check free memory before adding a stack.
+Two machines, split by **role, not clustered** (`CLAUDE.md` §2c):
+
+- **Machine A** — Arch, 16GB, no GPU, ~5GB free. Monitored host, emits logs, runs the
+  third-party SIEM. Also the **CPU-floor benchmark target**.
+- **Machine B** — RTX 4060, 8GB VRAM. Analyzer: embeddings, sequence models, Ollama, UI.
+
+Linked by direct gigabit ethernet (machine A has no ethernet port and no
+Thunderbolt/USB4 — one USB adapter needed). Not campus WiFi; client isolation commonly
+blocks laptop-to-laptop traffic.
+
+**CPU single-box is the supported floor and must always work.** The GPU and the
+two-machine link are accelerators, never requirements — "runs on a laptop with no GPU"
+is a differentiator worth protecting.
