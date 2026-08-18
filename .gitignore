@@ -5,3 +5,8 @@ __pycache__/
 data/processed/*
 !data/processed/.gitkeep
 .env
+
+# LogHub corpora: 73MB of downloaded third-party data, regenerable via
+# `uv run logdet-fetch-data`. The fetcher pins a Zenodo record and verifies
+# SHA-256, so the corpus is reproducible without committing it.
+data/external/

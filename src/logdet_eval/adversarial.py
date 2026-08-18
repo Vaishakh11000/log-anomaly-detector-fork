@@ -50,6 +50,7 @@ from logdet.config import (
     RESULTS_DIR,
 )
 from logdet_eval.config import (
+    SYNTHETIC_HOST,
     CAMOUFLAGE_MIN_GAP_MINUTES,
     CAMOUFLAGE_MAX_GAP_MINUTES,
     CAMOUFLAGE_SLOW_MIN_GAP_MINUTES,
@@ -301,16 +302,24 @@ def measure(scored: pd.DataFrame, ground_truth: pd.DataFrame, log_path: str) -> 
 
 def run_condition(name: str, strategies: list[str], base_events: list[dict],
                   work_dir: Path, seed: int,
-                  contamination: float = CONTAMINATION) -> dict:
-    """Build one camouflaged corpus, detect on it, and measure."""
+                  contamination: float = CONTAMINATION,
+                  host: str = SYNTHETIC_HOST,
+                  year: int = SYNTHETIC_YEAR) -> dict:
+    """Build one camouflaged corpus, detect on it, and measure.
+
+    `host` and `year` are parameters so the identical camouflage code can run
+    over the real OpenSSH corpus (LabSZ, spanning 2015->2016) as well as the
+    synthetic one. Sharing this function is the point: the two evaluation tracks
+    must apply the *same* transforms or their results are not comparable.
+    """
     events = base_events if not strategies else camouflage_events(base_events, strategies, seed)
 
     log_path = work_dir / f"{name}.log"
     gt_path = work_dir / f"{name}_ground_truth.csv"
-    write_outputs(events, str(log_path), str(gt_path))
+    write_outputs(events, str(log_path), str(gt_path), host=host)
 
     scored = detect_on_log(str(log_path), str(work_dir / f"{name}_parsed.csv"),
-                           contamination=contamination)
+                           year=year, contamination=contamination)
     result = measure(scored, pd.read_csv(gt_path), str(log_path))
     result["condition"] = name
     result["strategies"] = strategies

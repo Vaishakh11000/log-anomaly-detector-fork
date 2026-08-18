@@ -80,13 +80,40 @@ def template_message(message: str) -> str:
     return templated
 
 
-def preprocess_file(input_path: str, output_path: str, year: int = None) -> pd.DataFrame:
+# A backwards jump of more than this many months between consecutive lines is
+# read as a new year rather than as out-of-order logging. Syslog omits the year,
+# so Dec -> Jan (a drop of 11) is indistinguishable from Jan -> Dec without it.
+# The threshold keeps ordinary jitter (Mar -> Feb) from inventing a year.
+YEAR_ROLLOVER_MIN_DROP = 6
+
+
+def preprocess_file(input_path: str, output_path: str, year: int = None,
+                    handle_year_rollover: bool = True) -> pd.DataFrame:
+    """Parse a raw log file into the structured frame the pipeline scores.
+
+    `handle_year_rollover` matters for any log spanning New Year: syslog carries
+    no year, so a fixed one places January *before* December and silently
+    corrupts every window-based computation downstream -- incident grouping, the
+    impossible-travel check, and any SIEM frequency rule compared against them.
+    It is a no-op on single-month corpora such as the v1 synthetic set.
+    """
     records = []
+    current_year = year
+    previous_month = None
+
     with open(input_path, "r", errors="ignore") as f:
         for line in f:
-            parsed = parse_line(line, year=year)
+            parsed = parse_line(line, year=current_year)
             if parsed is None:
                 continue
+
+            if handle_year_rollover and parsed["timestamp"] is not None:
+                month = parsed["timestamp"].month
+                if (previous_month is not None
+                        and previous_month - month >= YEAR_ROLLOVER_MIN_DROP):
+                    current_year = (current_year or parsed["timestamp"].year) + 1
+                    parsed = parse_line(line, year=current_year)
+                previous_month = month
             parsed["user"] = extract_user(parsed["message"])
             parsed["source_ip"] = extract_ip(parsed["message"])
             parsed["template"] = template_message(parsed["message"])

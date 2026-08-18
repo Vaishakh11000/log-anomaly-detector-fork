@@ -364,19 +364,16 @@ justified building that far.
 
 > **Agent: update this section at the end of every session.**
 
-**Current stage:** Stage 0 complete (minus the deferred DB) → Stage 1 next
-**Last session:** 2026-08-18 (package restructure, pytest, CI)
+**Current stage:** Stage 1 — benchmark platform + the §1b kill point
+**Stage 1 started:** 2026-08-18 → **kill-point deadline 2026-09-15** (4 weeks, §1b)
+**Last session:** 2026-08-18 (Stage 0 closed, Stage 1 opened)
 **Last commit:** _(see `git log`)_
 
-> **Next session, first thing (~8 min):** `uv run logdet-adversarial`, then
-> `diff docs/results.v1/adversarial_results.md results/adversarial_results.md`.
-> It is the one piece of Stage 0 verification left unrun — the session was paused
-> for battery partway through it. Everything else is confirmed byte-identical to
-> v1: the pipeline (751 → 130 → 94 incidents, locked in
-> `tests/test_pipeline_regression.py`) and the full baseline comparison
-> (`results/evaluation.md` diffs clean against `docs/results.v1/evaluation.md`).
-> Expect the adversarial run to match too — confirm it, then start Stage 1
-> (§1b kill point).
+> **Stage 0 is fully verified.** All three tracks reproduce v1 byte-for-byte after
+> the restructure: the pipeline (751 → 130 → 94 incidents, locked in
+> `tests/test_pipeline_regression.py`), `results/evaluation.md`, and
+> `results/adversarial_results.md`. Nothing about detection changed, which is what
+> made it safe to build Stage 1 on top.
 
 ### Stage checklist
 
@@ -482,6 +479,17 @@ justified building that far.
   honest fix.
 - `preprocessing.py`'s `__main__` is a required-args CLI, so it has no no-arg smoke test.
   Moot once pytest lands in Stage 0.
+- **`Linux.log` parses at only 76%.** The 6,140 unparsed lines are all
+  `su(pam_unix)[2077]:` — the process field carries parentheses, which
+  `LOG_LINE_RE`'s `[\w\-/.]+` rejects. These are exactly the user-session lines
+  that would be most interesting in that corpus. OpenSSH (the primary) parses at
+  100%, so this does not block the kill point. Fix when the Linux corpus is
+  actually used.
+- **Alert volume is worse on real data than the v1 headline.** The clean
+  kill-point corpus (2,532 lines, 9 attack instances) produces **193 incidents**
+  against v1's 94 on 751 synthetic lines. Instance detection is still 100%. More
+  evidence that precision, not recall, is the problem to solve — and that
+  synthetic data was flattering it.
 - v1's severity tiers do not cleanly separate precision by tier (medium is noisier than
   low). Informal calls against a 45-line ground truth, never calibrated. Stage 3.
 
@@ -752,3 +760,7 @@ The frozen demo folder deliberately commits it instead — do not copy that choi
 | 2026-08-18 | Stage 0's persistence layer (SQLite/DuckDB) deferred to Stage 2 rather than built now | Stage 1 produces JSON and Markdown reports, which files serve perfectly well; the first thing that genuinely needs a store is Stage 2's streaming ingestion. Building it now would delay the §1b kill point — the measurement that decides whether any of the later stages are worth building — by a session, to serve a need that does not yet exist. If the kill point says stop, the DB was never needed |
 | 2026-08-18 | Config paths anchored to the repo root via `PROJECT_ROOT`, overridable with `LOGDET_PROJECT_ROOT` | v1's bare relative strings (`"data/raw"`) silently resolved against the working directory, so any command run from elsewhere wrote its output somewhere unexpected — and pytest runs from wherever it is invoked. The env override exists so an eval run can be pointed at a scratch tree without editing config |
 | 2026-08-18 | v1's headline numbers pinned in an end-to-end test (`tests/test_pipeline_regression.py`, marked `slow`, skipped in CI) | 751 lines → 130 anomalies → 94 incidents is what "the refactor changed nothing" means, and asserting it is cheaper than re-deriving it by hand each time. Marked `slow` because it downloads the sentence-transformer. The test's docstring states the rule explicitly: if a number changes, that is a detection change and §4 applies — re-run the adversarial suite over ≥5 seeds and record the delta *before* touching the expected value. A green test bought by editing the constant is worse than no test |
+| 2026-08-18 | **Sigma dropped as the third-party ruleset; Wazuh promoted to primary.** The §1b criterion (≥25pt / 10-25pt / <10pt) is unchanged | Measured, not assumed: across all ~3,300 rules in the official SigmaHQ repo (`rules/`, `rules-emerging-threats/`, `rules-threat-hunting/`, `deprecated/`, `unsupported/`) **not one matches `Failed password`, `Accepted password`, `Invalid user` or `pam_unix`**. Sigma's 210 Linux rules are 122 process_creation + 53 auditd + 8 file_event + 5 network_connection, all needing auditd/Sysmon-for-Linux telemetry this project does not have; the single `service: sshd` rule matches libssh crypto-exploit strings, not authentication. **Zero Linux rules use a frequency/threshold condition** — precisely the rule class `slow` camouflage is built to defeat. Sigma would therefore score ~0 recall *before* any camouflage, and a system that detects nothing cannot exhibit a measurable degradation. §1b chose Sigma on packaging convenience ("pure Python, no daemon"), which is not a reason that survives the rule inventory. Wazuh's `0095-sshd_rules.xml` has 7 frequency rules written for exactly these lines (e.g. 5712: `frequency=8 timeframe=120 same_source_ip`, tagged T1110). Only the ruleset identity changed — §1b already named Wazuh as an option, and the deciding threshold was not touched. The Sigma coverage gap is itself worth reporting |
+| 2026-08-18 | Wazuh runs as the **real manager in Docker**, not as a reimplementation of its rule semantics | Third-party rules executed by a third-party engine is the strongest available answer to "you graded your own homework". Writing our own evaluator for Wazuh's XML would keep the rules third-party but make the *matching* ours — reintroducing author influence at exactly the layer the kill point is measuring, and Wazuh's decoder chain plus `if_matched_sid`/`frequency`/`same_source_ip` semantics are intricate enough that a faithful reimplementation is its own research project |
+| 2026-08-18 | Kill-point background = **real benign OpenSSH lines + real attacker traffic downsampled to a declared `ambient_ratio`**, attacks injected on top | §3b assumed OpenSSH could supply "real benign traffic". Measured, it cannot: 66-83% of *every day* is internet brute force and only ~2.4k of 655k lines are genuinely benign. Injecting into the raw corpus would make brute force the statistical majority of "normal", so an injected brute force scores as an *inlier* — the resulting differential would measure base-rate contamination rather than camouflage robustness, invalidating the experiment rather than failing it honestly. Building the background explicitly keeps every line real (2,483 background lines, 9 real users at their genuine home subnets, host `LabSZ`) while making the ambient-attack density a parameter to report sensitivity across rather than a hidden default. Real: background lines, usernames, host, vocabulary. Authored: the injected instances and the camouflage layer — which is the layer this project is supposed to own |
+| 2026-08-18 | Year-rollover inference added to `preprocess_file` (default on, no-op on single-month corpora) | The OpenSSH corpus runs Dec 10 → Jan 07 and syslog carries no year, so a fixed year places January *before* December and silently corrupts every window-based computation — incident grouping, impossible travel, and any SIEM frequency rule compared against them. Silent time-scrambling would have produced a kill-point number that looked plausible and meant nothing. Verified a no-op on the v1 synthetic corpus (single month): all 99 tests including the 94-incident regression lock stayed green |

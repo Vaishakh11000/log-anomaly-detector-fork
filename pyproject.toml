@@ -23,6 +23,9 @@ logdet-generate    = "logdet_eval.generate_logs:cli"
 logdet-evaluate    = "logdet_eval.evaluate:cli"
 logdet-adversarial = "logdet_eval.adversarial:cli"
 logdet-samples     = "logdet_eval.export_samples:cli"
+logdet-fetch-data  = "logdet_eval.datasets:cli"
+logdet-corpus      = "logdet_eval.corpus_openssh:cli"
+logdet-killpoint   = "logdet_eval.killpoint:cli"
 
 [dependency-groups]
 dev = [

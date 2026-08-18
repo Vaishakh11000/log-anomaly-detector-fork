@@ -198,10 +198,17 @@ def gen_scenario_a(user: str, day_start: datetime, instance: int) -> list[dict]:
     return events
 
 
-def gen_scenario_b(user: str, day_start: datetime, instance: int) -> list[dict]:
-    """Normal login from usual IP, then ~15 min later a success from a different IP range."""
+def gen_scenario_b(user: str, day_start: datetime, instance: int,
+                   home_subnet: str | None = None) -> list[dict]:
+    """Normal login from usual IP, then ~15 min later a success from a different IP range.
+
+    `home_subnet` overrides the synthetic USER_HOME_SUBNET table. The real-corpus
+    path (corpus_openssh.py) passes the subnet each user genuinely logs in from,
+    so the "usual location" leg is the account's actual usual location. Left None
+    the behaviour is exactly v1's.
+    """
     start = day_start + timedelta(hours=random.randint(7, 20), minutes=random.randint(0, 40))
-    home_ip = rand_ip(USER_HOME_SUBNET[user])
+    home_ip = rand_ip(home_subnet or USER_HOME_SUBNET[user])
     foreign_ip = rand_ip(random.choice(FOREIGN_SUBNETS))
     port = rand_port()
 
