@@ -165,49 +165,102 @@ Explicitly now **allowed**, and mostly required:
 
 ---
 
-## 2c. Hardware Tiers
+## 2c. Hardware Topology
 
-Two physical machines, split by **role, not by clustering.**
+The key fact that shapes everything here: **the whole dev environment lives on a
+portable USB SSD, not inside any one laptop.** Verified 2026-08-17 — `sda` (USB) holds
+`/boot`, the LUKS root, and `/home`; the analyzer role is therefore *wherever the SSD is
+booted*, a boot-time choice rather than a porting problem. This is why there is no
+"port it to Windows" work: you boot native Linux on whatever hardware the SSD is in.
 
-| | Machine A — "monitored host" | Machine B — "analyzer" |
+Two roles, split by **role, not by clustering.**
+
+| | ANALYZER | ADVERSARY + MONITORED HOST + SIEM |
 |---|---|---|
-| Hardware | Arch, 16GB RAM, **no GPU**, ~5GB free | Laptop, **RTX 4060 8GB VRAM** |
-| Role | Emits logs (journald), runs the third-party SIEM (Wazuh/Sigma), plays the box under attack | Embeddings, sequence models, Ollama, dashboard, API |
-| Also serves as | **The CPU-floor benchmark target** — this is what proves "runs on CPU" is measured, not claimed | Primary dev machine for detection work |
+| Hardware | Gaming laptop, **RTX 4060 8GB**, booting the portable SSD | Office laptop, **Kali on its own NVMe** (SSD not needed here) |
+| Runs | Embeddings, sequence models, Ollama, dashboard, API, the detector | Real attack tooling (hydra/medusa/nmap), emits `auth.log`/journald, runs Sigma/Wazuh |
+| Also is | Primary dev machine for detection work | Generates *authentic* attacks — see §2d |
 
-**Do not cluster them for compute.** Every model in this project fits on one 8GB GPU
-(phi3-mini q4 ≈ 2.3GB, llama3:8b q4 ≈ 4.7GB, MiniLM ≈ 0.1GB, sequence models
-negligible). Splitting a model that already fits, across a link three orders of
-magnitude slower than on-card memory, makes inference *slower* while adding
-`torch.distributed`/Ray complexity and a new class of demo-day failure.
+The **CPU-floor benchmark target** is the same SSD env booted *without* using the GPU
+(or on any GPU-less machine) — that is what keeps "runs on CPU" a measured claim.
 
-Role-splitting is different, and it is worth it: it resolves the RAM squeeze (Wazuh on
-A, Ollama on B), it *is* the collector/analyzer split from Stage 7 pulled forward, and
-an examiner watching logs originate on one physical machine and alerts appear on
-another is much harder to dismiss than two panes of one Streamlit app.
+**Do not cluster the two for compute.** Every model fits on one 8GB GPU (phi3-mini q4
+≈ 2.3GB, llama3:8b q4 ≈ 4.7GB, MiniLM ≈ 0.1GB, sequence models negligible). Splitting a
+model that already fits, across a link three orders of magnitude slower than on-card
+memory, makes inference *slower* while adding `torch.distributed`/Ray complexity and a
+new demo-day failure class. Role-splitting is different and worth it: it is the Stage 7
+collector/analyzer split pulled forward, and an examiner watching attacks launched on
+one physical machine and alerts appear on another is far harder to dismiss than two
+panes of one app.
+
+### The SSD is single-occupancy — design for it
+
+The SSD can be in **only one machine at a time.** During the bake-off it is in the
+gaming laptop (the analyzer needs the GPU). That means the Kali box must run its share
+**without the repo present** — the collector, the SIEM config, and the attack scripts
+have to be independently deployable, not "assume the whole project is checked out here."
+Build the collector as a small standalone piece from Stage 2 onward; do not retrofit
+this later. See §2d.
+
+### When to move the SSD to the gaming laptop
+
+Not yet, and not for a while. Do the move **once, at the start of Stage 2** — that is
+the first stage that actually needs the GPU (live narration) and the second machine
+(the split). Everything before it is single-box work that is easier on your current
+setup:
+
+- **Stages 0-1 (foundation + benchmark + the §1b kill point): stay where you are.**
+  These are batch, one-machine, CPU-fine. The kill point is explicitly "one machine,
+  batch mode" — do not entangle a hardware migration with the experiment that decides
+  whether the roadmap continues at all. If the kill point says stop, you never needed
+  the gaming laptop.
+- **Prep the gaming laptop *during* Stage 1** (background, low-risk): install the NVIDIA
+  driver, test-boot the SSD on it, confirm the 4060 is visible. Details below. Doing
+  this early de-risks the Stage 2 move without blocking Stage 1.
+- **Move at Stage 2 start**, once the kill point has said "continue." From then on the
+  gaming laptop is the dev/analyzer machine.
+
+### Preparing the gaming laptop (do during Stage 1, before the move)
+
+1. **Install the NVIDIA driver now, while this machine has working internet** — you have
+   `linux-firmware-nvidia` but *not* the kernel driver (verified 2026-08-17):
+   ```bash
+   sudo pacman -S nvidia-open-dkms dkms linux-headers   # nvidia-open = right choice for Ada/4060
+   ```
+   DKMS rebuilds it across kernel updates. It sits dormant until booted on GPU hardware.
+2. **`autodetect` is in your HOOKS** (verified) — it bakes only *this* laptop's modules
+   into the initramfs, so a foreign-hardware boot often can't find root. Arch also builds
+   a `-fallback` image without autodetect: **boot the fallback menu entry the first time
+   on the gaming laptop.** If that works, either leave it, or drop `autodetect` from
+   `HOOKS` and `mkinitcpio -P` for a seamless default boot.
+3. **Gaming-laptop UEFI:** disable Secure Boot, enable USB boot, use a USB 3.x port (a
+   USB-2 negotiation makes everything crawl). You will enter the LUKS passphrase at boot.
+   Booting the SSD does **not** touch the laptop's internal Windows install.
+4. **Test-boot well before any demo**, never the night before.
 
 ### The link
 
-**Direct gigabit ethernet.** Machine A has *no ethernet port and no Thunderbolt/USB4
-controller* (verified 2026-08-17: only `wlo1`; Alder Lake PCH with plain USB 3.2 xHCI,
-no JHL chip). So: one USB-C/USB-A gigabit adapter for A, any Cat5e/Cat6 cable,
-auto-MDIX handles the rest. A plain USB-C cable between two laptops does **not**
-provide networking without Thunderbolt/USB4 on both ends.
+**Direct gigabit ethernet, one Cat6 cable, no switch.** Both laptops have their own
+ports here (the earlier "no ethernet port" note applied only to the old Arch box, which
+is no longer in the topology). Auto-MDIX means no crossover cable is needed.
 
-Thunderbolt is not an option on this hardware, and it would buy nothing anyway —
-**bandwidth is not the constraint.** 10k log lines/sec at ~200 bytes is ~2 MB/s, about
-1.6% of a gigabit link. Optimise for reliability, not throughput.
+A single USB-C / Thunderbolt cable does **not** carry a network between two laptops
+unless *both* ends are Thunderbolt/USB4 host-to-host — a plain USB-C link is not
+networking. Ethernet is the reliable choice and loses nothing: **bandwidth is not the
+constraint.** 10k log lines/sec at ~200 bytes ≈ 2 MB/s ≈ 1.6% of a gigabit link.
+Optimise for reliability, not throughput. If both machines *do* turn out to have real
+Thunderbolt/USB4, it works and is faster, but it buys nothing you can use here and adds
+setup fragility — prefer ethernet.
 
-Do not build the link on campus WiFi (`SJCEM`, measured -76 dBm): AP client isolation
-very commonly blocks laptop-to-laptop traffic entirely, and it is undebuggable in a
-demo room.
+Do not build the link on campus/shared WiFi: AP client isolation commonly blocks
+laptop-to-laptop traffic entirely and is undebuggable in a demo room.
 
 ```bash
-# Machine A, once the adapter is attached (find the name with: ip -br link)
-nmcli con add type ethernet ifname enp0s20u1 con-name direct-link ip4 10.10.10.1/24
+# Analyzer (gaming laptop). Find the interface name with: ip -br link
+nmcli con add type ethernet ifname enp3s0 con-name direct-link ip4 10.10.10.2/24
 nmcli con mod direct-link ipv4.never-default yes   # or WiFi internet dies mid-demo
 nmcli con up direct-link
-# Machine B: same, 10.10.10.2/24. No gateway, no DNS, no DHCP on this link.
+# Kali box: 10.10.10.1/24 the same way. No gateway, no DNS, no DHCP on this link.
 ```
 
 ### Reliability is in the shipping code, not the cable
@@ -217,7 +270,7 @@ nmcli con up direct-link
 - HTTP POST with retry, never a raw socket: resume is trivial over one and painful over the other
 - Link health + lag visible on the dashboard — "is it connected?" must be answerable by
   looking, not by inferring from an absence of alerts
-- Test the exact adapter and cable you will present with, not an equivalent one
+- Test the exact cable you will present with, not an equivalent one
 
 ### What the 4060 unlocks, and what it does not
 
@@ -227,8 +280,55 @@ training, full-corpus LogHub runs, Wazuh's full stack alongside Ollama.
 
 Does not: 70B models, full fine-tuning, transformer pretraining. None of which are needed.
 
-Note mobile 4060s throttle under sustained load — expect long eval runs to report
-slower per-item numbers than short ones, and plug in.
+Mobile 4060s throttle under sustained load — expect long eval runs to report slower
+per-item numbers than short ones, and plug in.
+
+---
+
+## 2d. The Kali Machine — Authentic Attack Generation
+
+Kali is not just "the other laptop"; it is a **methodological upgrade**, and it belongs
+in the software as a distinct role.
+
+The credibility problem Kali solves is the twin of the third-party-ruleset problem. v1's
+weakness was "you wrote the attacks *and* the rules that catch them." §1b removes the
+self-written rules by adopting Sigma/Wazuh. Kali removes the self-written *attacks* for
+the un-camouflaged case: instead of injecting fabricated log lines, **run real tooling
+against a real sshd and capture the genuine log entries it produces.**
+
+- `hydra` / `medusa` against a local sshd → authentic failed-password bursts (Scenario A)
+- `nmap` / scripted multi-user probes → authentic enumeration (Scenario C)
+- real logins from a second source → impossible travel (Scenario B), which stays partly
+  synthetic because it needs geographically distinct IPs
+
+The base attacks become authentic traffic from standard tools; **only the camouflage
+layer remains authored** — and that is exactly the layer the project is *supposed* to
+own, because measuring camouflage is the contribution.
+
+### How Kali becomes part of the software (not just a laptop)
+
+A separate, independently deployable component — because §2c's SSD is single-occupancy,
+this code cannot assume the repo is checked out on the Kali box:
+
+- **`attack_runner/`** — a small standalone package (its own `pyproject.toml`, or even a
+  single script + `requirements`) that: (1) drives the attack tools with known
+  parameters, (2) records exact ground truth — which lines each tool produced, with
+  timestamps, so scoring stays automatic, (3) applies the camouflage transforms to the
+  *real* captured lines, and (4) ships them to the analyzer over the §2c link.
+- Ground truth is captured **at generation time on Kali**, then travels with the logs.
+  This is the same principle as v1's decision to camouflage the event list rather than
+  the finished file (see `docs/CLAUDE.v1.md`) — keep each attack line bound to its
+  scenario/instance label through every transformation.
+- The camouflage strategies themselves are shared library code, imported by both
+  `attack_runner/` (real-log path) and the existing `adversarial.py` (synthetic path),
+  so the two evaluation tracks apply *identical* transforms and remain comparable.
+- Keep it honest in the write-up: base attacks are real tool output; camouflage is
+  authored; impossible-travel's second IP is synthetic by necessity. State all three.
+
+**Land this at Stage 6 (adversarial platform), not before.** Stages 1-5 run fine on the
+synthetic corpus and OpenSSH; Kali-generated attacks are the strongest version of the
+adversarial track, so they belong with the adaptive adversary, once the kill point has
+justified building that far.
 
 ---
 
@@ -305,8 +405,9 @@ slower per-item numbers than short ones, and plug in.
       asserted and untested.
 - [ ] **Stage 6 — Adversarial platform.** ⭐ *The differentiator.* More strategies; an
       **adaptive adversary** that queries the detector and optimises against it (far
-      stronger than v1's seven fixed transformations); independent red-teaming by other
-      people. Long-term this is the publishable part.
+      stronger than v1's seven fixed transformations); **Kali-generated authentic
+      attacks** (§2d) replacing injected synthetic lines for the un-camouflaged case;
+      independent red-teaming by other people. Long-term this is the publishable part.
 - [ ] **Stage 7 — Multi-source & deployment.** Auth + syslog + web + journald normalised
       onto a common schema (**ECS** is the standard; adopting it buys interop).
       Collector/analyzer split, Docker compose. This is where the project outgrows the
@@ -583,3 +684,6 @@ The frozen demo folder deliberately commits it instead — do not copy that choi
 | 2026-08-17 | Two laptops split by **role** (monitored host + SIEM / analyzer), explicitly **not clustered for compute**; direct gigabit ethernet, not Thunderbolt or WiFi | Clustering solves "the model does not fit", which is not a problem here — phi3 q4 ≈ 2.3GB and llama3:8b q4 ≈ 4.7GB both fit an 8GB 4060 with headroom, so splitting across a link three orders of magnitude slower than on-card memory makes inference *slower* while adding distributed-training complexity and demo-day failure modes. Role-splitting instead resolves the RAM squeeze, is the Stage 7 collector/analyzer split pulled forward, and is visibly harder to dismiss than two panes of one app. Thunderbolt is not merely unnecessary but *impossible* — machine A has no TB/USB4 controller (verified: Alder Lake PCH, plain USB 3.2 xHCI, no JHL chip) and no ethernet port at all. Bandwidth was never the constraint: 10k lines/sec ≈ 2 MB/s ≈ 1.6% of gigabit. Campus WiFi is excluded because AP client isolation commonly blocks peer-to-peer traffic and is undebuggable in a demo room |
 | 2026-08-17 | GPU is an **accelerator, never a requirement**; CPU single-box remains the supported floor and machine A is kept as the CPU benchmark target | "Runs on a laptop with no GPU" is a genuine differentiator — it is the reason a team with no SOC budget could deploy this. Requiring a GPU turns the project into one more ML security tool with infrastructure demands. Keeping both machines as benchmark targets also turns "runs on CPU, much faster on GPU" from a claim into a measured result on two real machines |
 | 2026-08-17 | Bake-off Act 2 is framed as **"we both detect it, but we bury you in noise"**, not "we fail to detect it" | The user's original framing had the system failing on the obvious attack. It does not — v1 detects 100% of instances on clean data; what it fails at is precision (94 incidents for 9 attacks). The accurate admission is also the more useful one: it names the real weakness, and conceding a loss before showing a win is what makes the win credible rather than staged |
+| 2026-08-17 | Topology revised: the dev environment is on a **portable USB SSD** (verified: `sda` USB holds boot+LUKS-root+home), so the analyzer role is *wherever the SSD boots*. Roles are now **analyzer = gaming laptop/4060 booting the SSD**, and **adversary+monitored+SIEM = office laptop running Kali on its own NVMe** | The SSD being the environment makes "which laptop" a boot choice, not a port — which kills the Windows/WSL option outright (boot native Linux instead; more moving parts, zero gain). The Kali box already has attack tooling and its own disk, so it is the natural adversary/monitored host. The single-occupancy SSD forces the collector/SIEM/attack code on Kali to be independently deployable rather than assuming the repo is present — a Stage 2 design constraint, not a retrofit |
+| 2026-08-17 | **Move the SSD to the gaming laptop at the start of Stage 2, not before**; prep the gaming laptop (NVIDIA driver, fallback-initramfs test-boot) *during* Stage 1 as background work | Stages 0-1 are batch/one-machine/CPU-fine, and the §1b kill point is explicitly one-machine — entangling a hardware migration with the experiment that decides whether the roadmap continues would be a mistake, and if the kill point says stop, the gaming laptop was never needed. Stage 2 is the first stage that needs the GPU (live narration) and the second machine (the split). Prepping early (driver install while internet works, `-fallback` boot because `autodetect` is in HOOKS and bakes in host-specific modules) de-risks the move without blocking Stage 1 |
+| 2026-08-17 | **Kali is a role in the software, not just hardware** — a standalone `attack_runner/` that drives real tools (hydra/medusa/nmap) against a real sshd, captures ground truth at generation time, applies shared camouflage code, and ships to the analyzer. Lands at Stage 6 | Twin of the third-party-ruleset decision: §1b removes self-written *rules*; this removes self-written *attacks* for the un-camouflaged case, leaving only the camouflage layer authored — which is the layer the project is supposed to own. Real tool output as the attack base is a materially stronger claim than injected synthetic lines. Kept for Stage 6 because Stages 1-5 run fine on synthetic + OpenSSH, and authentic attacks are the strongest form of the adversarial track. Camouflage transforms are shared library code imported by both the real-log and synthetic-log paths so the two tracks stay comparable |

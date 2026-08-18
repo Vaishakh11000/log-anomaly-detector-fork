@@ -87,16 +87,18 @@ uv run streamlit run src/dashboard.py
 
 ## Hardware
 
-Two machines, split by **role, not clustered** (`CLAUDE.md` §2c):
+The dev environment lives on a **portable USB SSD**, so the analyzer role is wherever
+the SSD boots. Two roles, split by **role, not clustered** (`CLAUDE.md` §2c-2d):
 
-- **Machine A** — Arch, 16GB, no GPU, ~5GB free. Monitored host, emits logs, runs the
-  third-party SIEM. Also the **CPU-floor benchmark target**.
-- **Machine B** — RTX 4060, 8GB VRAM. Analyzer: embeddings, sequence models, Ollama, UI.
+- **Analyzer** — gaming laptop, RTX 4060 8GB, booting the SSD. Detector, embeddings,
+  sequence models, Ollama, UI.
+- **Adversary + monitored host + SIEM** — office laptop, Kali on its own NVMe. Runs real
+  attack tools (hydra/nmap), emits logs, runs the third-party SIEM.
 
-Linked by direct gigabit ethernet (machine A has no ethernet port and no
-Thunderbolt/USB4 — one USB adapter needed). Not campus WiFi; client isolation commonly
-blocks laptop-to-laptop traffic.
+Linked by a direct gigabit ethernet cable, no switch. Not campus WiFi; client isolation
+commonly blocks laptop-to-laptop traffic. Move the SSD to the gaming laptop at the start
+of Stage 2 — not before; Stages 0-1 and the kill point are one-machine, CPU-fine.
 
-**CPU single-box is the supported floor and must always work.** The GPU and the
-two-machine link are accelerators, never requirements — "runs on a laptop with no GPU"
-is a differentiator worth protecting.
+**CPU single-box is the supported floor and must always work.** The GPU, the second
+machine, and the link are accelerators, never requirements — "runs on a laptop with no
+GPU" is a differentiator worth protecting.
