@@ -43,25 +43,28 @@ from pathlib import Path
 
 import pandas as pd
 
-from config import (
+from logdet.config import (
     CONTAMINATION,
+    INCIDENT_WINDOW_MINUTES,
+    PROCESSED_DATA_DIR,
+    RESULTS_DIR,
+)
+from logdet_eval.config import (
     CAMOUFLAGE_MIN_GAP_MINUTES,
     CAMOUFLAGE_MAX_GAP_MINUTES,
     CAMOUFLAGE_SLOW_MIN_GAP_MINUTES,
     CAMOUFLAGE_SLOW_MAX_GAP_MINUTES,
     CAMOUFLAGE_NOISE_RATIO,
     CAMOUFLAGE_VOLUME_KEEP,
-    INCIDENT_WINDOW_MINUTES,
     SYNTHETIC_SEED,
     SYNTHETIC_YEAR,
     SYNTHETIC_USERS,
-    PROCESSED_DATA_DIR,
 )
-from generate_logs import build_dataset, write_outputs, next_pid
-from preprocessing import preprocess_file
-from embedding import add_embeddings_to_df
-from anomaly_detection import run_anomaly_detection
-from sequence_grouping import group_anomalies
+from logdet_eval.generate_logs import build_dataset, write_outputs, next_pid
+from logdet.preprocessing import preprocess_file
+from logdet.embedding import add_embeddings_to_df
+from logdet.anomaly_detection import run_anomaly_detection
+from logdet.sequence_grouping import group_anomalies
 
 from datetime import timedelta
 
@@ -570,9 +573,9 @@ def main(output_dir: str, seed: int, n_seeds: int,
     return results
 
 
-if __name__ == "__main__":
+def cli() -> None:
     parser = argparse.ArgumentParser(description="Run the adversarial robustness evaluation.")
-    parser.add_argument("--output-dir", default="results")
+    parser.add_argument("--output-dir", default=RESULTS_DIR)
     parser.add_argument("--seed", type=int, default=SYNTHETIC_SEED)
     parser.add_argument("--seeds", type=int, default=5,
                         help="How many consecutive seeds to pool over")
@@ -581,3 +584,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main(args.output_dir, args.seed, args.seeds, contamination=args.contamination)
+
+
+if __name__ == "__main__":
+    cli()

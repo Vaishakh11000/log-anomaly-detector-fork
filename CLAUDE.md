@@ -336,16 +336,37 @@ justified building that far.
 
 > **Agent: update this section at the end of every session.**
 
-**Current stage:** Stage 0 — foundation
-**Last session:** 2026-08-17 (fork created)
-**Last commit:** _(initial)_
+**Current stage:** Stage 0 complete (minus the deferred DB) → Stage 1 next
+**Last session:** 2026-08-18 (package restructure, pytest, CI)
+**Last commit:** _(see `git log`)_
+
+> **Next session, first thing (~8 min):** `uv run logdet-adversarial`, then
+> `diff docs/results.v1/adversarial_results.md results/adversarial_results.md`.
+> It is the one piece of Stage 0 verification left unrun — the session was paused
+> for battery partway through it. Everything else is confirmed byte-identical to
+> v1: the pipeline (751 → 130 → 94 incidents, locked in
+> `tests/test_pipeline_regression.py`) and the full baseline comparison
+> (`results/evaluation.md` diffs clean against `docs/results.v1/evaluation.md`).
+> Expect the adversarial run to match too — confirm it, then start Stage 1
+> (§1b kill point).
 
 ### Stage checklist
 
-- [ ] **Stage 0 — Foundation.** Package restructure (`src/<pkg>/`, `tests/`, entry
-      points), pytest replacing the v1 `__main__` smoke-test convention, GitHub Actions
-      CI, and a persistence layer (SQLite or DuckDB) replacing CSV/JSON files.
-      Unglamorous; everything else depends on it.
+- [x] **Stage 0 — Foundation.** ✅ 2026-08-18, except the DB (see below).
+      Two packages — `src/logdet/` (pipeline) and `src/logdet_eval/` (evaluation) —
+      making §5's one-way dependency rule structural and statically enforced in
+      `tests/test_layering.py` rather than a convention. Console entry points
+      (`logdet-preprocess`, `logdet-pipeline`, `logdet-evaluate`,
+      `logdet-adversarial`, `logdet-generate`, `logdet-samples`) replace
+      `python src/<module>.py`. 99 pytest tests replace the v1 `__main__` smoke-test
+      convention (the smoke blocks stay for debugging). GitHub Actions CI on push/PR.
+      Config paths now resolve against the repo root instead of the working directory.
+      **Detection behaviour verified unchanged**: 751 lines → 130 anomalies (3 via
+      impossible travel) → 94 incidents, identical to v1, and pinned in
+      `tests/test_pipeline_regression.py`.
+      **Persistence layer deliberately deferred to Stage 2**, where streaming is the
+      thing that actually needs a store; Stage 1 writes JSON/Markdown reports, which
+      files handle fine. Deferring it puts the §1b kill point a session closer.
 - [ ] **Stage 1 — Benchmark platform.** ⭐ *Comes before any detection change, and it
       carries the §1b kill point.* Automated eval suite that re-runs on every commit and
       reports deltas vs `docs/results.v1/`. Third-party baselines: **Sigma** (primary —
@@ -642,16 +663,26 @@ export PATH="$HOME/.local/bin:$PATH"   # uv is not on PATH in fresh shells
 uv sync
 ```
 
-v1 commands still work until Stage 0 restructures the package:
+Since Stage 0 the code is two packages -- `src/logdet/` (pipeline) and
+`src/logdet_eval/` (evaluation) -- with console entry points. The old
+`python src/<module>.py` invocations no longer work.
 
 ```bash
-uv run python src/preprocessing.py --input data/raw/synthetic.log --output data/processed/parsed.csv --year 2026
-uv run python src/pipeline.py --input data/processed/parsed.csv --no-llm
-uv run python src/adversarial.py                # robustness eval, 5 seeds, ~8 min
-uv run python src/adversarial.py --seeds 1      # quick pass while iterating
-uv run python src/evaluate.py                   # baseline comparison, ~5 min
-uv run streamlit run src/dashboard.py
+uv run pytest                                   # ~30s, no model download
+uv run pytest -m "not slow"                     # skip anything needing the embedding model
+
+uv run logdet-preprocess --input data/raw/synthetic.log --output data/processed/parsed.csv --year 2026
+uv run logdet-pipeline --input data/processed/parsed.csv --no-llm
+uv run logdet-adversarial                       # robustness eval, 5 seeds, ~8 min
+uv run logdet-adversarial --seeds 1             # quick pass while iterating
+uv run logdet-evaluate                          # baseline comparison, ~5 min
+uv run logdet-generate                          # regenerate the synthetic corpus
+uv run logdet-samples                           # export sample narratives
+uv run streamlit run src/logdet/dashboard.py
 ```
+
+Paths in `config.py` resolve against the repo root, so every command works from any
+directory. `LOGDET_PROJECT_ROOT` overrides the root for scratch runs.
 
 Ollama (separate terminal, required for narrative steps):
 ```bash
@@ -687,3 +718,7 @@ The frozen demo folder deliberately commits it instead — do not copy that choi
 | 2026-08-17 | Topology revised: the dev environment is on a **portable USB SSD** (verified: `sda` USB holds boot+LUKS-root+home), so the analyzer role is *wherever the SSD boots*. Roles are now **analyzer = gaming laptop/4060 booting the SSD**, and **adversary+monitored+SIEM = office laptop running Kali on its own NVMe** | The SSD being the environment makes "which laptop" a boot choice, not a port — which kills the Windows/WSL option outright (boot native Linux instead; more moving parts, zero gain). The Kali box already has attack tooling and its own disk, so it is the natural adversary/monitored host. The single-occupancy SSD forces the collector/SIEM/attack code on Kali to be independently deployable rather than assuming the repo is present — a Stage 2 design constraint, not a retrofit |
 | 2026-08-17 | **Move the SSD to the gaming laptop at the start of Stage 2, not before**; prep the gaming laptop (NVIDIA driver, fallback-initramfs test-boot) *during* Stage 1 as background work | Stages 0-1 are batch/one-machine/CPU-fine, and the §1b kill point is explicitly one-machine — entangling a hardware migration with the experiment that decides whether the roadmap continues would be a mistake, and if the kill point says stop, the gaming laptop was never needed. Stage 2 is the first stage that needs the GPU (live narration) and the second machine (the split). Prepping early (driver install while internet works, `-fallback` boot because `autodetect` is in HOOKS and bakes in host-specific modules) de-risks the move without blocking Stage 1 |
 | 2026-08-17 | **Kali is a role in the software, not just hardware** — a standalone `attack_runner/` that drives real tools (hydra/medusa/nmap) against a real sshd, captures ground truth at generation time, applies shared camouflage code, and ships to the analyzer. Lands at Stage 6 | Twin of the third-party-ruleset decision: §1b removes self-written *rules*; this removes self-written *attacks* for the un-camouflaged case, leaving only the camouflage layer authored — which is the layer the project is supposed to own. Real tool output as the attack base is a materially stronger claim than injected synthetic lines. Kept for Stage 6 because Stages 1-5 run fine on synthetic + OpenSSH, and authentic attacks are the strongest form of the adversarial track. Camouflage transforms are shared library code imported by both the real-log and synthetic-log paths so the two tracks stay comparable |
+| 2026-08-18 | Code split into two packages, `logdet` (pipeline) and `logdet_eval` (evaluation), with the one-way import rule enforced by a static test | §5's "the evaluation track must never be imported by the pipeline" was a convention a single careless import could break silently, and the thing it protects — every number this project reports — is the whole point of the repo. A layout that makes the violation visible, plus an AST test in CI, converts a rule you have to remember into one you cannot break by accident. The eval-only config knobs (`BASELINE_*`, `SYNTHETIC_*`, `CAMOUFLAGE_*`, `EVAL_*`) moved to `logdet_eval/config.py` for the same reason — the test caught them sitting in the pipeline's config, which is where leakage starts |
+| 2026-08-18 | Stage 0's persistence layer (SQLite/DuckDB) deferred to Stage 2 rather than built now | Stage 1 produces JSON and Markdown reports, which files serve perfectly well; the first thing that genuinely needs a store is Stage 2's streaming ingestion. Building it now would delay the §1b kill point — the measurement that decides whether any of the later stages are worth building — by a session, to serve a need that does not yet exist. If the kill point says stop, the DB was never needed |
+| 2026-08-18 | Config paths anchored to the repo root via `PROJECT_ROOT`, overridable with `LOGDET_PROJECT_ROOT` | v1's bare relative strings (`"data/raw"`) silently resolved against the working directory, so any command run from elsewhere wrote its output somewhere unexpected — and pytest runs from wherever it is invoked. The env override exists so an eval run can be pointed at a scratch tree without editing config |
+| 2026-08-18 | v1's headline numbers pinned in an end-to-end test (`tests/test_pipeline_regression.py`, marked `slow`, skipped in CI) | 751 lines → 130 anomalies → 94 incidents is what "the refactor changed nothing" means, and asserting it is cheaper than re-deriving it by hand each time. Marked `slow` because it downloads the sentence-transformer. The test's docstring states the rule explicitly: if a number changes, that is a detection change and §4 applies — re-run the adversarial suite over ≥5 seeds and record the delta *before* touching the expected value. A green test bought by editing the constant is worse than no test |

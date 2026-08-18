@@ -17,7 +17,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from config import DEFAULT_INCIDENTS_PATH, RAW_DATA_DIR
+from logdet.config import DEFAULT_INCIDENTS_PATH, RAW_DATA_DIR, RESULTS_DIR
 
 SCENARIO_NAMES = {
     "A": "Brute force -> successful login -> privilege escalation",
@@ -113,11 +113,15 @@ def main(incidents_path: str, ground_truth_path: str, output_path: str) -> None:
     print(f"Wrote {len(samples)} sample narratives -> {output_path}")
 
 
-if __name__ == "__main__":
+def cli() -> None:
     parser = argparse.ArgumentParser(description="Export one sample narrative per attack scenario.")
     parser.add_argument("--incidents", default=DEFAULT_INCIDENTS_PATH)
     parser.add_argument("--ground-truth", default=f"{RAW_DATA_DIR}/ground_truth.csv")
-    parser.add_argument("--output", default="results/sample_narratives.md")
+    parser.add_argument("--output", default=f"{RESULTS_DIR}/sample_narratives.md")
     args = parser.parse_args()
 
     main(args.incidents, args.ground_truth, args.output)
+
+
+if __name__ == "__main__":
+    cli()

@@ -13,7 +13,7 @@ Phase 3 behaviour) scattered enumeration into N singleton alerts.
 
 import pandas as pd
 
-from config import INCIDENT_WINDOW_MINUTES, GROUP_BY_SOURCE_IP, NON_IDENTITY_VALUES
+from logdet.config import INCIDENT_WINDOW_MINUTES, GROUP_BY_SOURCE_IP, NON_IDENTITY_VALUES
 
 
 def _identity(value) -> str | None:

@@ -15,8 +15,8 @@ Requires Ollama running locally: https://ollama.com
 import pandas as pd
 import requests
 
-from mitre_mapping import map_incident_to_mitre
-from config import (OLLAMA_URL, LLM_MODEL, LLM_TIMEOUT_SECONDS, LLM_NUM_PREDICT,
+from logdet.mitre_mapping import map_incident_to_mitre
+from logdet.config import (OLLAMA_URL, LLM_MODEL, LLM_TIMEOUT_SECONDS, LLM_NUM_PREDICT,
                     LLM_TEMPERATURE, NARRATIVE_SENTENCE_RANGE, NARRATIVE_MAX_EVENTS)
 
 PROMPT_TEMPLATE = """You are a SOC analyst assistant. Below is a sequence of anomalous log events

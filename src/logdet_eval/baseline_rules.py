@@ -18,7 +18,7 @@ in anomaly_detection.py and is admitted only because it is a physics check.
 
 import pandas as pd
 
-from config import (
+from logdet_eval.config import (
     BASELINE_BRUTE_FORCE_WINDOW_MINUTES,
     BASELINE_BRUTE_FORCE_MIN_FAILURES,
     BASELINE_ENUMERATION_WINDOW_MINUTES,

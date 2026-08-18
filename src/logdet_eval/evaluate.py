@@ -31,14 +31,20 @@ from pathlib import Path
 
 import pandas as pd
 
-from adversarial import camouflage_events
-from anomaly_detection import PerUserAnomalyDetector, detect_impossible_travel, run_anomaly_detection
-from baseline_rules import detect as rule_detect, per_rule_counts
-from config import EVAL_CONTAMINATION_SWEEP, EVAL_SEEDS, SYNTHETIC_SEED, SYNTHETIC_YEAR
-from embedding import add_embeddings_to_df
-from generate_logs import build_dataset, write_outputs
-from preprocessing import preprocess_file
-from sequence_grouping import group_anomalies
+from logdet_eval.adversarial import camouflage_events
+from logdet.anomaly_detection import PerUserAnomalyDetector, detect_impossible_travel, run_anomaly_detection
+from logdet_eval.baseline_rules import detect as rule_detect, per_rule_counts
+from logdet.config import RESULTS_DIR
+from logdet_eval.config import (
+    EVAL_CONTAMINATION_SWEEP,
+    EVAL_SEEDS,
+    SYNTHETIC_SEED,
+    SYNTHETIC_YEAR,
+)
+from logdet.embedding import add_embeddings_to_df
+from logdet_eval.generate_logs import build_dataset, write_outputs
+from logdet.preprocessing import preprocess_file
+from logdet.sequence_grouping import group_anomalies
 
 # Camouflage conditions for the generalisation test. Chosen because they attack
 # *wording*, which is exactly the axis a keyword rule cannot survive and an
@@ -515,9 +521,9 @@ def main(output_dir: str = "results", seeds: int = EVAL_SEEDS,
     return agg
 
 
-if __name__ == "__main__":
+def cli() -> None:
     parser = argparse.ArgumentParser(description="Phase 7 evaluation: baseline vs embeddings.")
-    parser.add_argument("--output-dir", default="results")
+    parser.add_argument("--output-dir", default=RESULTS_DIR)
     parser.add_argument("--seeds", type=int, default=EVAL_SEEDS,
                         help="number of seeds to pool over")
     parser.add_argument("--seed", type=int, default=SYNTHETIC_SEED, help="first seed")
@@ -527,3 +533,7 @@ if __name__ == "__main__":
 
     main(args.output_dir, seeds=args.seeds, start_seed=args.seed,
          render_only=args.render_only)
+
+
+if __name__ == "__main__":
+    cli()

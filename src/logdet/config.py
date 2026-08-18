@@ -5,6 +5,9 @@ scattered as magic numbers across modules -- makes tuning sessions fast
 and keeps AI-assisted edits from drifting values apart across files.
 """
 
+import os
+from pathlib import Path
+
 # --- Embedding ---
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 EMBEDDING_BATCH_SIZE = 64
@@ -62,47 +65,18 @@ NARRATIVE_MAX_EVENTS = 25     # cap events pasted into one prompt; the rest are 
 NARRATE_SEVERITIES = {"high"}
 NARRATE_MIN_EVENTS = 2
 
-# --- Synthetic dataset generation (Phase 2) ---
-SYNTHETIC_HOST = "server1"
-SYNTHETIC_USERS = ["alice", "bob", "carol", "dave", "admin"]
-SYNTHETIC_DAYS = 5                    # simulated days the log spans
-SYNTHETIC_TOTAL_LINES = 750           # target total line count, incl. attack lines
-SYNTHETIC_INSTANCES_PER_SCENARIO = 3  # how many times each of A/B/C occurs
-SYNTHETIC_SEED = 42
-SYNTHETIC_YEAR = 2026                 # must match --year passed to preprocessing.py
-
-# --- Adversarial camouflage (Phase 5) ---
-# Two temporal spreads on purpose, straddling INCIDENT_WINDOW_MINUTES (30): the
-# narrow one stays inside the grouping window, the wide one steps past it. The
-# pair is what shows the window is the thing doing the work.
-CAMOUFLAGE_MIN_GAP_MINUTES = 8
-CAMOUFLAGE_MAX_GAP_MINUTES = 20
-CAMOUFLAGE_SLOW_MIN_GAP_MINUTES = 35
-CAMOUFLAGE_SLOW_MAX_GAP_MINUTES = 90
-CAMOUFLAGE_NOISE_RATIO = 1.5   # benign noise lines injected per attack line
-CAMOUFLAGE_VOLUME_KEEP = 0.5   # share of repeated mid-sequence attack lines kept
-                               # ("low and slow": make less noise, not different noise)
-
-# --- Rule-based baseline (Phase 7 evaluation only) ---
-# These drive src/baseline_rules.py, which exists ONLY as the comparison baseline
-# for evaluation target #1. It is deliberately the SIEM this project differentiates
-# from -- do not wire it into pipeline.py (see Anti-Goals in CLAUDE.md).
-BASELINE_BRUTE_FORCE_WINDOW_MINUTES = 5
-BASELINE_BRUTE_FORCE_MIN_FAILURES = 3    # N failed passwords for one user in the window
-BASELINE_ENUMERATION_WINDOW_MINUTES = 10
-BASELINE_ENUMERATION_MIN_USERS = 3       # distinct usernames failing from one source IP
-# Substrings a conventional SIEM would alert on. Verified against the synthetic
-# corpus: these match attack lines only -- the baseline is not a strawman.
-BASELINE_PRIVILEGE_KEYWORDS = (
-    "command=/bin/su", "su root", "to group sudo", "to group wheel",
-    "useradd", "adduser",
-)
-
-# --- Evaluation (Phase 7) ---
-EVAL_CONTAMINATION_SWEEP = [0.05, 0.10, 0.15, 0.20, 0.25]
-EVAL_SEEDS = 5                # pooled like Phase 5: 9 attack instances move rates in coarse steps
-
 # --- Paths ---
-RAW_DATA_DIR = "data/raw"
-PROCESSED_DATA_DIR = "data/processed"
-DEFAULT_INCIDENTS_PATH = "data/processed/incidents.json"
+# Anchored to the repo root, not the working directory. v1 used bare relative
+# strings, which silently wrote to the wrong place whenever a command ran from
+# anywhere but the project root -- and pytest runs from wherever it likes.
+# Override with LOGDET_PROJECT_ROOT (used by tests that need a scratch tree).
+PROJECT_ROOT = Path(
+    os.environ.get("LOGDET_PROJECT_ROOT", Path(__file__).resolve().parents[2])
+)
+DATA_DIR = PROJECT_ROOT / "data"
+RAW_DATA_DIR = str(DATA_DIR / "raw")
+PROCESSED_DATA_DIR = str(DATA_DIR / "processed")
+DEFAULT_INCIDENTS_PATH = str(DATA_DIR / "processed" / "incidents.json")
+# New results go here. docs/results.v1/ is the frozen v1 baseline and is never
+# written to (CLAUDE.md section 6).
+RESULTS_DIR = str(PROJECT_ROOT / "results")

@@ -18,7 +18,7 @@ explicit anti-goal. Reference: https://attack.mitre.org/techniques/enterprise/
 
 import pandas as pd
 
-from config import ENUMERATION_MIN_DISTINCT_USERS
+from logdet.config import ENUMERATION_MIN_DISTINCT_USERS
 
 MITRE_LOOKUP = [
     {

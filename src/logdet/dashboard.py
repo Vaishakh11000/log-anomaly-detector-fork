@@ -20,7 +20,7 @@ import json
 import pandas as pd
 import streamlit as st
 
-from config import NARRATE_MIN_EVENTS, NARRATE_SEVERITIES
+from logdet.config import NARRATE_MIN_EVENTS, NARRATE_SEVERITIES
 
 st.set_page_config(page_title="LLM Log Anomaly Detector", layout="wide")
 

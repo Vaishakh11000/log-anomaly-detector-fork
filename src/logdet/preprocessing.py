@@ -98,7 +98,7 @@ def preprocess_file(input_path: str, output_path: str, year: int = None) -> pd.D
     return df
 
 
-if __name__ == "__main__":
+def cli() -> None:
     parser = argparse.ArgumentParser(description="Parse and template raw log files.")
     parser.add_argument("--input", required=True, help="Path to raw log file")
     parser.add_argument("--output", required=True, help="Path to write parsed CSV")
@@ -106,3 +106,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     preprocess_file(args.input, args.output, year=args.year)
+
+
+if __name__ == "__main__":
+    cli()

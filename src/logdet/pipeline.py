@@ -14,12 +14,12 @@ import argparse
 import json
 import pandas as pd
 
-from embedding import add_embeddings_to_df
-from anomaly_detection import run_anomaly_detection, highest_severity
-from sequence_grouping import group_anomalies, describe_incident
-from mitre_mapping import map_incident_to_mitre
-from llm_narrative import generate_narrative
-from config import NARRATE_SEVERITIES, NARRATE_MIN_EVENTS
+from logdet.embedding import add_embeddings_to_df
+from logdet.anomaly_detection import run_anomaly_detection, highest_severity
+from logdet.sequence_grouping import group_anomalies, describe_incident
+from logdet.mitre_mapping import map_incident_to_mitre
+from logdet.llm_narrative import generate_narrative
+from logdet.config import NARRATE_SEVERITIES, NARRATE_MIN_EVENTS, DEFAULT_INCIDENTS_PATH
 
 
 def should_narrate(severity: str, event_count: int) -> bool:
@@ -93,10 +93,10 @@ def run_pipeline(input_csv: str, output_json: str, use_llm: bool = True,
     return results
 
 
-if __name__ == "__main__":
+def cli() -> None:
     parser = argparse.ArgumentParser(description="Run the full log anomaly detection pipeline.")
     parser.add_argument("--input", required=True, help="Parsed log CSV (from preprocessing.py)")
-    parser.add_argument("--output", default="data/processed/incidents.json")
+    parser.add_argument("--output", default=DEFAULT_INCIDENTS_PATH)
     parser.add_argument("--no-llm", action="store_true", help="Skip LLM narrative generation")
     parser.add_argument("--narrate-all", action="store_true",
                         help="Narrate every incident, ignoring the NARRATE_* budget policy (slow)")
@@ -104,3 +104,7 @@ if __name__ == "__main__":
 
     run_pipeline(args.input, args.output, use_llm=not args.no_llm,
                  narrate_all=args.narrate_all)
+
+
+if __name__ == "__main__":
+    cli()

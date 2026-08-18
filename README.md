@@ -27,8 +27,10 @@ Inherited context lives in [`docs/`](docs/):
 
 ## Status
 
-**Stage 0 — foundation.** The code here is currently v1's code, unmodified. See the
-stage checklist in `CLAUDE.md` §3.
+**Stage 0 — foundation.** Package restructure, test suite, and CI are in; the
+persistence layer is deferred to Stage 2, where streaming actually needs it. Detection
+behaviour is unchanged from v1 and verified so — see the stage checklist in
+`CLAUDE.md` §3.
 
 Roadmap in brief: foundation → benchmark platform (third-party SIEM baselines, real
 LogHub data) → live ingestion → detection depth (Drain3, sequence modelling) →
@@ -72,18 +74,39 @@ ollama serve
 ollama pull phi3
 ```
 
+## Layout
+
+Two packages, and the boundary between them is load-bearing:
+
+```
+src/logdet/        the detection pipeline -- parsing, embeddings, detection,
+                   grouping, MITRE mapping, narrative, interfaces
+src/logdet_eval/   the evaluation track -- synthetic corpus, camouflage suite,
+                   rule baselines, benchmark harness
+tests/             pytest; runs in ~30s with no model download
+```
+
+`logdet_eval` imports `logdet` freely. **The reverse is forbidden** — measuring a system
+with code that system depends on is how benchmarks lie (`CLAUDE.md` §5). The rule is
+enforced statically in `tests/test_layering.py`, not left to discipline.
+
 ## Run
 
-v1 entry points, valid until Stage 0 restructures the package:
-
 ```bash
-uv run python src/preprocessing.py --input data/raw/synthetic.log \
+uv run pytest                        # ~30s, no model download
+
+uv run logdet-preprocess --input data/raw/synthetic.log \
     --output data/processed/parsed.csv --year 2026
-uv run python src/pipeline.py --input data/processed/parsed.csv --no-llm
-uv run python src/adversarial.py     # robustness eval, 5 seeds, ~8 min
-uv run python src/evaluate.py        # baseline comparison, ~5 min
-uv run streamlit run src/dashboard.py
+uv run logdet-pipeline --input data/processed/parsed.csv --no-llm
+uv run logdet-adversarial            # robustness eval, 5 seeds, ~8 min
+uv run logdet-adversarial --seeds 1  # quick pass while iterating
+uv run logdet-evaluate               # baseline comparison, ~5 min
+uv run logdet-generate               # regenerate the synthetic corpus
+uv run streamlit run src/logdet/dashboard.py
 ```
+
+Paths in `config.py` resolve against the repo root, so these work from any directory.
+New results land in `results/`; `docs/results.v1/` is frozen and never written to.
 
 ## Hardware
 

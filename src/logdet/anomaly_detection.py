@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 from sklearn.ensemble import IsolationForest
 
-from config import (
+from logdet.config import (
     CONTAMINATION,
     MIN_SAMPLES_PER_USER,
     RANDOM_STATE,

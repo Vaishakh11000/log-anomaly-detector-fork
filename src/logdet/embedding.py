@@ -9,21 +9,23 @@ import numpy as np
 import pandas as pd
 from sentence_transformers import SentenceTransformer
 
-_MODEL_NAME = "all-MiniLM-L6-v2"  # small, fast, good enough for log text
+from logdet.config import EMBEDDING_BATCH_SIZE, EMBEDDING_MODEL
+
 _model = None
 
 
 def get_model():
     global _model
     if _model is None:
-        _model = SentenceTransformer(_MODEL_NAME)
+        _model = SentenceTransformer(EMBEDDING_MODEL)
     return _model
 
 
 def embed_templates(templates: list[str]) -> np.ndarray:
     """Embed a list of templated log messages. Returns an (N, D) array."""
     model = get_model()
-    embeddings = model.encode(templates, show_progress_bar=True, batch_size=64)
+    embeddings = model.encode(templates, show_progress_bar=True,
+                              batch_size=EMBEDDING_BATCH_SIZE)
     return np.array(embeddings)
 
 

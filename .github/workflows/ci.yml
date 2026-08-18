@@ -1,0 +1,55 @@
+# Continuous integration.
+#
+# Scope for Stage 0: the unit suite plus the architectural rule that keeps the
+# evaluation track out of the pipeline. Stage 1 adds the benchmark harness here
+# so every commit reports its delta against docs/results.v1/ (CLAUDE.md
+# section 4) -- that job is deliberately not faked in advance.
+
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      # --locked, not --frozen: a pyproject edit that was never locked should
+      # fail here rather than resolve differently on someone else's machine.
+      - name: Sync dependencies
+        run: uv sync --locked
+
+      # -m "not slow" skips the end-to-end behaviour lock, which downloads the
+      # sentence-transformer. That test guards v1's headline numbers and is run
+      # locally before any detection change; Stage 1's benchmark job will run it
+      # here on a schedule instead of on every push.
+      - name: Run tests
+        run: uv run pytest -v -m "not slow"
+
+      # Cheap end-to-end guard: parsing is the one stage with no model
+      # dependency, and a parse regression silently changes what every
+      # downstream layer sees.
+      - name: Smoke-test the parser CLI
+        run: |
+          uv run logdet-preprocess \
+            --input data/raw/sample.log \
+            --output "$RUNNER_TEMP/parsed.csv" \
+            --year 2026
+          test -s "$RUNNER_TEMP/parsed.csv"

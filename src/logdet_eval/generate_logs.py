@@ -30,7 +30,8 @@ import csv
 import random
 from datetime import datetime, timedelta
 
-from config import (
+from logdet.config import RAW_DATA_DIR
+from logdet_eval.config import (
     SYNTHETIC_HOST,
     SYNTHETIC_USERS,
     SYNTHETIC_DAYS,
@@ -278,10 +279,10 @@ def write_outputs(events: list[dict], log_path: str, gt_path: str, host: str = S
     print(f"Wrote {n_attack} labeled attack lines -> {gt_path}")
 
 
-if __name__ == "__main__":
+def cli() -> None:
     parser = argparse.ArgumentParser(description="Generate synthetic auth log + ground truth.")
-    parser.add_argument("--output-log", default="data/raw/synthetic.log")
-    parser.add_argument("--output-gt", default="data/raw/ground_truth.csv")
+    parser.add_argument("--output-log", default=f"{RAW_DATA_DIR}/synthetic.log")
+    parser.add_argument("--output-gt", default=f"{RAW_DATA_DIR}/ground_truth.csv")
     parser.add_argument("--total-lines", type=int, default=SYNTHETIC_TOTAL_LINES)
     parser.add_argument("--days", type=int, default=SYNTHETIC_DAYS)
     parser.add_argument("--instances-per-scenario", type=int, default=SYNTHETIC_INSTANCES_PER_SCENARIO)
@@ -295,3 +296,7 @@ if __name__ == "__main__":
         seed=args.seed,
     )
     write_outputs(events, args.output_log, args.output_gt)
+
+
+if __name__ == "__main__":
+    cli()
