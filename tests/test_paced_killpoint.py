@@ -35,7 +35,8 @@ def _payload(conditions: dict[str, tuple[float, float]],
                 "condition": name,
                 "strategies": [] if name == "baseline" else [name],
                 "ours": _side(ours),
-                "siem": {str(PRIMARY_LEVEL): _side(siem)},
+                # every level is rendered, so the fixture carries all three
+                "siem": {"3": _side(siem), "7": _side(siem), "10": _side(siem)},
             }
             for name, (ours, siem) in conditions.items()
         ],

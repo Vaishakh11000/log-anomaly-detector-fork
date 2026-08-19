@@ -285,6 +285,37 @@ def render_report(payload: dict, comparison: dict) -> str:
 
     lines += [
         "",
+        "## Every alert level, not just the primary one",
+        "",
+        "Wazuh's level is *its* severity scale, and the comparison changes shape",
+        "completely across it, so all three thresholds are reported rather than the",
+        "one that reads best. Level 3 is where Wazuh starts writing alerts at all;",
+        "7 is \"worth waking someone\"; 10 is its own brute-force tier.",
+        "",
+        "| Condition | Ours | Wazuh L3 | Wazuh L7 | Wazuh L10 |",
+        "|---|---|---|---|---|",
+    ]
+    for cond in payload["conditions"]:
+        ours = cond["ours"]["overall"]["instance_detection_rate"]
+        row = f"| {cond['condition']} | {ours:.1%} |"
+        for lvl in ("3", "7", "10"):
+            rate = cond["siem"][lvl]["overall"]["instance_detection_rate"]
+            row += f" {rate:.1%} |"
+        lines.append(row)
+
+    lines += [
+        "",
+        "Two things this table makes visible, and both cut against a clean story:",
+        "",
+        "- **At level 3 Wazuh cannot degrade, because it starts saturated.** A single",
+        "  failed login is already a level-5 rule, so every injected instance is flagged",
+        "  without any correlation happening at all. Its 100% is a property of the",
+        "  threshold, not evidence that pacing failed to hurt it.",
+        "- **At levels 7 and 10 Wazuh barely detects anything to begin with** — 11.1%,",
+        "  one instance in nine, on the *clean* corpus. A system that starts near zero",
+        "  cannot drop far, so the small differentials there are a floor effect rather",
+        "  than robustness.",
+        "",
         "## Alert volume",
         "",
         f"| Condition | Our incidents | Wazuh alerts (L{level}) |",
