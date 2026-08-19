@@ -81,6 +81,12 @@ def differential(ours_drop: float, siem_drop: float) -> float:
     return round(siem_drop - ours_drop, 1)
 
 
+MIN_ADMISSIBLE_SEEDS = 5
+"""CLAUDE.md section 4: instance detection must be pooled over >=5 seeds. With 3
+instances per scenario a single seed moves the number in 33% steps, and v1 saw
+ip_rotate read 100% at one seed against 84% pooled over five."""
+
+
 def verdict(best_differential: float) -> str:
     """Apply the pre-registered section 1b criterion. Thresholds are literals on
     purpose: they were registered before any Stage 1 code was written and are

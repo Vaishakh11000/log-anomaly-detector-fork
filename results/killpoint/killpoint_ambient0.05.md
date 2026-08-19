@@ -1,5 +1,13 @@
 # Kill-Point Measurement (CLAUDE.md §1b)
 
+> ⛔ **NOT A RESULT — 1 seed(s), CLAUDE.md §4 requires ≥5.**
+>
+> Instance detection moves in 33% steps at one seed (3 instances per
+> scenario), and v1 saw `ip_rotate` read 100% at a single seed against 84%
+> pooled over five. The differential below is a smoke-test artefact. **Do not
+> quote it, and do not record a kill-point verdict from it.** Re-run with
+> `uv run logdet-killpoint --seeds 5`.
+
 Detector vs **Wazuh** (real manager, v4.9.0, its own rules and engine) on the
 real LogHub OpenSSH corpus. `ambient_ratio=0.05`, pooled over
 1 seeds. Both systems scored on the *same corpus files* through the
@@ -13,7 +21,7 @@ same scorer; the only difference between the two columns is the detector.
 | 10–25pt | cheap stages only |
 | <10pt, or SIEM degrades less | stop, publish the negative result |
 
-**Best measurable differential: 22.2pt → PARTIAL**
+**Best measurable differential: 22.2pt → INADMISSIBLE (1 seed, need 5)**
 (timing-independent strategies, batch replay)
 
 ## Instance-detection drop under camouflage

@@ -1554,7 +1554,9 @@
       }
     },
     "best_measurable_differential": 22.2,
-    "verdict": "PARTIAL",
+    "seeds": 1,
+    "admissible": false,
+    "verdict": "INADMISSIBLE (1 seed, need 5)",
     "verdict_basis": "timing-independent strategies, batch replay"
   }
 }

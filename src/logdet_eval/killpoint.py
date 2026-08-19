@@ -21,6 +21,7 @@ step, fed by both systems' outputs.
 
 import json
 import tempfile
+from collections.abc import Callable
 from pathlib import Path
 
 import pandas as pd
@@ -35,6 +36,7 @@ from logdet_eval.adversarial import (
 from logdet_eval.corpus_openssh import CORPUS_HOST, build_killpoint_corpus
 from logdet_eval.generate_logs import write_outputs
 from logdet_eval.scoring import (
+    MIN_ADMISSIBLE_SEEDS,
     differential,
     instance_drop,
     measure_lines,
@@ -78,7 +80,8 @@ def _our_flagged_lines(scored: pd.DataFrame) -> set[int]:
 def run_paired(seeds: int = 5, start_seed: int = 42, ambient_ratio: float = 0.05,
                instances_per_scenario: int = 3,
                contamination: float = CONTAMINATION,
-               levels: tuple[int, ...] = wazuh_runner.LEVEL_THRESHOLDS) -> dict:
+               levels: tuple[int, ...] = wazuh_runner.LEVEL_THRESHOLDS,
+               checkpoint: Callable[[dict], None] | None = None) -> dict:
     """Score both systems on the *same corpus files*, condition by condition.
 
     Both sides go through scoring.measure_lines, so the only thing that differs
@@ -93,6 +96,23 @@ def run_paired(seeds: int = 5, start_seed: int = 42, ambient_ratio: float = 0.05
     have_wazuh = wazuh_runner.container_available()
     if not have_wazuh:
         print("WARNING: Wazuh container unavailable -- detector half only")
+
+    manifest: dict = {}
+
+    def _payload(done: list, complete: bool) -> dict:
+        return {
+            "corpus": "loghub-openssh",
+            "ambient_ratio": ambient_ratio,
+            "seeds": seeds,
+            "start_seed": start_seed,
+            "contamination": contamination,
+            "primary_level": PRIMARY_LEVEL,
+            "wazuh_available": have_wazuh,
+            "corpus_manifest": manifest,
+            "conditions": done,
+            "complete": complete,
+            "conditions_expected": len(CONDITIONS),
+        }
 
     conditions = []
     with tempfile.TemporaryDirectory() as tmp:
@@ -152,17 +172,13 @@ def run_paired(seeds: int = 5, start_seed: int = 42, ambient_ratio: float = 0.05
                     line += "  [timing: batch cannot measure the SIEM]"
             print(line)
 
-    return {
-        "corpus": "loghub-openssh",
-        "ambient_ratio": ambient_ratio,
-        "seeds": seeds,
-        "start_seed": start_seed,
-        "contamination": contamination,
-        "primary_level": PRIMARY_LEVEL,
-        "wazuh_available": have_wazuh,
-        "corpus_manifest": manifest,
-        "conditions": conditions,
-    }
+            # Each condition is ~3 minutes of embedding work and the loop has
+            # been killed twice by machine reboots. Writing after every
+            # condition turns that from "lose the whole run" into "lose one".
+            if checkpoint is not None:
+                checkpoint(_payload(conditions, complete=False))
+
+    return _payload(conditions, complete=True)
 
 
 def compare(payload: dict, level: int = PRIMARY_LEVEL) -> dict:
@@ -189,11 +205,27 @@ def compare(payload: dict, level: int = PRIMARY_LEVEL) -> dict:
     measurable = [r["differential"] for r in rows.values()
                   if "differential" in r and not r["timing_dependent"]]
     best = max(measurable) if measurable else None
+
+    # A verdict from too few seeds is not a weaker verdict, it is not a verdict.
+    # This is enforced here rather than left to the reader because the rendered
+    # report is what a future session will find on disk, and "22.2pt -> PARTIAL"
+    # above a quiet "pooled over 1 seeds" reads exactly like a result.
+    seeds = payload.get("seeds", 0)
+    admissible = seeds >= MIN_ADMISSIBLE_SEEDS
+    if best is None:
+        call = "INCOMPLETE"
+    elif not admissible:
+        call = f"INADMISSIBLE ({seeds} seed{'s' if seeds != 1 else ''}, need {MIN_ADMISSIBLE_SEEDS})"
+    else:
+        call = verdict(best)
+
     return {
         "level": level,
         "per_strategy": rows,
         "best_measurable_differential": best,
-        "verdict": verdict(best) if best is not None else "INCOMPLETE",
+        "seeds": seeds,
+        "admissible": admissible,
+        "verdict": call,
         "verdict_basis": "timing-independent strategies, batch replay",
     }
 
@@ -203,6 +235,20 @@ def render_report(payload: dict, comparison: dict) -> str:
     lines = [
         "# Kill-Point Measurement (CLAUDE.md §1b)",
         "",
+    ]
+    if not comparison.get("admissible", True):
+        lines += [
+            f"> ⛔ **NOT A RESULT — {payload['seeds']} seed(s), CLAUDE.md §4 requires "
+            f"≥{MIN_ADMISSIBLE_SEEDS}.**",
+            ">",
+            "> Instance detection moves in 33% steps at one seed (3 instances per",
+            "> scenario), and v1 saw `ip_rotate` read 100% at a single seed against 84%",
+            "> pooled over five. The differential below is a smoke-test artefact. **Do not",
+            "> quote it, and do not record a kill-point verdict from it.** Re-run with",
+            "> `uv run logdet-killpoint --seeds 5`.",
+            "",
+        ]
+    lines += [
         "Detector vs **Wazuh** (real manager, v4.9.0, its own rules and engine) on the",
         f"real LogHub OpenSSH corpus. `ambient_ratio={payload['ambient_ratio']}`, pooled over",
         f"{payload['seeds']} seeds. Both systems scored on the *same corpus files* through the",
@@ -293,14 +339,21 @@ def cli() -> None:
 
     print(f"Kill-point: {len(CONDITIONS)} conditions x {args.seeds} seeds, "
           f"detector vs Wazuh on the real OpenSSH corpus")
-    payload = run_paired(seeds=args.seeds, start_seed=args.seed,
-                         ambient_ratio=args.ambient_ratio)
-    comparison = compare(payload)
-    payload["comparison"] = comparison
 
     out = Path(args.output_dir)
     out.mkdir(parents=True, exist_ok=True)
     tag = f"ambient{args.ambient_ratio:g}"
+    partial_path = out / f"killpoint_{tag}.partial.json"
+
+    def _checkpoint(partial: dict) -> None:
+        partial_path.write_text(json.dumps(partial, indent=2))
+
+    payload = run_paired(seeds=args.seeds, start_seed=args.seed,
+                         ambient_ratio=args.ambient_ratio,
+                         checkpoint=_checkpoint)
+    comparison = compare(payload)
+    payload["comparison"] = comparison
+
     (out / f"killpoint_{tag}.json").write_text(json.dumps(payload, indent=2))
     (out / f"killpoint_{tag}.md").write_text(render_report(payload, comparison))
 
@@ -314,6 +367,7 @@ def cli() -> None:
               f"wazuh {row['siem_drop']:+6.1f}  diff {row['differential']:+6.1f}{mark}")
     print(f"\nBest measurable differential: {comparison['best_measurable_differential']}pt"
           f"  ->  {comparison['verdict']}")
+    partial_path.unlink(missing_ok=True)
     print(f"Wrote -> {out}/killpoint_{tag}.json / .md")
 
 

@@ -13,3 +13,6 @@ data/external/
 
 # detached benchmark run logs
 .run/
+
+# in-progress kill-point checkpoints (transient; deleted on successful completion)
+results/**/*.partial.json

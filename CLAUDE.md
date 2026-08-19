@@ -366,8 +366,17 @@ justified building that far.
 
 **Current stage:** Stage 1 — benchmark platform + the §1b kill point
 **Stage 1 started:** 2026-08-18 → **kill-point deadline 2026-09-15** (4 weeks, §1b)
-**Last session:** 2026-08-18 (Stage 0 closed, Stage 1 opened)
+**Last session:** 2026-08-19 (kill-point harness complete; 5-seed run executing)
 **Last commit:** _(see `git log`)_
+
+> **Kill-point status: the harness is built and green; the deciding number is not
+> in yet.** The paired 5-seed batch run (`uv run logdet-killpoint --seeds 5`,
+> ~40 min) is what produces it. A 1-seed smoke pass read +22.2pt on `rephrase`,
+> which is **inadmissible** under §4 (single-seed instance detection moves in
+> 33% steps) and must not be quoted as a result. Partial 5-seed observations,
+> equally not a verdict: `baseline` 100%/100%, `rephrase` ours 98% vs Wazuh 67%.
+> **Do not record a verdict until `results/killpoint/killpoint_ambient0.05.md`
+> exists from a completed 5-seed run.**
 
 > **Stage 0 is fully verified.** All three tracks reproduce v1 byte-for-byte after
 > the restructure: the pipeline (751 → 130 → 94 incidents, locked in
@@ -393,13 +402,30 @@ justified building that far.
       thing that actually needs a store; Stage 1 writes JSON/Markdown reports, which
       files handle fine. Deferring it puts the §1b kill point a session closer.
 - [ ] **Stage 1 — Benchmark platform.** ⭐ *Comes before any detection change, and it
-      carries the §1b kill point.* Automated eval suite that re-runs on every commit and
-      reports deltas vs `docs/results.v1/`. Third-party baselines: **Sigma** (primary —
-      pure Python, no daemon, no Arch packaging pain) and **Wazuh manager** (analysis
-      engine only; the full indexer/dashboard stack will not fit in RAM). Real data:
-      **LogHub OpenSSH + Linux** — see §3b for why not HDFS/BGL.
+      carries the §1b kill point.* Third-party baseline: **Wazuh manager**, run as the
+      real engine in Docker (`docker exec wazuh wazuh-logtest`). **Sigma was dropped
+      after measurement** — not one of ~3,300 rules matches an sshd auth line; see the
+      2026-08-18 Decision Log entry. Real data: **LogHub OpenSSH** (primary, 100% parse)
+      + **Linux** (companion, 76% parse) — see §3b for why not HDFS/BGL.
       This is where "rules written by people who never saw my data" replaces the
       self-written baseline — v1's single biggest credibility hole.
+
+      **Built and green (2026-08-19):**
+      - `logdet_eval/datasets.py` — Zenodo-pinned, SHA-256-verified LogHub fetch
+      - `logdet_eval/corpus_openssh.py` — kill-point corpus: real benign lines + real
+        ambient attacker traffic at a declared ratio, attacks injected on top
+      - `logdet_eval/wazuh_runner.py` — drives the real manager; note logtest writes
+        its analysis to **stderr**
+      - `logdet_eval/scoring.py` — one detector-agnostic scorer for both systems, with
+        a test asserting it agrees with `adversarial.measure()` on identical input
+      - `logdet_eval/killpoint.py` — paired runner, per-condition checkpointing,
+        verdict logic; 11 tests pin the §1b thresholds and the exclusion rule
+      - 148 tests pass (`-m "not slow"`)
+
+      **Still to do:** the completed 5-seed run; **paced replay** for the three
+      timing-dependent strategies (§ arrival-time finding); `ambient_ratio` sensitivity
+      sweep rather than the single 0.05 default; Wazuh alert volume reported alongside
+      detection.
       **Build the harness to run in streaming mode with an injector-driven ground-truth
       feed, not just batch-over-a-file** — do that and Stage 2b falls out nearly free.
 - [ ] **Stage 2 — Live ingestion.** Split fit-from-score and persist fitted models
@@ -490,6 +516,18 @@ justified building that far.
   against v1's 94 on 751 synthetic lines. Instance detection is still 100%. More
   evidence that precision, not recall, is the problem to solve — and that
   synthetic data was flattering it.
+- **After any reboot the Wazuh container comes back `Exited (255)` and must be
+  restarted (`docker start wazuh`), and `wazuh-analysisd` needs ~20-30s before
+  `wazuh-logtest` will answer.** `killpoint.py` probes availability *once at
+  startup* and silently proceeds detector-only if the container is down — which
+  yields an `INCOMPLETE` run after ~40 minutes of compute. **Check
+  `docker ps --filter name=wazuh` and confirm the log's first lines carry no
+  "Wazuh container unavailable" warning before walking away from a run.**
+- **A kill-point run is ~40 min of saturating CPU (~14W).** Two runs were lost to
+  a machine reboot mid-flight; per-condition checkpointing to
+  `killpoint_ambient0.05.partial.json` now bounds that loss to one condition.
+  Do not run the test suite concurrently — it competes for the same cores and
+  measurably slows the measurement.
 - v1's severity tiers do not cleanly separate precision by tier (medium is noisier than
   low). Informal calls against a 45-line ground truth, never calibrated. Stage 3.
 
@@ -714,6 +752,12 @@ uv run logdet-adversarial --seeds 1             # quick pass while iterating
 uv run logdet-evaluate                          # baseline comparison, ~5 min
 uv run logdet-generate                          # regenerate the synthetic corpus
 uv run logdet-samples                           # export sample narratives
+
+# Stage 1 (kill point). Wazuh must be up: docker start wazuh  (see Known Issues)
+uv run logdet-fetch-data openssh                # Zenodo LogHub fetch, SHA-256 verified
+uv run logdet-corpus --ambient-ratio 0.05       # build the kill-point corpus + manifest
+uv run logdet-killpoint --seeds 5               # THE measurement, ~40 min, saturates CPU
+uv run logdet-killpoint --seeds 1               # smoke pass only -- NOT admissible (§4)
 uv run streamlit run src/logdet/dashboard.py
 ```
 
@@ -764,4 +808,6 @@ The frozen demo folder deliberately commits it instead — do not copy that choi
 | 2026-08-18 | Wazuh runs as the **real manager in Docker**, not as a reimplementation of its rule semantics | Third-party rules executed by a third-party engine is the strongest available answer to "you graded your own homework". Writing our own evaluator for Wazuh's XML would keep the rules third-party but make the *matching* ours — reintroducing author influence at exactly the layer the kill point is measuring, and Wazuh's decoder chain plus `if_matched_sid`/`frequency`/`same_source_ip` semantics are intricate enough that a faithful reimplementation is its own research project |
 | 2026-08-18 | Kill-point background = **real benign OpenSSH lines + real attacker traffic downsampled to a declared `ambient_ratio`**, attacks injected on top | §3b assumed OpenSSH could supply "real benign traffic". Measured, it cannot: 66-83% of *every day* is internet brute force and only ~2.4k of 655k lines are genuinely benign. Injecting into the raw corpus would make brute force the statistical majority of "normal", so an injected brute force scores as an *inlier* — the resulting differential would measure base-rate contamination rather than camouflage robustness, invalidating the experiment rather than failing it honestly. Building the background explicitly keeps every line real (2,483 background lines, 9 real users at their genuine home subnets, host `LabSZ`) while making the ambient-attack density a parameter to report sensitivity across rather than a hidden default. Real: background lines, usernames, host, vocabulary. Authored: the injected instances and the camouflage layer — which is the layer this project is supposed to own |
 | 2026-08-18 | Year-rollover inference added to `preprocess_file` (default on, no-op on single-month corpora) | The OpenSSH corpus runs Dec 10 → Jan 07 and syslog carries no year, so a fixed year places January *before* December and silently corrupts every window-based computation — incident grouping, impossible travel, and any SIEM frequency rule compared against them. Silent time-scrambling would have produced a kill-point number that looked plausible and meant nothing. Verified a no-op on the v1 synthetic corpus (single month): all 99 tests including the 94-incident regression lock stayed green |
+| 2026-08-19 | Kill-point results are **checkpointed after every condition** to `killpoint_<tag>.partial.json`, deleted on successful completion | The runner wrote results only at the very end, so two separate mid-flight machine reboots discarded every completed condition — ~40 min of compute each. Conditions are independent, so there was no reason for the loss to be all-or-nothing: a crash at condition 6 now still leaves `rephrase` and `mimicry`, which is enough for a genuine verdict. The partial is deleted on success specifically so a stale partial from a killed run can never be mistaken for a finished measurement — an incomplete file that *looks* complete is worse than no file |
+| 2026-08-19 | `killpoint.py`'s verdict logic pinned by 11 tests, including both directions of the timing-exclusion rule | This module computes the one number the entire roadmap turns on, and it had zero test coverage. The two tests that matter assert the exclusion cannot be subverted either way: a timing-dependent strategy showing a 100pt gap must not inflate the verdict to CONTINUE, and `slow` reading −22pt as a pure arrival-time artefact must not depress it to STOP. The §1b thresholds are also pinned at their exact boundaries (25.0→CONTINUE, 24.0→PARTIAL, 10.0→PARTIAL, 9.0→STOP), a SIEM degrading *less* than us is asserted to be STOP, and a detector-only run is asserted to return `INCOMPLETE` rather than any verdict. A refactor that quietly changed a roadmap decision would now fail CI instead of being believed |
 | 2026-08-18 | **Wazuh's correlation windows are keyed on arrival time, not the log's own timestamp** (verified on both `wazuh-logtest` and the real `analysisd`: 15 `Invalid user` lines from one IP fire rule 5712 identically at 3-second and 1-hour spacing). Consequence: batch replay cannot measure timing-based camouflage against Wazuh. The kill point is therefore measured in **two instruments** — batch for the timing-independent strategies (`mimicry`, `rephrase`, `ip_rotate`, `volume`, `noise`), and real-time-paced replay over a time-compressed corpus for `slow`, `temporal` and `realistic-combo`. **The §1b thresholds are unchanged** | §1b pre-registered *both* "batch mode" and all seven camouflage strategies, and this measurement shows those two clauses cannot both hold: replayed at machine speed every event is simultaneous to Wazuh, so its drop under `slow` is 0pt **by construction**. Since `slow` costs this system ~20pt, the differential would compute to −20pt and return a STOP verdict that is an artefact of the instrument rather than a property of either system. Fixing the instrument is not the same as moving the criterion, and the distinction is the whole reason this entry exists: the thresholds, the strategies and the deciding quantity all stand exactly as registered. Note the finding does not flatter this project either — Wazuh firing a "brute force" rule on 15 events spread over 15 hours is not robustness but *indiscriminacy*, i.e. a false positive, so the comparison must report Wazuh's alert volume alongside its detection rate |
