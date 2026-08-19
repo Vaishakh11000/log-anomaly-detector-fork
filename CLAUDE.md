@@ -37,13 +37,30 @@ AI assistant anywhere (verified via GitHub code search). Source docstrings that 
 cite `CLAUDE.md` now cite `docs/DESIGN.md`, which is the decision log rewritten for a
 human reader. If v1 code is ever re-synced into it, re-run that check.
 
-### Working with the user on git
+### Working with the user — explain everything in plain language
 
-The user has said plainly they do not know git well. When git or GitHub comes up:
-explain in plain language, say what each command actually does before running it, and
-prefer showing the resulting state over assuming it is understood. Do not force-push,
-delete, or repoint a remote without first inspecting the target and saying what would
-be lost.
+**Stated by the user 2026-08-19: they are not an expert in these subjects and want
+every explanation kept as simple as possible.** This applies to all of it — git, the
+detection maths, the SIEM comparison, the statistics behind the kill point — not only
+to git. It is a standing instruction, not a one-off request.
+
+What that means in practice:
+
+- **Lead with the plain-English meaning, then the number.** "Wazuh missed a third of the
+  attacks when we reworded them; we missed almost none" comes before `+31.1pt`.
+- **Spell out jargon the first time it appears in a session.** *Instance detection*,
+  *differential*, *seed*, *camouflage strategy*, *ambient ratio* — none of these are
+  ordinary English, and all of them appear in this file as if they were.
+- **Say what a command actually does before running it**, and show the resulting state
+  rather than assuming it was understood.
+- **Short sentences. No wall of tables without a sentence saying what to look at.**
+  A table is fine, but say which row matters and why.
+- **Never simplify by leaving out a bad result.** Simple language, complete facts —
+  especially where the kill point (§1b) is concerned. Plain language is about
+  *wording*, never about softening what the measurement says.
+
+For git specifically, the same rule plus: do not force-push, delete, or repoint a
+remote without first inspecting the target and saying what would be lost.
 
 The v1 code, the v1 evaluation results, and the v1 decision log are carried
 into `docs/` as **inherited context**:
@@ -366,17 +383,44 @@ justified building that far.
 
 **Current stage:** Stage 1 — benchmark platform + the §1b kill point
 **Stage 1 started:** 2026-08-18 → **kill-point deadline 2026-09-15** (4 weeks, §1b)
-**Last session:** 2026-08-19 (kill-point harness complete; 5-seed run executing)
+**Last session:** 2026-08-19 (5-seed kill-point run completed — verdict CONTINUE)
 **Last commit:** _(see `git log`)_
 
-> **Kill-point status: the harness is built and green; the deciding number is not
-> in yet.** The paired 5-seed batch run (`uv run logdet-killpoint --seeds 5`,
-> ~40 min) is what produces it. A 1-seed smoke pass read +22.2pt on `rephrase`,
-> which is **inadmissible** under §4 (single-seed instance detection moves in
-> 33% steps) and must not be quoted as a result. Partial 5-seed observations,
-> equally not a verdict: `baseline` 100%/100%, `rephrase` ours 98% vs Wazuh 67%.
-> **Do not record a verdict until `results/killpoint/killpoint_ambient0.05.md`
-> exists from a completed 5-seed run.**
+> ## ✅ Kill-point verdict: **CONTINUE** (31.1pt, 5 seeds, 2026-08-19)
+>
+> `results/killpoint/killpoint_ambient0.05.md`, from a completed 5-seed paired run
+> with Wazuh available throughout. The registered ≥25pt bar is cleared, so the
+> roadmap continues and the amplifiers (streaming, bake-off, two-machine, GPU) are
+> unlocked.
+>
+> **Read the shape of the result, not just the headline.** Of the five
+> timing-independent strategies, exactly **one** produced the gap:
+>
+> | Strategy | Ours Δ | Wazuh Δ | Differential | |
+> |---|---|---|---|---|
+> | `rephrase` | +2.2 | +33.3 | **+31.1** | the entire result |
+> | `mimicry` / `noise` / `volume` | +0.0 | +0.0 | +0.0 | ties |
+> | `ip_rotate` | +11.1 | +0.0 | **−11.1** | **we are the weaker system here** |
+>
+> §1b says "≥25pt on at least one strategy", so `verdict()` taking the maximum is
+> the registered reading and was written before any result existed. But **one win,
+> three ties and one loss is a narrower finding than "more robust under
+> camouflage", and must be written up that way.** The honest claim is *"against
+> reworded attacks, Wazuh's rules break and embeddings do not"* — which is exactly
+> what a signature engine would be expected to do, and is therefore a mechanism
+> worth stating rather than a surprise.
+>
+> **`ip_rotate` is a genuine loss and stays in the report.** Spreading an attack
+> across many source IPs costs us 11pt and costs Wazuh nothing.
+>
+> Three strategies (`slow`, `temporal`, `realistic-combo`) remain **excluded**
+> under the 2026-08-18 arrival-time finding — batch replay cannot measure them
+> against Wazuh. Paced replay is the outstanding work and could move the picture
+> in either direction.
+>
+> **Alert volume flipped v1's story:** Wazuh emits ~4,546 alerts on the clean
+> corpus against our 1,415 — roughly 3.2× more. Precision is still our known
+> weakness in absolute terms, but on this corpus we are not the noisier system.
 
 > **Stage 0 is fully verified.** All three tracks reproduce v1 byte-for-byte after
 > the restructure: the pipeline (751 → 130 → 94 incidents, locked in
@@ -420,12 +464,14 @@ justified building that far.
         a test asserting it agrees with `adversarial.measure()` on identical input
       - `logdet_eval/killpoint.py` — paired runner, per-condition checkpointing,
         verdict logic; 11 tests pin the §1b thresholds and the exclusion rule
-      - 148 tests pass (`-m "not slow"`)
+      - 154 tests pass (`-m "not slow"`)
+      - ✅ **the 5-seed run completed 2026-08-19 → CONTINUE at 31.1pt** (see the
+        verdict box above). Wazuh alert volume is now reported alongside detection.
 
-      **Still to do:** the completed 5-seed run; **paced replay** for the three
-      timing-dependent strategies (§ arrival-time finding); `ambient_ratio` sensitivity
-      sweep rather than the single 0.05 default; Wazuh alert volume reported alongside
-      detection.
+      **Still to do:** **paced replay** for the three timing-dependent strategies
+      (§ arrival-time finding) — this is the largest remaining gap, since three of
+      eight strategies currently cannot be measured against Wazuh at all;
+      `ambient_ratio` sensitivity sweep rather than the single 0.05 default.
       **Build the harness to run in streaming mode with an injector-driven ground-truth
       feed, not just batch-over-a-file** — do that and Stage 2b falls out nearly free.
 - [ ] **Stage 2 — Live ingestion.** Split fit-from-score and persist fitted models
@@ -691,6 +737,20 @@ Changed from v1 where noted.
 4. Append to the Decision Log if a technical decision was made
 5. Tell the user in one line what the next session should tackle
 
+**At every milestone, offer to start a fresh chat — do not wait to be asked.**
+Requested by the user 2026-08-19. A milestone means: a kill-point or benchmark run
+finished and written up, a stage checked off, a decision logged, work committed, or a
+long debugging thread resolved. When one lands:
+
+1. Finish the durable write-up **first** — commit, Progress Tracker, Decision Log.
+   The point of a fresh chat is that nothing important lives only in the conversation,
+   so suggesting one before the files are updated defeats it.
+2. Then say plainly that this is a good place to start a new chat or compact, and give
+   the one-line handoff of what the next session picks up.
+
+Never suggest it mid-task, mid-run, or while something is unresolved — a fresh chat in
+the middle of a 40-minute measurement loses the thread for no saving.
+
 ---
 
 ## 8. Anti-Goals — push back before proceeding
@@ -811,3 +871,4 @@ The frozen demo folder deliberately commits it instead — do not copy that choi
 | 2026-08-19 | Kill-point results are **checkpointed after every condition** to `killpoint_<tag>.partial.json`, deleted on successful completion | The runner wrote results only at the very end, so two separate mid-flight machine reboots discarded every completed condition — ~40 min of compute each. Conditions are independent, so there was no reason for the loss to be all-or-nothing: a crash at condition 6 now still leaves `rephrase` and `mimicry`, which is enough for a genuine verdict. The partial is deleted on success specifically so a stale partial from a killed run can never be mistaken for a finished measurement — an incomplete file that *looks* complete is worse than no file |
 | 2026-08-19 | `killpoint.py`'s verdict logic pinned by 11 tests, including both directions of the timing-exclusion rule | This module computes the one number the entire roadmap turns on, and it had zero test coverage. The two tests that matter assert the exclusion cannot be subverted either way: a timing-dependent strategy showing a 100pt gap must not inflate the verdict to CONTINUE, and `slow` reading −22pt as a pure arrival-time artefact must not depress it to STOP. The §1b thresholds are also pinned at their exact boundaries (25.0→CONTINUE, 24.0→PARTIAL, 10.0→PARTIAL, 9.0→STOP), a SIEM degrading *less* than us is asserted to be STOP, and a detector-only run is asserted to return `INCOMPLETE` rather than any verdict. A refactor that quietly changed a roadmap decision would now fail CI instead of being believed |
 | 2026-08-18 | **Wazuh's correlation windows are keyed on arrival time, not the log's own timestamp** (verified on both `wazuh-logtest` and the real `analysisd`: 15 `Invalid user` lines from one IP fire rule 5712 identically at 3-second and 1-hour spacing). Consequence: batch replay cannot measure timing-based camouflage against Wazuh. The kill point is therefore measured in **two instruments** — batch for the timing-independent strategies (`mimicry`, `rephrase`, `ip_rotate`, `volume`, `noise`), and real-time-paced replay over a time-compressed corpus for `slow`, `temporal` and `realistic-combo`. **The §1b thresholds are unchanged** | §1b pre-registered *both* "batch mode" and all seven camouflage strategies, and this measurement shows those two clauses cannot both hold: replayed at machine speed every event is simultaneous to Wazuh, so its drop under `slow` is 0pt **by construction**. Since `slow` costs this system ~20pt, the differential would compute to −20pt and return a STOP verdict that is an artefact of the instrument rather than a property of either system. Fixing the instrument is not the same as moving the criterion, and the distinction is the whole reason this entry exists: the thresholds, the strategies and the deciding quantity all stand exactly as registered. Note the finding does not flatter this project either — Wazuh firing a "brute force" rule on 15 events spread over 15 hours is not robustness but *indiscriminacy*, i.e. a false positive, so the comparison must report Wazuh's alert volume alongside its detection rate |
+| 2026-08-19 | **The §1b kill point returned CONTINUE: best measurable differential 31.1pt on `rephrase`, 5 seeds, Wazuh available throughout.** Recorded exactly as computed, including the `ip_rotate` loss. The roadmap continues; the amplifiers (streaming, bake-off, two-machine, GPU) are unlocked | The assumption the whole roadmap rested on — that v1's robustness gap survives rules the author did not write — held, but *narrowly and by one mechanism*. Wazuh loses 33.3pt under `rephrase` while this system loses 2.2pt: sshd rules match on literal strings (`Failed password`, `Invalid user`), so rewording the message drops them out of the decoder entirely, whereas a sentence embedding of a reworded line stays near the original in vector space. That is a real and explainable property, not luck. It is also the *only* strategy that produced a gap: `mimicry`, `noise` and `volume` are 0.0pt ties, and **`ip_rotate` goes the other way — we lose 11.1pt, Wazuh loses nothing**, because rotating source IPs defeats per-user embedding context while Wazuh's per-IP frequency rules simply fire on whichever IP still crosses the threshold. §1b's registered wording is "≥25pt on at least one strategy", so `verdict()` taking the maximum is the reading as registered rather than a post-hoc choice — the function is a hard-coded literal ladder written before any result existed and pinned by 11 tests. The write-up must therefore claim the mechanism ("signature rules break when you reword; embeddings do not"), never the broad claim ("more robust to camouflage"), and must carry the `ip_rotate` loss in the same table. Three strategies stay excluded pending paced replay, so this verdict is provisional in scope even though it is final in force |

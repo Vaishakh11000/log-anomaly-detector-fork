@@ -1,16 +1,8 @@
 # Kill-Point Measurement (CLAUDE.md §1b)
 
-> ⛔ **NOT A RESULT — 1 seed(s), CLAUDE.md §4 requires ≥5.**
->
-> Instance detection moves in 33% steps at one seed (3 instances per
-> scenario), and v1 saw `ip_rotate` read 100% at a single seed against 84%
-> pooled over five. The differential below is a smoke-test artefact. **Do not
-> quote it, and do not record a kill-point verdict from it.** Re-run with
-> `uv run logdet-killpoint --seeds 5`.
-
 Detector vs **Wazuh** (real manager, v4.9.0, its own rules and engine) on the
 real LogHub OpenSSH corpus. `ambient_ratio=0.05`, pooled over
-1 seeds. Both systems scored on the *same corpus files* through the
+5 seeds. Both systems scored on the *same corpus files* through the
 same scorer; the only difference between the two columns is the detector.
 
 ## The registered criterion
@@ -21,7 +13,7 @@ same scorer; the only difference between the two columns is the detector.
 | 10–25pt | cheap stages only |
 | <10pt, or SIEM degrades less | stop, publish the negative result |
 
-**Best measurable differential: 22.2pt → INADMISSIBLE (1 seed, need 5)**
+**Best measurable differential: 31.1pt → CONTINUE**
 (timing-independent strategies, batch replay)
 
 ## Instance-detection drop under camouflage
@@ -29,13 +21,13 @@ same scorer; the only difference between the two columns is the detector.
 | Strategy | Ours (Δpt) | Wazuh L3 (Δpt) | Differential | Measurable in batch? |
 |---|---|---|---|---|
 | temporal | +0.0 | +0.0 | **+0.0** | no — arrival-time |
-| slow | +22.2 | +0.0 | **-22.2** | no — arrival-time |
-| rephrase | +11.1 | +33.3 | **+22.2** | yes |
+| slow | +11.1 | +0.0 | **-11.1** | no — arrival-time |
+| rephrase | +2.2 | +33.3 | **+31.1** | yes |
 | mimicry | +0.0 | +0.0 | **+0.0** | yes |
 | noise | +0.0 | +0.0 | **+0.0** | yes |
 | volume | +0.0 | +0.0 | **+0.0** | yes |
 | ip_rotate | +11.1 | +0.0 | **-11.1** | yes |
-| realistic-combo | +33.3 | +0.0 | **-33.3** | no — arrival-time |
+| realistic-combo | +11.1 | +0.0 | **-11.1** | no — arrival-time |
 
 ## Why three strategies are excluded from the verdict
 
@@ -55,20 +47,20 @@ alert volume is reported alongside detection.
 
 | Condition | Our incidents | Wazuh alerts (L3) |
 |---|---|---|
-| baseline | 260 | 926 |
-| temporal | 278 | 909 |
-| slow | 256 | 913 |
-| rephrase | 286 | 858 |
-| mimicry | 283 | 922 |
-| noise | 398 | 905 |
-| volume | 258 | 872 |
-| ip_rotate | 257 | 925 |
-| realistic-combo | 334 | 886 |
+| baseline | 1415 | 4546 |
+| temporal | 1406 | 4560 |
+| slow | 1417 | 4555 |
+| rephrase | 1468 | 4241 |
+| mimicry | 1466 | 4592 |
+| noise | 2095 | 4557 |
+| volume | 1327 | 4360 |
+| ip_rotate | 1405 | 4596 |
+| realistic-combo | 1775 | 4406 |
 
 ## Corpus
 
 - 2483 real background lines (2365 benign + real attacker traffic at 5%)
-- 111 injected attack lines, 9 instances
+- 115 injected attack lines, 9 instances
 - brute force [15, 25] failures, enumeration [10, 12] usernames — sized above both
   systems' thresholds, pre-registered before any differential was computed
 - 25 days, 9 real users, host `LabSZ`
