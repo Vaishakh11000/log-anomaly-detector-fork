@@ -192,7 +192,14 @@ def reset_correlation_state(container: str = CONTAINER,
     Without this the tail of one condition still sits in the counters when the
     next begins, and the same attacker IPs recur across every seed -- so a run
     could inherit a detection it did not earn.
+
+    The watched file is truncated *before* the restart, not after: logcollector
+    re-reads a file it finds non-empty at startup, which would replay the
+    previous condition's corpus into the fresh counters and quietly attribute
+    it to this one.
     """
+    subprocess.run(["docker", "exec", container, "sh", "-c",
+                    f": > {REPLAY_LOG}"], capture_output=True, check=False)
     subprocess.run(["docker", "exec", container,
                     "/var/ossec/bin/wazuh-control", "restart"],
                    capture_output=True, check=False)
