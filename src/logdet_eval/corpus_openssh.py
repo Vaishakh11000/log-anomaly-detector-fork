@@ -298,3 +298,93 @@ def cli() -> None:
 
 if __name__ == "__main__":
     cli()
+
+
+# --- paced-replay corpus -------------------------------------------------
+#
+# The kill-point corpus above is built for batch scoring: it samples real
+# OpenSSH days across the log's full 25-day range, which is right there and
+# fatal here. Replayed in wall-clock time under the per-IP schedule it costs
+# ~7h per condition (144h for a 5-seed run), because a handful of ambient
+# attacker IPs carry dozens of events each and every one of those gaps has to
+# be honoured up to the spacing bound.
+#
+# The paced corpus is therefore thinned rather than shortened: same real lines,
+# same real users, same injected instances, but a cap on how many events any
+# one ambient IP contributes. That cap is what bounds the replay, and it is a
+# declared parameter rather than a hidden default because it is the one knob
+# that changes what the paced instrument costs.
+
+def thin_background(background: list[dict], max_events_per_ip: int,
+                    target_lines: int | None, seed: int) -> list[dict]:
+    """Cap each source IP's contribution, then subsample to `target_lines`.
+
+    Keeps the earliest events of each IP rather than a random sample, so what
+    survives is a real contiguous run of that host's traffic instead of a
+    scatter that never happened in that order.
+    """
+    rng = random.Random(seed)
+    kept: list[dict] = []
+    seen: dict[str, int] = {}
+    for event in sorted(background, key=lambda e: e["ts"]):
+        key = extract_ip(event.get("message", ""))
+        if key is not None:
+            if seen.get(key, 0) >= max_events_per_ip:
+                continue
+            seen[key] = seen.get(key, 0) + 1
+        kept.append(event)
+
+    if target_lines is not None and len(kept) > target_lines:
+        kept = sorted(rng.sample(kept, target_lines), key=lambda e: e["ts"])
+    return kept
+
+
+def build_paced_corpus(instances_per_scenario: int = 3,
+                       ambient_ratio: float = 0.05,
+                       max_events_per_ip: int = 12,
+                       target_background_lines: int | None = 600,
+                       seed: int = 42,
+                       source: Path | str | None = None) -> tuple[list[dict], dict]:
+    """Kill-point corpus thinned so it can be replayed in wall-clock time."""
+    rng = random.Random(seed)
+
+    benign, attacker, users, subnets = load_classified(source)
+    background = thin_background(
+        build_background(benign, attacker, ambient_ratio, seed),
+        max_events_per_ip=max_events_per_ip,
+        target_lines=target_background_lines,
+        seed=seed,
+    )
+    if not background:
+        raise RuntimeError("empty background -- the corpus did not load")
+
+    days = sorted({event["ts"].date() for event in background})
+    day_starts = [datetime(day.year, day.month, day.day) for day in days]
+
+    attacks: list[dict] = []
+    for instance in range(1, instances_per_scenario + 1):
+        attacks += gen_scenario_a(rng.choice(users), rng.choice(day_starts), instance,
+                                  failures=KILLPOINT_BRUTE_FORCE_FAILURES)
+        travel_user = rng.choice(users)
+        attacks += gen_scenario_b(travel_user, rng.choice(day_starts), instance,
+                                  home_subnet=subnets.get(travel_user))
+        attacks += gen_scenario_c(rng.choice(day_starts), instance,
+                                  probes=KILLPOINT_ENUMERATION_PROBES,
+                                  username_pool=KILLPOINT_PROBE_USERNAMES)
+
+    combined = sorted(background + attacks, key=lambda e: e["ts"])
+    manifest = {
+        "corpus": "loghub-openssh-paced",
+        "ambient_ratio": ambient_ratio,
+        "max_events_per_ip": max_events_per_ip,
+        "target_background_lines": target_background_lines,
+        "background_lines": len(background),
+        "attack_lines": len(attacks),
+        "attack_instances": instances_per_scenario * 3,
+        "total_lines": len(combined),
+        "days_covered": len(days),
+        "real_users": users,
+        "seed": seed,
+        "host": CORPUS_HOST,
+    }
+    return combined, manifest

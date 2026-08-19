@@ -16,6 +16,7 @@ from logdet_eval.corpus_openssh import (
     classify,
     home_subnets,
     real_users,
+    thin_background,
 )
 
 
@@ -127,3 +128,54 @@ def test_background_sampling_is_seed_reproducible():
     c = build_background(benign, attacker, 0.2, seed=8)
     assert [e["message"] for e in a] == [e["message"] for e in b]
     assert [e["message"] for e in a] != [e["message"] for e in c]
+
+
+class TestThinBackground:
+    """Thinning is what makes the corpus replayable in wall-clock time: a
+    single ambient attacker IP with 88 events costs over ten hours on its own
+    under the paced schedule. The cap is therefore load-bearing, not cosmetic.
+    """
+
+    def events(self, ip: str, count: int, start_seconds: int = 0) -> list[dict]:
+        return [
+            {"ts": BASE + timedelta(seconds=start_seconds + i * 60),
+             "message": f"Failed password for root from {ip} port 22 ssh2"}
+            for i in range(count)
+        ]
+
+    def test_caps_events_per_source_ip(self):
+        background = self.events("10.0.0.1", 30) + self.events("10.0.0.2", 30, 10_000)
+        kept = thin_background(background, max_events_per_ip=5,
+                               target_lines=None, seed=1)
+        assert len(kept) == 10
+
+    def test_keeps_the_earliest_events_of_each_ip(self):
+        """A contiguous run of a host's traffic is real; a random scatter across
+        days is a sequence that never happened."""
+        background = self.events("10.0.0.1", 20)
+        kept = thin_background(background, max_events_per_ip=3,
+                               target_lines=None, seed=1)
+        assert [e["ts"] for e in kept] == [e["ts"] for e in background[:3]]
+
+    def test_lines_without_an_ip_are_never_capped(self):
+        background = [
+            {"ts": BASE + timedelta(seconds=i * 60),
+             "message": "(root) CMD (run-parts /etc/cron.hourly)"}
+            for i in range(25)
+        ]
+        kept = thin_background(background, max_events_per_ip=2,
+                               target_lines=None, seed=1)
+        assert len(kept) == 25
+
+    def test_target_lines_subsamples_and_keeps_time_order(self):
+        background = self.events("10.0.0.1", 10) + self.events("10.0.0.2", 10, 5_000)
+        kept = thin_background(background, max_events_per_ip=10,
+                               target_lines=7, seed=3)
+        assert len(kept) == 7
+        assert [e["ts"] for e in kept] == sorted(e["ts"] for e in kept)
+
+    def test_target_above_the_corpus_size_is_a_no_op(self):
+        background = self.events("10.0.0.1", 4)
+        kept = thin_background(background, max_events_per_ip=10,
+                               target_lines=99, seed=3)
+        assert len(kept) == 4
