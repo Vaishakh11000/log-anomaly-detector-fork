@@ -168,14 +168,24 @@ def gen_benign_unit(day_start: datetime) -> list[dict]:
 
 # --- Attack scenario generators ---
 
-def gen_scenario_a(user: str, day_start: datetime, instance: int) -> list[dict]:
-    """Rapid failed passwords -> success -> sudo su root -> new user added to sudo group."""
+def gen_scenario_a(user: str, day_start: datetime, instance: int,
+                   failures: tuple[int, int] = (3, 5)) -> list[dict]:
+    """Rapid failed passwords -> success -> sudo su root -> new user added to sudo group.
+
+    `failures` is the (min, max) size of the burst. The default is v1's 3-5,
+    which was sized against v1's own hand-written baseline (min_failures=3) and
+    is far below what a production SIEM alerts on -- Wazuh's brute-force rule
+    5763 needs 8 in 120s. The kill point passes a realistic range instead, so
+    the third-party ruleset is not handicapped by an attack smaller than any it
+    was designed to see. Defaults are kept at v1's values so the synthetic
+    corpus and its regression lock stay byte-identical.
+    """
     ip = rand_ip(INSIDER_SUBNET)
     port = rand_port()
     start = day_start + timedelta(hours=random.randint(1, 5), minutes=random.randint(0, 59))
     events = []
     t = start
-    for _ in range(random.randint(3, 5)):
+    for _ in range(random.randint(*failures)):
         events.append(make_event(t, "sshd", f"Failed password for {user} from {ip} port {port} ssh2",
                                   next_pid(), "A", instance, user,
                                   "Rapid failed password attempts preceding compromise"))
@@ -224,11 +234,22 @@ def gen_scenario_b(user: str, day_start: datetime, instance: int,
     return events
 
 
-def gen_scenario_c(day_start: datetime, instance: int) -> list[dict]:
-    """Failed logins across many different usernames from one IP (enumeration/recon)."""
+def gen_scenario_c(day_start: datetime, instance: int,
+                   probes: tuple[int, int] = (6, 8),
+                   username_pool: list[str] | None = None) -> list[dict]:
+    """Failed logins across many different usernames from one IP (enumeration/recon).
+
+    `probes` and `username_pool` exist for the same reason as scenario A's
+    `failures`: v1's 6-8 probes sit near Wazuh's 8-event threshold, so the SIEM
+    would be judged on an attack at the edge of what its rules can see. The
+    pool is a parameter rather than an extension of PROBE_USERNAMES because
+    lengthening that list would change v1's random.sample draws and silently
+    move the pinned 94-incident baseline.
+    """
+    pool = username_pool or PROBE_USERNAMES
     ip = rand_ip(random.choice(FOREIGN_SUBNETS))
     start = day_start + timedelta(hours=random.randint(0, 23), minutes=random.randint(0, 59))
-    targets = random.sample(PROBE_USERNAMES, k=random.randint(6, 8))
+    targets = random.sample(pool, k=min(random.randint(*probes), len(pool)))
     events = []
     t = start
     for target in targets:

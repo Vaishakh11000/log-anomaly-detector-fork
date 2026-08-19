@@ -38,6 +38,11 @@ from pathlib import Path
 
 from logdet.preprocessing import extract_ip, parse_line
 from logdet_eval.datasets import fetch
+from logdet_eval.config import (
+    KILLPOINT_BRUTE_FORCE_FAILURES,
+    KILLPOINT_ENUMERATION_PROBES,
+    KILLPOINT_PROBE_USERNAMES,
+)
 from logdet_eval.generate_logs import (
     gen_scenario_a,
     gen_scenario_b,
@@ -231,11 +236,14 @@ def build_killpoint_corpus(instances_per_scenario: int = 3,
 
     attacks: list[dict] = []
     for instance in range(1, instances_per_scenario + 1):
-        attacks += gen_scenario_a(rng.choice(users), rng.choice(day_starts), instance)
+        attacks += gen_scenario_a(rng.choice(users), rng.choice(day_starts), instance,
+                                  failures=KILLPOINT_BRUTE_FORCE_FAILURES)
         travel_user = rng.choice(users)
         attacks += gen_scenario_b(travel_user, rng.choice(day_starts), instance,
                                   home_subnet=subnets.get(travel_user))
-        attacks += gen_scenario_c(rng.choice(day_starts), instance)
+        attacks += gen_scenario_c(rng.choice(day_starts), instance,
+                                  probes=KILLPOINT_ENUMERATION_PROBES,
+                                  username_pool=KILLPOINT_PROBE_USERNAMES)
 
     combined = sorted(background + attacks, key=lambda e: e["ts"])
 
@@ -246,6 +254,8 @@ def build_killpoint_corpus(instances_per_scenario: int = 3,
         "background_lines": len(background),
         "attack_lines": len(attacks),
         "attack_instances": instances_per_scenario * 3,
+        "brute_force_failures": list(KILLPOINT_BRUTE_FORCE_FAILURES),
+        "enumeration_probes": list(KILLPOINT_ENUMERATION_PROBES),
         "total_lines": len(combined),
         "real_users": users,
         "home_subnets": subnets,

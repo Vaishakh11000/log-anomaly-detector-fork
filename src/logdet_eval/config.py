@@ -54,3 +54,29 @@ BASELINE_PRIVILEGE_KEYWORDS = (
 # --- Evaluation (Phase 7) ---
 EVAL_CONTAMINATION_SWEEP = [0.05, 0.10, 0.15, 0.20, 0.25]
 EVAL_SEEDS = 5                # pooled like Phase 5: 9 attack instances move rates in coarse steps
+
+# --- Kill-point attack magnitudes (CLAUDE.md section 1b) ---
+# PRE-REGISTERED 2026-08-18, before any differential was computed.
+#
+# v1's scenarios were sized against v1's own hand-written baseline
+# (min_failures=3), which makes them smaller than anything a production SIEM
+# alerts on: Wazuh's brute-force rules need 8 events in 120s. Measuring a
+# third-party ruleset against a 4-attempt "brute force" and then reporting that
+# it missed the attack would handicap the baseline -- the mirror image of
+# writing rules for attacks you authored, and equally fatal to the evaluation.
+#
+# These ranges are realistic for the attacks they represent and clear the
+# thresholds of both systems, so neither is judged on something it was never
+# built to see.
+KILLPOINT_BRUTE_FORCE_FAILURES = (15, 25)   # Wazuh rule 5763 needs 8 in 120s
+KILLPOINT_ENUMERATION_PROBES = (10, 12)     # Wazuh rule 5712 chain needs 8
+
+# Enumeration targets for the kill-point corpus. Deliberately a separate list
+# from PROBE_USERNAMES: extending that one would change v1's random.sample
+# draws and move the pinned regression baseline.
+KILLPOINT_PROBE_USERNAMES = [
+    "root", "test", "guest", "oracle", "postgres",
+    "www-data", "ftpuser", "backup", "deploy", "support",
+    "admin", "ubuntu", "mysql", "jenkins", "git",
+    "tomcat", "nagios", "zabbix", "elastic", "pi",
+]
