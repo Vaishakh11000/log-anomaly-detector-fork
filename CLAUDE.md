@@ -267,20 +267,32 @@ setup:
 
 ### Preparing the gaming laptop (do during Stage 1, before the move)
 
-1. **Install the NVIDIA driver now, while this machine has working internet** — you have
-   `linux-firmware-nvidia` but *not* the kernel driver (verified 2026-08-17):
-   ```bash
-   sudo pacman -S nvidia-open-dkms dkms linux-headers   # nvidia-open = right choice for Ada/4060
-   ```
-   DKMS rebuilds it across kernel updates. It sits dormant until booted on GPU hardware.
-2. **`autodetect` is in your HOOKS** (verified) — it bakes only *this* laptop's modules
-   into the initramfs, so a foreign-hardware boot often can't find root. Arch also builds
-   a `-fallback` image without autodetect: **boot the fallback menu entry the first time
-   on the gaming laptop.** If that works, either leave it, or drop `autodetect` from
-   `HOOKS` and `mkinitcpio -P` for a seamless default boot.
+1. **Install the NVIDIA driver now, while this machine has working internet.**
+   ✅ **Done 2026-08-20**: `nvidia-open-dkms 610.57.04`, `dkms 3.4.2`,
+   `linux-headers 7.1.8.arch1-3`, `nvidia-utils 610.57.04`; `dkms status` reports
+   `nvidia/610.57.04, 7.1.8-arch1-3, x86_64: installed`. Note `dkms` and
+   `linux-headers` were *both* missing and are not optional — without them the driver
+   silently fails to rebuild on the next kernel update. It sits dormant until booted on
+   GPU hardware.
+2. **`autodetect` is in your HOOKS** — it bakes only *this* laptop's modules into the
+   image, so a foreign-hardware boot often can't find root. **Correction to an earlier
+   assumption in this file: Arch did _not_ build a fallback image here.** This install
+   uses a Unified Kernel Image (systemd-boot, `/boot/EFI/Linux/*.efi`), and both
+   `PRESETS=('default' 'fallback')` and `fallback_options="-S autodetect"` ship
+   commented out — so there was exactly one boot image, autodetect-built, and no safety
+   net for foreign hardware. **Fixed 2026-08-20**: both lines uncommented and
+   `mkinitcpio -P` run, producing `arch-linux-fallback.efi` (239MB vs the 47MB default,
+   which is the expected size difference — it carries every module).
+   **Boot the fallback entry the first time on the gaming laptop.** If that works,
+   either leave it, or drop `autodetect` from `HOOKS` for a seamless default boot.
 3. **Gaming-laptop UEFI:** disable Secure Boot, enable USB boot, use a USB 3.x port (a
    USB-2 negotiation makes everything crawl). You will enter the LUKS passphrase at boot.
    Booting the SSD does **not** touch the laptop's internal Windows install.
+   **Check before moving:** this install has TPM-related boot artifacts
+   (`/boot/loader/boot-secret-mixin`, an `nvpcr-anchor` credential), so if LUKS is
+   TPM-enrolled it auto-unlocks *on this machine only* — a different laptop has a
+   different TPM and will demand the passphrase. Confirm you know it:
+   `sudo cryptsetup luksDump /dev/disk/by-partuuid/<root> | grep -iA2 tokens`.
 4. **Test-boot well before any demo**, never the night before.
 
 ### The link
