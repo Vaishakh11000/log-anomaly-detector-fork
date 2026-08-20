@@ -388,7 +388,7 @@ def cli() -> None:
 
     print("\nDifferentials (paced instrument):")
     for name, row in sorted(comparison["per_strategy"].items(),
-                            key=lambda kv: -(kv[1].get("differential") or -999)):
+                            key=lambda kv: -kv[1].get("differential", float("-inf"))):
         if "differential" not in row:
             continue
         print(f"  {name:<17} ours {row['ours_drop']:+6.1f}  "

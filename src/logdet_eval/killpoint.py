@@ -359,7 +359,7 @@ def cli() -> None:
 
     print("\nDifferentials (timing-independent strategies decide the verdict):")
     for name, row in sorted(comparison["per_strategy"].items(),
-                            key=lambda kv: -(kv[1].get("differential") or -999)):
+                            key=lambda kv: -kv[1].get("differential", float("-inf"))):
         if "differential" not in row:
             continue
         mark = "  [excluded: timing]" if row["timing_dependent"] else ""

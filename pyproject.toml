@@ -27,6 +27,7 @@ logdet-fetch-data  = "logdet_eval.datasets:cli"
 logdet-corpus      = "logdet_eval.corpus_openssh:cli"
 logdet-killpoint   = "logdet_eval.killpoint:cli"
 logdet-paced-killpoint = "logdet_eval.paced_killpoint:cli"
+logdet-killpoint-summary = "logdet_eval.killpoint_summary:cli"
 
 [dependency-groups]
 dev = [
