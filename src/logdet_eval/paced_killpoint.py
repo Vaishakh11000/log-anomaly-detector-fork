@@ -37,7 +37,12 @@ from logdet_eval import paced_replay, wazuh_runner
 from logdet_eval.adversarial import REALISTIC_COMBO, camouflage_events, detect_on_log
 from logdet_eval.corpus_openssh import CORPUS_HOST, build_paced_corpus
 from logdet_eval.generate_logs import write_outputs
-from logdet_eval.killpoint import CORPUS_START_YEAR, PRIMARY_LEVEL, _our_flagged_lines
+from logdet_eval.killpoint import (
+    CORPUS_START_YEAR,
+    PRIMARY_LEVEL,
+    _our_flagged_lines,
+    load_resumable,
+)
 from logdet_eval.scoring import (
     MIN_ADMISSIBLE_SEEDS,
     differential,
@@ -88,7 +93,8 @@ def run_paired(seeds: int = 5, start_seed: int = 42, ambient_ratio: float = 0.05
                levels: tuple[int, ...] = wazuh_runner.LEVEL_THRESHOLDS,
                max_events_per_ip: int = MAX_EVENTS_PER_IP,
                target_background_lines: int | None = TARGET_BACKGROUND_LINES,
-               checkpoint: Callable[[dict], None] | None = None) -> dict:
+               checkpoint: Callable[[dict], None] | None = None,
+               resume_from: list[dict] | None = None) -> dict:
     """Score both systems per condition, replaying to Wazuh in wall-clock time."""
     have_wazuh = wazuh_runner.container_available()
     if not have_wazuh:
@@ -116,11 +122,21 @@ def run_paired(seeds: int = 5, start_seed: int = 42, ambient_ratio: float = 0.05
             "conditions_expected": len(CONDITIONS),
         }
 
-    conditions = []
+    # Conditions are independent, so a checkpoint from a killed run is not
+    # merely a record of progress -- it is reusable work. Nothing consumed it
+    # until now, which meant a crash at condition 8 of 9 still cost the whole
+    # run.
+    conditions = list(resume_from or [])
+    already_done = {c["condition"] for c in conditions}
+    if already_done:
+        print(f"resuming: {len(already_done)} condition(s) already done "
+              f"({', '.join(sorted(already_done))})")
     started = time.monotonic()
     with tempfile.TemporaryDirectory() as tmp:
         work_dir = Path(tmp)
         for name, strategies in CONDITIONS:
+            if name in already_done:
+                continue
             ours_runs, siem_runs = [], []
 
             for offset in range(seeds):
@@ -361,6 +377,8 @@ def cli() -> None:
     parser.add_argument("--conditions", default=None,
                         help="comma-separated subset, for smoke runs")
     parser.add_argument("--output-dir", default=f"{RESULTS_DIR}/killpoint")
+    parser.add_argument("--resume", action="store_true",
+                        help="reuse completed conditions from a checkpoint")
     args = parser.parse_args()
 
     global CONDITIONS
@@ -375,11 +393,21 @@ def cli() -> None:
 
     print(f"Paced kill point: {len(CONDITIONS)} conditions x {args.seeds} seeds")
 
+    resume_from = None
+    if args.resume:
+        resume_from = load_resumable(partial_path, {
+            "seeds": args.seeds, "start_seed": args.seed,
+            "ambient_ratio": args.ambient_ratio, "contamination": CONTAMINATION,
+            "max_events_per_ip": args.max_events_per_ip,
+            "target_background_lines": args.background_lines,
+        })
+
     payload = run_paired(seeds=args.seeds, start_seed=args.seed,
                          ambient_ratio=args.ambient_ratio,
                          max_events_per_ip=args.max_events_per_ip,
                          target_background_lines=args.background_lines,
-                         checkpoint=lambda p: partial_path.write_text(json.dumps(p, indent=2)))
+                         checkpoint=lambda p: partial_path.write_text(json.dumps(p, indent=2)),
+                         resume_from=resume_from)
     comparison = compare(payload)
     payload["comparison"] = comparison
 

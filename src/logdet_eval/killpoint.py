@@ -71,6 +71,40 @@ TIMING_DEPENDENT = {"slow", "temporal", "realistic-combo"}
 PRIMARY_LEVEL = 3
 
 
+# Parameters that must match for a checkpoint to be reusable. Resuming across a
+# changed corpus or seed range would splice two different experiments together
+# and report the result as one, which is worse than losing the run.
+RESUME_KEYS = ("seeds", "start_seed", "ambient_ratio", "contamination",
+               "max_events_per_ip", "target_background_lines")
+
+
+def load_resumable(partial_path, settings: dict) -> list[dict] | None:
+    """Completed conditions from a checkpoint, or None if it cannot be trusted."""
+    import json as _json
+
+    if not partial_path.exists():
+        return None
+    try:
+        prior = _json.loads(partial_path.read_text())
+    except (OSError, ValueError):
+        print(f"WARNING: {partial_path.name} is unreadable -- starting fresh")
+        return None
+
+    mismatched = {
+        key: (prior.get(key), settings[key])
+        for key in RESUME_KEYS
+        if key in settings and key in prior and prior[key] != settings[key]
+    }
+    if mismatched:
+        print(f"WARNING: checkpoint does not match this run {mismatched} -- "
+              "starting fresh rather than splicing two experiments together")
+        return None
+    if not prior.get("wazuh_available", False) and settings.get("expect_wazuh", True):
+        print("WARNING: checkpoint was written without Wazuh -- starting fresh")
+        return None
+    return prior.get("conditions") or None
+
+
 def _our_flagged_lines(scored: pd.DataFrame) -> set[int]:
     """Our detector's verdict as 1-based log line numbers, so it can go through
     the same scorer as the SIEM's."""
@@ -81,7 +115,8 @@ def run_paired(seeds: int = 5, start_seed: int = 42, ambient_ratio: float = 0.05
                instances_per_scenario: int = 3,
                contamination: float = CONTAMINATION,
                levels: tuple[int, ...] = wazuh_runner.LEVEL_THRESHOLDS,
-               checkpoint: Callable[[dict], None] | None = None) -> dict:
+               checkpoint: Callable[[dict], None] | None = None,
+               resume_from: list[dict] | None = None) -> dict:
     """Score both systems on the *same corpus files*, condition by condition.
 
     Both sides go through scoring.measure_lines, so the only thing that differs
@@ -114,10 +149,20 @@ def run_paired(seeds: int = 5, start_seed: int = 42, ambient_ratio: float = 0.05
             "conditions_expected": len(CONDITIONS),
         }
 
-    conditions = []
+    # Conditions are independent, so a checkpoint from a killed run is not
+    # merely a record of progress -- it is reusable work. Nothing consumed it
+    # until now, which meant a crash at condition 8 of 9 still cost the whole
+    # run.
+    conditions = list(resume_from or [])
+    already_done = {c["condition"] for c in conditions}
+    if already_done:
+        print(f"resuming: {len(already_done)} condition(s) already done "
+              f"({', '.join(sorted(already_done))})")
     with tempfile.TemporaryDirectory() as tmp:
         work_dir = Path(tmp)
         for name, strategies in CONDITIONS:
+            if name in already_done:
+                continue
             ours_runs, siem_runs = [], []
 
             for offset in range(seeds):
@@ -335,6 +380,8 @@ def cli() -> None:
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--ambient-ratio", type=float, default=0.05)
     parser.add_argument("--output-dir", default=f"{RESULTS_DIR}/killpoint")
+    parser.add_argument("--resume", action="store_true",
+                        help="reuse completed conditions from a checkpoint")
     args = parser.parse_args()
 
     print(f"Kill-point: {len(CONDITIONS)} conditions x {args.seeds} seeds, "
@@ -348,9 +395,16 @@ def cli() -> None:
     def _checkpoint(partial: dict) -> None:
         partial_path.write_text(json.dumps(partial, indent=2))
 
+    resume_from = None
+    if args.resume:
+        resume_from = load_resumable(partial_path, {
+            "seeds": args.seeds, "start_seed": args.seed,
+            "ambient_ratio": args.ambient_ratio, "contamination": CONTAMINATION,
+        })
+
     payload = run_paired(seeds=args.seeds, start_seed=args.seed,
                          ambient_ratio=args.ambient_ratio,
-                         checkpoint=_checkpoint)
+                         checkpoint=_checkpoint, resume_from=resume_from)
     comparison = compare(payload)
     payload["comparison"] = comparison
 
