@@ -111,3 +111,62 @@ class TestRender:
         text = self._rendered()
         assert "arrival time" in text
         assert "paced" in text and "batch" in text
+
+
+class TestSweep:
+    """The sensitivity view. `rephrase` is the only surviving claim, so whether
+    it holds across background densities is the difference between a mechanism
+    and a lucky corpus."""
+
+    def _payloads(self) -> dict:
+        return {
+            "0.01": {"comparison": {"per_strategy": {
+                "rephrase": {"ours_drop": 4.4, "siem_drop": 35.6,
+                             "differential": 31.2, "timing_dependent": False},
+                "ip_rotate": {"ours_drop": 13.3, "siem_drop": 0.0,
+                              "differential": -13.3, "timing_dependent": False},
+                "slow": {"ours_drop": 15.6, "siem_drop": 0.0,
+                         "differential": -15.6, "timing_dependent": True},
+            }}},
+            "0.2": {"comparison": {"per_strategy": {
+                "rephrase": {"ours_drop": 2.2, "siem_drop": 33.3,
+                             "differential": 31.1, "timing_dependent": False},
+                "ip_rotate": {"ours_drop": 8.9, "siem_drop": 0.0,
+                              "differential": -8.9, "timing_dependent": False},
+                "slow": {"ours_drop": 22.2, "siem_drop": 0.0,
+                         "differential": -22.2, "timing_dependent": True},
+            }}},
+        }
+
+    def test_spread_is_the_range_across_densities(self):
+        from logdet_eval.killpoint_summary import sweep
+        rows = sweep(self._payloads())
+        assert rows["rephrase"]["spread"] == pytest.approx(0.1)
+        assert rows["ip_rotate"]["spread"] == pytest.approx(4.4)
+
+    def test_timing_dependent_rows_are_marked(self):
+        """Their spread is our drop moving, not a differential moving, and
+        reading it as sensitivity would be wrong in both directions."""
+        from logdet_eval.killpoint_summary import sweep
+        rows = sweep(self._payloads())
+        assert rows["slow"]["timing_dependent"] is True
+        assert rows["ip_rotate"]["timing_dependent"] is False
+
+    def test_every_density_appears_for_every_strategy(self):
+        from logdet_eval.killpoint_summary import sweep
+        rows = sweep(self._payloads())
+        for entry in rows.values():
+            assert set(entry["by_ratio"]) == {"0.01", "0.2"}
+
+    def test_report_warns_that_timing_rows_are_artefacts(self):
+        from logdet_eval.killpoint_summary import render_sweep, sweep
+        payloads = self._payloads()
+        text = render_sweep(sweep(payloads), payloads)
+        assert "artefacts" in text
+        assert "0pt by construction" in text
+
+    def test_report_names_the_strategy_that_moves(self):
+        from logdet_eval.killpoint_summary import render_sweep, sweep
+        payloads = self._payloads()
+        text = render_sweep(sweep(payloads), payloads)
+        assert "ip_rotate" in text
