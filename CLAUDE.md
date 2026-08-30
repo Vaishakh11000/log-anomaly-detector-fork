@@ -226,6 +226,42 @@ Two roles, split by **role, not by clustering.**
 | Runs | Embeddings, sequence models, Ollama, dashboard, API, the detector | Real attack tooling (hydra/medusa/nmap), emits `auth.log`/journald, runs Sigma/Wazuh |
 | Also is | Primary dev machine for detection work | Generates *authentic* attacks — see §2d |
 
+### Third machine: the day-to-day dev box (added 2026-08-30)
+
+The SSD now boots on a **borrowed laptop of the same model family but a different
+GPU**, and that is where development happens for now. The RTX 4060 machine is
+reserved for **final testing and the demo**.
+
+| | Dev box (this one) | Final-test box |
+|---|---|---|
+| GPU | **RTX 3050 6GB Laptop** (GA107BM) | RTX 4060 8GB |
+| CPU | i5-13450HX, 10c/16t | — |
+| RAM | 15GB total, ~11GB available | — |
+
+Verified on first boot 2026-08-30: the SSD booted, `nvidia-smi` reports driver
+610.57.04, and `dkms status` shows `nvidia/610.57.04, 7.1.8-arch1-3: installed`.
+The driver prep done on 2026-08-20 carried across hardware exactly as intended.
+
+Three consequences, and the middle one is the one that can quietly corrupt a
+result:
+
+- **6GB, not 8GB.** phi3-mini q4 (~2.3GB) is comfortable. llama3:8b q4 (~4.9GB)
+  fits only barely once KV cache is counted, so **treat it as unverified here**
+  and test before designing around it. On the 4060 it is fine.
+- **GPU timing numbers do not transfer.** Narration latency measured on a 3050
+  is not the 4060 number and must never be quoted as one. §2c already requires
+  reporting CPU and GPU figures separately; this adds a third measurement point,
+  so label every latency figure with the machine that produced it.
+- **Developing on the smaller GPU is the safe direction.** Anything that fits
+  6GB fits 8GB. The reverse would not hold, which is why the borrowed machine is
+  an acceptable dev box but not an acceptable place to measure the demo.
+
+**The RAM squeeze is gone here.** ~11GB available against the ~5GB that forced
+the "Wazuh manager only, never the full stack" decision (Decision Log
+2026-08-17). That decision is not reversed — the manager-only setup is also the
+better comparison and the better demo — but it is no longer *forced* by memory
+on this machine, and it may still be forced on the 4060 box. Re-check there.
+
 The **CPU-floor benchmark target** is the same SSD env booted *without* using the GPU
 (or on any GPU-less machine) — that is what keeps "runs on CPU" a measured claim.
 
@@ -847,8 +883,10 @@ plus new ones that only become risks now that the timeline pressure is off.
 - ❌ **Chasing a 0% adversarial gap** — an honest measured gap beats a suspicious zero.
 - ❌ **Rewriting from scratch** — the v1 detection code is proven and its evaluation
   artifacts are the most valuable thing here. Evolve it.
-- ❌ **Building on this machine what this machine cannot run** — check free RAM before
-  adding a stack. ~5GB free, and Ollama alone wants a large share of it.
+- ❌ **Building on this machine what this machine cannot run** — check free RAM and
+  free VRAM before adding a stack. The figure in this file was ~5GB free; on the
+  2026-08-30 dev box it is ~11GB, so verify on the machine in front of you rather
+  than trusting either number. VRAM is now the tighter budget: 6GB on the dev box.
 - ❌ **Assuming any of the above is a moral judgement about v1.** v1 was scoped for a
   2-3 week solo deadline and made the right calls for that. This is a different repo
   with different constraints.
