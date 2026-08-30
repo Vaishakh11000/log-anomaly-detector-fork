@@ -91,10 +91,14 @@ def build_runner() -> bakeoff.GridRunner:
         client.stop_stream()          # a leftover stream would hold the log open
     except ApiError:
         pass
+
+    # Open the session first: it truncates the log. Starting the stream before
+    # that point hands the service a previous run's file to read from the top,
+    # so Act 1 opens with somebody else's incidents already on screen and the
+    # parsed count runs ahead of the lines this session has written.
+    session = bakeoff.open_session(live_log, target, seed=int(seed))
     client.start_stream(source="file", path=live_log, from_start=True,
                         use_offset_store=False)
-
-    session = bakeoff.open_session(live_log, target, seed=int(seed))
     if target is not None:
         paced_replay.reset_correlation_state(target)
 
