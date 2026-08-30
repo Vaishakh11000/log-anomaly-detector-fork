@@ -12,6 +12,7 @@ Nothing here starts a service, a container or a clock -- the sinks, the readers
 and the sleeper are all injected.
 """
 
+import json
 import re
 import threading
 import time
@@ -523,3 +524,165 @@ def test_a_single_short_page_ends_the_walk():
     client = PagingClient(total=3)
     assert len(bakeoff.all_incidents(client, page_size=10)) == 3
     assert client.calls == 1
+
+
+# --- Merging several invocations into one report ---------------------------
+
+def _cell(attack: str, level: str, **extra) -> dict:
+    return {"attack": attack, "level": level, "measured": True,
+            "repeat": 3, "seed": 1, "compress": 1.0,
+            "ours": _volume(1.0, 3), "wazuh": _volume(1.0, 9), **extra}
+
+
+def _run_dir(tmp_path, name: str, cells: list[dict]):
+    path = tmp_path / name
+    path.mkdir()
+    (path / "bakeoff.json").write_text(json.dumps(cells))
+    return path
+
+
+def test_merge_orders_cells_by_the_grid_not_by_the_invocations(tmp_path):
+    """The grid is fired in whatever order fits the evening; the table it
+    produces has to read as the grid, or two merges of the same runs are two
+    different-looking reports."""
+    later = _run_dir(tmp_path, "later", [_cell("enumeration", "none")])
+    earlier = _run_dir(tmp_path, "earlier",
+                       [_cell("brute_force", "rephrase"), _cell("brute_force", "none")])
+
+    merged = bakeoff.merge_runs([later, earlier])
+
+    assert [(row["attack"], row["level"]) for row in merged] == [
+        ("brute_force", "none"), ("brute_force", "rephrase"), ("enumeration", "none")]
+
+
+def test_merge_records_which_run_each_cell_came_from(tmp_path):
+    first = _run_dir(tmp_path, "first", [_cell("brute_force", "none")])
+    second = _run_dir(tmp_path, "second", [_cell("enumeration", "none")])
+
+    sources = [row["source"] for row in bakeoff.merge_runs([first, second])]
+
+    assert sources == [str(first), str(second)]
+
+
+def test_a_cell_fired_twice_is_refused_rather_than_silently_resolved(tmp_path):
+    """Two firings of one cell are two different measurements. The table holds
+    one row, so picking between them is the operator's call -- resolving it by
+    argument order would put a number in the report nobody chose."""
+    first = _run_dir(tmp_path, "first", [_cell("brute_force", "none")])
+    again = _run_dir(tmp_path, "again", [_cell("brute_force", "none")])
+
+    with pytest.raises(ValueError, match="brute_force / none"):
+        bakeoff.merge_runs([first, again])
+
+
+def test_the_invocation_is_derived_from_the_rows_it_produced(tmp_path):
+    source = _run_dir(tmp_path, "illustration", [
+        _cell("brute_force", "slow", compress=600.0, measured=False),
+        _cell("enumeration", "slow", compress=600.0, measured=False)])
+    merged = bakeoff.merge_runs([source])
+
+    command = bakeoff.invocation(merged, str(source))
+
+    assert "--levels slow" in command
+    assert "--attack" not in command          # two attacks: the grid, not one row
+    assert "--compress 600" in command
+    assert f"--output {source}" in command
+
+
+def test_a_single_attack_run_reconstructs_as_one_grid_row(tmp_path):
+    source = _run_dir(tmp_path, "bf", [_cell("brute_force", "none"),
+                                       _cell("brute_force", "rephrase")])
+    merged = bakeoff.merge_runs([source])
+
+    command = bakeoff.invocation(merged, str(source))
+
+    assert "--attack brute_force" in command
+    assert "--levels none rephrase" in command
+    assert "--compress" not in command        # real time is the default, not a flag
+
+
+def test_the_merged_report_carries_its_own_regeneration_command(tmp_path):
+    """The gap this closes: the first merged report was assembled by a script in
+    a scratch directory, so the numbers were reproducible and the file was not."""
+    source = _run_dir(tmp_path, "bf", [_cell("brute_force", "none")])
+    merged = bakeoff.merge_runs([source])
+
+    report = bakeoff.render_merged_report(merged)
+
+    assert "--merge" in report
+    assert str(source) in report
+
+
+def test_notes_are_appended_verbatim_and_nothing_writes_them(tmp_path):
+    """The tables are computed and the reading of them is not. A generator that
+    wrote conclusions would be writing the story before the measurement."""
+    source = _run_dir(tmp_path, "bf", [_cell("brute_force", "none")])
+    merged = bakeoff.merge_runs([source])
+
+    report = bakeoff.render_merged_report(merged, "## Reading it\n\nOnly one cell moved.")
+
+    assert report.endswith("## Reading it\n\nOnly one cell moved.\n")
+
+
+# --- Act 1: the quiet baseline ---------------------------------------------
+
+def test_the_quiet_baseline_scores_both_systems_on_traffic_with_no_attack(tmp_path):
+    """Act 1 has no ground truth to hit, so what it measures is the opposite:
+    with every line benign by construction, whatever either system flags is a
+    false positive."""
+    session, _ = make_session()
+    session.clock = staticmethod(_ticking_clock())
+
+    def incidents():
+        # one incident covering the third line written
+        line = session.manifest.lines[2]
+        return [{"events": [{"timestamp": line.timestamp.isoformat(),
+                             "message": line.message}]}]
+
+    readers = bakeoff.Readers(incidents=incidents)
+    result = bakeoff.run_benign_baseline(session, readers, count=5, rate=0)
+
+    assert result["lines_written"] == 5
+    assert result["ours"] == {"flagged_lines": 1, "false_positive_rate": 0.2,
+                              "incidents": 1}
+    assert result["wazuh"]["flagged_lines"] == 0
+
+
+def test_the_quiet_baseline_ignores_lines_written_before_it(tmp_path):
+    """The manifest is one continuous stream, so a baseline fired after an
+    attack must not count that attack's alerts as its own false positives."""
+    session, _ = make_session()
+    session.clock = staticmethod(_ticking_clock())
+    session.emit_benign(3, rate=0)
+    earlier = session.manifest.lines[0]
+
+    readers = bakeoff.Readers(incidents=lambda: [
+        {"events": [{"timestamp": earlier.timestamp.isoformat(),
+                     "message": earlier.message}]}])
+    result = bakeoff.run_benign_baseline(session, readers, count=4, rate=0)
+
+    assert result["lines_written"] == 4
+    assert result["ours"]["flagged_lines"] == 0
+
+
+def test_the_baseline_report_says_every_alert_in_it_is_a_false_positive():
+    report = bakeoff.render_baseline_report({
+        "lines_written": 30, "benign_rate": 0.5, "elapsed_seconds": 60.0,
+        "ours": {"flagged_lines": 3, "false_positive_rate": 0.1, "incidents": 2},
+        "wazuh": {"flagged_lines": 12, "false_positive_rate": 0.4, "alerts": 12},
+    })
+
+    assert "No attack was fired" in report
+    assert "false positive" in report
+    assert "| this detector | 3 | 10% |" in report
+
+
+def _ticking_clock():
+    """A clock that advances a second per call, so lines get distinct keys."""
+    start = datetime(2026, 8, 30, 12, 0, 0)
+    state = {"n": 0}
+
+    def now():
+        state["n"] += 1
+        return start + timedelta(seconds=state["n"])
+    return now

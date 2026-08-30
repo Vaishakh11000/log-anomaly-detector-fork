@@ -189,7 +189,8 @@
           }
         }
       }
-    ]
+    ],
+    "source": "results/bakeoff/bf_measured2"
   },
   {
     "attack": "brute_force",
@@ -381,7 +382,8 @@
           }
         }
       }
-    ]
+    ],
+    "source": "results/bakeoff/bf_measured"
   },
   {
     "attack": "brute_force",
@@ -573,7 +575,8 @@
           }
         }
       }
-    ]
+    ],
+    "source": "results/bakeoff/bf_measured2"
   },
   {
     "attack": "brute_force",
@@ -765,7 +768,8 @@
           }
         }
       }
-    ]
+    ],
+    "source": "results/bakeoff/bf_measured"
   },
   {
     "attack": "brute_force",
@@ -957,7 +961,8 @@
           }
         }
       }
-    ]
+    ],
+    "source": "results/bakeoff/illustration"
   },
   {
     "attack": "brute_force",
@@ -1149,7 +1154,8 @@
           }
         }
       }
-    ]
+    ],
+    "source": "results/bakeoff/illustration"
   },
   {
     "attack": "impossible_travel",
@@ -1341,7 +1347,8 @@
           }
         }
       }
-    ]
+    ],
+    "source": "results/bakeoff/it_measured"
   },
   {
     "attack": "impossible_travel",
@@ -1533,7 +1540,8 @@
           }
         }
       }
-    ]
+    ],
+    "source": "results/bakeoff/it_measured"
   },
   {
     "attack": "impossible_travel",
@@ -1725,7 +1733,8 @@
           }
         }
       }
-    ]
+    ],
+    "source": "results/bakeoff/it_measured"
   },
   {
     "attack": "impossible_travel",
@@ -1917,7 +1926,8 @@
           }
         }
       }
-    ]
+    ],
+    "source": "results/bakeoff/it_measured"
   },
   {
     "attack": "impossible_travel",
@@ -2109,7 +2119,8 @@
           }
         }
       }
-    ]
+    ],
+    "source": "results/bakeoff/illustration"
   },
   {
     "attack": "impossible_travel",
@@ -2301,7 +2312,8 @@
           }
         }
       }
-    ]
+    ],
+    "source": "results/bakeoff/illustration"
   },
   {
     "attack": "enumeration",
@@ -2493,7 +2505,8 @@
           }
         }
       }
-    ]
+    ],
+    "source": "results/bakeoff/enum_measured"
   },
   {
     "attack": "enumeration",
@@ -2685,7 +2698,8 @@
           }
         }
       }
-    ]
+    ],
+    "source": "results/bakeoff/enum_measured"
   },
   {
     "attack": "enumeration",
@@ -2877,7 +2891,8 @@
           }
         }
       }
-    ]
+    ],
+    "source": "results/bakeoff/enum_measured"
   },
   {
     "attack": "enumeration",
@@ -3069,7 +3084,8 @@
           }
         }
       }
-    ]
+    ],
+    "source": "results/bakeoff/enum_measured"
   },
   {
     "attack": "enumeration",
@@ -3261,7 +3277,8 @@
           }
         }
       }
-    ]
+    ],
+    "source": "results/bakeoff/illustration"
   },
   {
     "attack": "enumeration",
@@ -3453,6 +3470,7 @@
           }
         }
       }
-    ]
+    ],
+    "source": "results/bakeoff/illustration"
   }
 ]

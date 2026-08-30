@@ -572,6 +572,52 @@ def run_condition(session: Session, attack: str, level: str, seed: int,
     }
 
 
+def run_benign_baseline(session: Session, readers: Readers, count: int, rate: float,
+                        settle: float = SETTLE_SECONDS) -> dict:
+    """Act 1: background traffic and nothing else, scored on both systems.
+
+    No attack is fired, so the ground truth is that *every* line is benign and
+    every alert either system raises is a false positive. That makes this the
+    one act where the number is directly comparable without a camouflage level
+    attached, and it is the act the demo opens with -- so it needs an artifact
+    like the attack acts have, rather than a line printed to a terminal that
+    scrolls away.
+    """
+    mark = readers.wazuh_mark() if readers.wazuh_mark else None
+    first_line = len(session.manifest) + 1
+    started = session.clock()
+
+    session.emit_benign(count, rate)
+    session.sleeper(settle)
+
+    incidents = readers.incidents()
+    ours = {line for line in ours_flagged(incidents, session.manifest)
+            if line >= first_line}
+    alerts = readers.wazuh_since(mark) if readers.wazuh_since else []
+    theirs = {line for line in wazuh_flagged(alerts, session.manifest)
+              if line >= first_line}
+
+    total = len(session.manifest) - first_line + 1
+    ours_incidents = [incident for incident in incidents
+                      if any(line >= first_line for line in
+                             ours_flagged([incident], session.manifest))]
+
+    def share(flagged: set[int]) -> float:
+        return round(len(flagged) / total, 4) if total else 0.0
+
+    return {
+        "act": "benign_baseline",
+        "lines_written": total,
+        "benign_rate": rate,
+        "elapsed_seconds": round((session.clock() - started).total_seconds(), 1),
+        "measured": True,
+        "ours": {"flagged_lines": len(ours), "false_positive_rate": share(ours),
+                 "incidents": len(ours_incidents)},
+        "wazuh": {"flagged_lines": len(theirs), "false_positive_rate": share(theirs),
+                  "alerts": len(alerts)},
+    }
+
+
 def differential_vs_baseline(baseline: dict, condition: dict) -> float | None:
     """How much more Wazuh lost to this camouflage than we did.
 
@@ -829,6 +875,133 @@ def resolution(results: list[dict]) -> str:
     return f"{100 / max(counts):.0f}pt"
 
 
+def render_baseline_report(result: dict) -> str:
+    """Act 1 as a page: what each system says when nothing is happening."""
+    total = result["lines_written"] or 1
+    ours, wazuh = result["ours"], result["wazuh"]
+    return "\n".join([
+        "# Live bake-off -- Act 1, the quiet baseline",
+        "",
+        f"{result['lines_written']} benign lines at {result['benign_rate']}/s over "
+        f"{result['elapsed_seconds']:.0f}s. **No attack was fired**, so every line is "
+        f"benign by construction and every alert below is a false positive.",
+        "",
+        "| system | lines flagged | share of the stream | alerts |",
+        "|---|---|---|---|",
+        f"| this detector | {ours['flagged_lines']} | "
+        f"{ours['flagged_lines'] / total * 100:.0f}% | "
+        f"{ours['flagged_lines']} in {ours['incidents']} incidents |",
+        f"| Wazuh (level >={PRIMARY_LEVEL}) | {wazuh['flagged_lines']} | "
+        f"{wazuh['flagged_lines'] / total * 100:.0f}% | {wazuh['alerts']} |",
+        "",
+        f"Wazuh is counted at level >={PRIMARY_LEVEL}, the kill point's primary level, "
+        f"where a single successful login is already an alert (rule 5715) -- so its "
+        f"count here is what saturation looks like on quiet traffic, not a failure of "
+        f"its rules. Ours is the precision weakness this project has carried since v1 "
+        f"(CLAUDE.md Known Issues), seen with no attack present at all.",
+        "",
+        "This is one short run at one background rate, not a false-positive rate for "
+        "either system. The recorded alert volumes are in "
+        "`results/killpoint/killpoint_ambient0.05.md`.",
+        "",
+    ])
+
+
+def merge_runs(sources: list[Path]) -> list[dict]:
+    """Load several invocations' results into one ordered table.
+
+    The 18-cell grid was fired in five invocations, because firing the whole of
+    it in real time takes hours and a run that dies takes everything with it.
+    The merged report was then assembled by a throwaway script, which left the
+    committed table with no generator -- the one artifact in `results/` nobody
+    could reproduce. This is that generator.
+
+    Each row keeps the directory it came from, and a cell fired twice is
+    refused rather than silently resolved: the table holds one row per
+    (attack, level), and choosing which of two firings that row is belongs to
+    whoever fired them, not to a sort order.
+    """
+    merged: dict[tuple[str, str], dict] = {}
+    for source in sources:
+        path = source / "bakeoff.json" if source.is_dir() else source
+        for result in json.loads(path.read_text()):
+            cell = (result["attack"], result["level"])
+            if cell in merged:
+                raise ValueError(
+                    f"{cell[0]} / {cell[1]} was fired in both "
+                    f"{merged[cell]['source']} and {source}. The table holds one row "
+                    f"per cell -- pass whichever firing you mean to report.")
+            merged[cell] = dict(result, source=str(source))
+
+    order = {(attack, level): (a, l)
+             for a, attack in enumerate(ATTACKS)
+             for l, level in enumerate(LEVELS)}
+    unknown = (len(ATTACKS), len(LEVELS))
+    return [merged[cell] for cell in sorted(merged, key=lambda c: order.get(c, unknown))]
+
+
+def invocation(results: list[dict], source: str) -> str:
+    """The `logdet-bakeoff` command that produced one source directory.
+
+    Derived from the rows themselves rather than recorded, so it cannot drift
+    away from what the JSON beside it actually contains.
+    """
+    rows = [result for result in results if result["source"] == source]
+    attacks = list(dict.fromkeys(row["attack"] for row in rows))
+    levels = list(dict.fromkeys(row["level"] for row in rows))
+    parts = ["logdet-bakeoff", "--grid"]
+    if len(attacks) == 1:
+        parts += ["--attack", attacks[0]]
+    parts += ["--levels", *levels]
+    parts += ["--repeat", str(rows[0].get("repeat", 1))]
+    if rows[0].get("seed", 1) != 1:
+        parts += ["--seed", str(rows[0]["seed"])]
+    if rows[0].get("compress", 1.0) != 1.0:
+        parts += ["--compress", f"{rows[0]['compress']:g}"]
+    parts += ["--output", source]
+    return " ".join(parts)
+
+
+def provenance_section(results: list[dict]) -> str:
+    """How the merged table was fired, and how to rebuild it from the JSON."""
+    sources = list(dict.fromkeys(result["source"] for result in results))
+    commands = [invocation(results, source) for source in sources]
+    merge = "logdet-bakeoff --merge " + " ".join(sources)
+    return "\n".join([
+        "## How this table was produced",
+        "",
+        f"The {len(results)} cells came from {len(sources)} `logdet-bakeoff` "
+        f"invocation{'s' if len(sources) != 1 else ''}, not one, so line numbers restart "
+        f"per invocation and each cell is scored only on the lines it wrote:",
+        "",
+        "```",
+        *commands,
+        "```",
+        "",
+        "The per-invocation JSON is kept beside this file, and this report is "
+        "regenerated from it -- no hand assembly:",
+        "",
+        "```",
+        merge,
+        "```",
+        "",
+    ])
+
+
+def render_merged_report(results: list[dict], notes: str = "") -> str:
+    """The merged table, its provenance, and any hand-written reading appended.
+
+    The tables and the provenance are computed; the interpretation is not, and
+    pretending otherwise would either lose the reading or invite a generator
+    that writes conclusions. So the prose lives in a file passed with --notes
+    and is appended verbatim.
+    """
+    parts = [render_report(results), provenance_section(results)]
+    if notes.strip():
+        parts.append(notes.strip() + "\n")
+    return "\n".join(parts)
+
+
 # --- CLI -------------------------------------------------------------------
 
 # `GET /incidents` caps a page at 10000 (api.py). A long demo run can exceed
@@ -900,7 +1073,26 @@ def cli() -> None:
     parser.add_argument("--no-start-stream", action="store_true",
                         help="Assume the service is already tailing --live-log")
     parser.add_argument("--output", default=str(Path(RESULTS_DIR) / "bakeoff"))
+    parser.add_argument("--merge", nargs="+", metavar="DIR",
+                        help="Fire nothing: rebuild one report from the bakeoff.json "
+                             "of each directory given. The whole grid takes hours in "
+                             "real time, so it is fired in several invocations and "
+                             "merged afterwards")
+    parser.add_argument("--notes", metavar="FILE",
+                        help="Markdown appended verbatim to a --merge report. The "
+                             "tables are computed; the reading of them is not")
     args = parser.parse_args()
+
+    if args.merge:
+        results = merge_runs([Path(source) for source in args.merge])
+        notes = Path(args.notes).read_text() if args.notes else ""
+        output = Path(args.output)
+        output.mkdir(parents=True, exist_ok=True)
+        (output / "bakeoff.json").write_text(json.dumps(results, indent=2))
+        (output / "bakeoff.md").write_text(render_merged_report(results, notes))
+        print(f"merged {len(results)} cells from {len(args.merge)} runs "
+              f"-> {output / 'bakeoff.md'}")
+        return
 
     from logdet.api_client import ApiClient, DEFAULT_BASE_URL
 
@@ -935,10 +1127,18 @@ def cli() -> None:
 
         if args.benign_only:
             print(f"quiet baseline: {args.duration:.0f}s at {args.benign_rate}/s")
-            session.emit_benign(int(args.duration * args.benign_rate), args.benign_rate)
-            session.sleeper(args.settle)
-            incidents = readers.incidents()
-            print(f"{len(session.manifest)} benign lines -> {len(incidents)} incidents")
+            baseline = run_benign_baseline(
+                session, readers, int(args.duration * args.benign_rate),
+                args.benign_rate, settle=args.settle)
+            output = Path(args.output)
+            output.mkdir(parents=True, exist_ok=True)
+            (output / "benign_baseline.json").write_text(json.dumps(baseline, indent=2))
+            (output / "benign_baseline.md").write_text(render_baseline_report(baseline))
+            print(f"{baseline['lines_written']} benign lines -> "
+                  f"ours {baseline['ours']['flagged_lines']} lines in "
+                  f"{baseline['ours']['incidents']} incidents, "
+                  f"wazuh {baseline['wazuh']['flagged_lines']} lines")
+            print(f"wrote {output / 'benign_baseline.md'}")
             return
 
         if args.grid:

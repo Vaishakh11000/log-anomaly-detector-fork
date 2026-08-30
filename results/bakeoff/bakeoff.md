@@ -41,28 +41,34 @@ The differential is computed on **instance** detection, which is the quantity se
 
 ## How this table was produced
 
+The 18 cells came from 5 `logdet-bakeoff` invocations, not one, so line numbers restart per invocation and each cell is scored only on the lines it wrote:
+
+```
+logdet-bakeoff --grid --attack brute_force --levels none rephrase --repeat 3 --output results/bakeoff/bf_measured2
+logdet-bakeoff --grid --attack brute_force --levels mimicry ip_rotate --repeat 3 --output results/bakeoff/bf_measured
+logdet-bakeoff --grid --levels slow realistic-combo --repeat 3 --compress 600 --output results/bakeoff/illustration
+logdet-bakeoff --grid --attack impossible_travel --levels none mimicry rephrase ip_rotate --repeat 3 --output results/bakeoff/it_measured
+logdet-bakeoff --grid --attack enumeration --levels none mimicry rephrase ip_rotate --repeat 3 --output results/bakeoff/enum_measured
+```
+
+The per-invocation JSON is kept beside this file, and this report is regenerated from it -- no hand assembly:
+
+```
+logdet-bakeoff --merge results/bakeoff/bf_measured2 results/bakeoff/bf_measured results/bakeoff/illustration results/bakeoff/it_measured results/bakeoff/enum_measured
+```
+
+## Conditions of the run
+
 Fired 2026-08-30 on the dev box (RTX 3050 6GB, i5-13450HX; CLAUDE.md 2c), with the
 Wazuh manager running in Docker throughout and its correlation state reset before
 each invocation. Seed 1, three instances per cell, background traffic 0.5 lines/s,
 20s settle after each instance, Wazuh detection counted at level >=3 -- the same
 primary level the kill point uses.
 
-The 18 cells came from five `logdet-bakeoff` invocations, not one, so line numbers
-restart per invocation and each cell is scored only on the lines it wrote:
-
-```
-logdet-bakeoff --grid --attack brute_force --levels none rephrase --repeat 3
-logdet-bakeoff --grid --attack brute_force --levels mimicry ip_rotate --repeat 3
-logdet-bakeoff --grid --attack enumeration --levels none mimicry rephrase ip_rotate --repeat 3
-logdet-bakeoff --grid --attack impossible_travel --levels none mimicry rephrase ip_rotate --repeat 3
-logdet-bakeoff --grid --levels slow realistic-combo --repeat 3 --compress 600
-```
-
-The per-invocation JSON is kept beside this file in `bf_measured2/`, `bf_measured/`,
-`enum_measured/`, `it_measured/` and `illustration/`. The twelve measured rows ran at
-`--compress 1`, in real time; the six illustration rows ran at `--compress 600`
-because `slow` spans up to 22 hours per instance, and compressing time is exactly
-what makes Wazuh's score on them an artefact of the harness.
+The twelve measured rows ran at `--compress 1`, in real time; the six illustration
+rows ran at `--compress 600` because `slow` spans up to 22 hours per instance, and
+compressing time is exactly what makes Wazuh's score on them an artefact of the
+harness.
 
 ## Reading it
 

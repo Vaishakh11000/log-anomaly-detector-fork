@@ -1,0 +1,17 @@
+{
+  "act": "benign_baseline",
+  "lines_written": 30,
+  "benign_rate": 0.5,
+  "elapsed_seconds": 78.1,
+  "measured": true,
+  "ours": {
+    "flagged_lines": 5,
+    "false_positive_rate": 0.1667,
+    "incidents": 3
+  },
+  "wazuh": {
+    "flagged_lines": 19,
+    "false_positive_rate": 0.6333,
+    "alerts": 19
+  }
+}
