@@ -83,3 +83,26 @@ RESULTS_DIR = str(PROJECT_ROOT / "results")
 
 # Fitted detectors persisted by Stage 2 (fit on history, score on stream).
 MODELS_DIR = str(PROJECT_ROOT / "models")
+
+# Detector persisted by `logdet-fit` and loaded by `logdet-stream`. The stream
+# scores against a model fit on history; it never fits on the traffic it is
+# judging, which would let an attacker's own volume define "normal".
+DEFAULT_DETECTOR_PATH = str(PROJECT_ROOT / "models" / "detector.joblib")
+
+# --- Streaming ingestion (Stage 2) ---
+# A micro-batch closes on whichever limit is reached first: enough lines, or
+# enough time. Count alone stalls forever on a quiet log; time alone wastes a
+# model call per line during a burst.
+STREAM_BATCH_MAX_LINES = 50
+STREAM_BATCH_MAX_SECONDS = 5.0
+STREAM_POLL_SECONDS = 0.5      # how often the tailer checks the file for new bytes
+
+# How long a scored event stays in memory so later events can be judged against
+# it. Impossible travel compares a login with the previous one, and incident
+# grouping links events inside a window -- both are blind to anything already
+# evicted, so the floor is the larger of the two windows.
+STREAM_RETENTION_MINUTES = max(INCIDENT_WINDOW_MINUTES, IMPOSSIBLE_TRAVEL_WINDOW_MINUTES)
+
+# Where the tailer records how far it has read, so a restart neither re-scores
+# old lines nor skips the ones written while it was down.
+DEFAULT_OFFSET_STORE = str(PROJECT_ROOT / "models" / "stream_offset.json")

@@ -20,6 +20,8 @@ dependencies = [
 [project.scripts]
 logdet-preprocess  = "logdet.preprocessing:cli"
 logdet-pipeline    = "logdet.pipeline:cli"
+logdet-fit         = "logdet.fit:cli"
+logdet-stream      = "logdet.stream:cli"
 logdet-generate    = "logdet_eval.generate_logs:cli"
 logdet-evaluate    = "logdet_eval.evaluate:cli"
 logdet-adversarial = "logdet_eval.adversarial:cli"

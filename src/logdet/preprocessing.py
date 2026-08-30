@@ -87,6 +87,46 @@ def template_message(message: str) -> str:
 YEAR_ROLLOVER_MIN_DROP = 6
 
 
+class LineParser:
+    """Parses raw log lines one at a time, carrying the year-rollover state.
+
+    Batch and stream need the same parse, but a stream has no file to iterate
+    twice: the rollover rule below depends on the *previous* line, so the state
+    has to live somewhere that survives between lines. Keeping it in an object
+    means `preprocess_file` and the streaming ingester share one parser rather
+    than two implementations that can drift apart.
+    """
+
+    def __init__(self, year: int | None = None, handle_year_rollover: bool = True):
+        self.year = year
+        self.handle_year_rollover = handle_year_rollover
+        self.previous_month: int | None = None
+
+    def parse(self, line: str) -> dict | None:
+        """One raw line -> the enriched record the pipeline scores, or None."""
+        parsed = parse_line(line, year=self.year)
+        if parsed is None:
+            return None
+
+        if self.handle_year_rollover and parsed["timestamp"] is not None:
+            month = parsed["timestamp"].month
+            if (self.previous_month is not None
+                    and self.previous_month - month >= YEAR_ROLLOVER_MIN_DROP):
+                self.year = (self.year or parsed["timestamp"].year) + 1
+                parsed = parse_line(line, year=self.year)
+            self.previous_month = month
+
+        parsed["user"] = extract_user(parsed["message"])
+        parsed["source_ip"] = extract_ip(parsed["message"])
+        parsed["template"] = template_message(parsed["message"])
+        return parsed
+
+    def parse_many(self, lines) -> list[dict]:
+        """Parse an iterable of lines, dropping the ones that don't match."""
+        records = [self.parse(line) for line in lines]
+        return [r for r in records if r is not None]
+
+
 def preprocess_file(input_path: str, output_path: str, year: int = None,
                     handle_year_rollover: bool = True) -> pd.DataFrame:
     """Parse a raw log file into the structured frame the pipeline scores.
@@ -97,27 +137,10 @@ def preprocess_file(input_path: str, output_path: str, year: int = None,
     impossible-travel check, and any SIEM frequency rule compared against them.
     It is a no-op on single-month corpora such as the v1 synthetic set.
     """
-    records = []
-    current_year = year
-    previous_month = None
+    parser = LineParser(year=year, handle_year_rollover=handle_year_rollover)
 
     with open(input_path, "r", errors="ignore") as f:
-        for line in f:
-            parsed = parse_line(line, year=current_year)
-            if parsed is None:
-                continue
-
-            if handle_year_rollover and parsed["timestamp"] is not None:
-                month = parsed["timestamp"].month
-                if (previous_month is not None
-                        and previous_month - month >= YEAR_ROLLOVER_MIN_DROP):
-                    current_year = (current_year or parsed["timestamp"].year) + 1
-                    parsed = parse_line(line, year=current_year)
-                previous_month = month
-            parsed["user"] = extract_user(parsed["message"])
-            parsed["source_ip"] = extract_ip(parsed["message"])
-            parsed["template"] = template_message(parsed["message"])
-            records.append(parsed)
+        records = parser.parse_many(f)
 
     df = pd.DataFrame(records)
     df.to_csv(output_path, index=False)

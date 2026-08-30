@@ -105,6 +105,20 @@ uv run logdet-generate               # regenerate the synthetic corpus
 uv run streamlit run src/logdet/dashboard.py
 ```
 
+Live mode fits a detector on history, then scores a tailed log against it — the
+stream never re-fits, so a long-running attack cannot teach the model that it is
+normal:
+
+```bash
+uv run logdet-fit --input data/processed/parsed.csv      # -> models/detector.joblib
+uv run logdet-stream --input /var/log/auth.log           # follow, alert as it goes
+uv run logdet-stream --input data/raw/synthetic.log --once   # replay a file, then exit
+```
+
+The tailer records its byte offset, so a restart neither re-alerts on old lines nor
+skips what arrived while it was down. Incidents are emitted `open` while they can
+still grow and `closed` once nothing further can join them.
+
 Paths in `config.py` resolve against the repo root, so these work from any directory.
 New results land in `results/`; `docs/results.v1/` is frozen and never written to.
 

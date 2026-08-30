@@ -45,6 +45,18 @@ def _linked(row_a: pd.Series, row_b: pd.Series, group_by_source_ip: bool) -> boo
     return False
 
 
+def linked(row_a, row_b, group_by_source_ip: bool = GROUP_BY_SOURCE_IP) -> bool:
+    """Public form of the link test, for callers that group incrementally.
+
+    The streaming ingester cannot re-run `group_anomalies` over the whole log on
+    every micro-batch, so it grows incidents event by event. It must apply the
+    *same* link rule the batch grouper does, or a streamed incident and a
+    batched one would not mean the same thing. Accepts anything with `.get`,
+    so a plain dict works as well as a row.
+    """
+    return _linked(row_a, row_b, group_by_source_ip)
+
+
 class _UnionFind:
     """Minimal union-find so incident membership is transitive: if A links to B
     and B links to C, all three land in one incident even if A and C share nothing."""
