@@ -112,3 +112,17 @@ DEFAULT_OFFSET_STORE = str(PROJECT_ROOT / "models" / "stream_offset.json")
 # interchangeable resume tokens, and one file holding both would let a file run
 # and a journald run overwrite each other's position.
 DEFAULT_CURSOR_STORE = str(PROJECT_ROOT / "models" / "stream_cursor.json")
+
+# --- API service (Stage 2) ---
+# Localhost by default: the service has no authentication, and the incidents it
+# serves are security findings about the monitored host. Binding it to
+# 10.10.10.2 for the two-machine demo (CLAUDE.md 2c) is a deliberate act, not a
+# default anyone can fall into.
+API_HOST = "127.0.0.1"
+API_PORT = 8000
+# Per-subscriber buffer on the live event feed. A slow reader drops events
+# rather than stalling the scoring thread -- the alert backlog is always
+# retrievable from GET /incidents, so dropping is recoverable and blocking the
+# detector is not.
+API_EVENT_QUEUE_SIZE = 1000
+API_SSE_POLL_SECONDS = 0.25

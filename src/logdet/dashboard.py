@@ -20,31 +20,11 @@ import json
 import pandas as pd
 import streamlit as st
 
-from logdet.config import NARRATE_MIN_EVENTS, NARRATE_SEVERITIES
+from logdet.triage import is_notable, triage_key
 
 st.set_page_config(page_title="LLM Log Anomaly Detector", layout="wide")
 
 SEVERITY_ICON = {"high": "🔴", "medium": "🟠", "low": "🟡"}
-SEVERITY_RANK = {"high": 3, "medium": 2, "low": 1, "none": 0}
-
-
-def is_notable(incident: dict) -> bool:
-    """Same policy the pipeline uses to decide what gets a narrative
-    (pipeline.should_narrate) -- kept in sync via the NARRATE_* config values
-    so the dashboard's default view matches what was actually narrated."""
-    return (incident.get("severity") in NARRATE_SEVERITIES
-            or incident.get("event_count", 0) >= NARRATE_MIN_EVENTS)
-
-
-def triage_key(incident: dict):
-    """Rank corroborated incidents above loud single lines.
-
-    Event count leads: a multi-event incident is several independent signals
-    about the same actor, which is stronger evidence than one line with an
-    extreme anomaly score. Severity breaks ties.
-    """
-    return (incident.get("event_count", 0),
-            SEVERITY_RANK.get(incident.get("severity"), 0))
 
 
 st.title("🛡️ LLM-Powered Log Anomaly Detector")

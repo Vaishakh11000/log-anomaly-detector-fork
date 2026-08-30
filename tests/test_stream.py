@@ -343,6 +343,37 @@ def test_every_incident_is_closed_when_the_stream_ends():
     assert proc.tracker.incidents == {}
 
 
+def test_stop_fn_ends_a_following_stream():
+    """Follow mode has no natural end. A caller that does not own the process
+    -- the API service running this on a background thread -- needs a way out
+    that is not killing the interpreter."""
+    stop = {"now": False}
+    proc = processor()
+
+    def sleep_fn(_seconds):
+        stop["now"] = True          # let one poll through, then ask it to stop
+
+    emitted = run_stream(IterableSource(BRUTE_FORCE), proc, once=False,
+                         sleep_fn=sleep_fn, stop_fn=lambda: stop["now"])
+    assert proc.lines_seen == len(BRUTE_FORCE)
+    assert emitted and emitted[-1]["status"] == "closed"
+
+
+def test_stopping_scores_the_batch_it_was_holding():
+    """A stop arriving mid-batch must not discard lines that were already
+    read -- the offset for them is committed, so they would never come back."""
+    stop = {"now": False}
+    proc = processor()
+
+    def sleep_fn(_seconds):
+        stop["now"] = True
+
+    run_stream(IterableSource(BRUTE_FORCE), proc, once=False,
+               batcher=MicroBatcher(max_lines=99, max_seconds=1e9, time_fn=FakeClock()),
+               sleep_fn=sleep_fn, stop_fn=lambda: stop["now"])
+    assert proc.lines_parsed == len(BRUTE_FORCE)
+
+
 def test_the_offset_is_committed_only_after_a_batch_is_scored(tmp_path):
     """A crash mid-batch must replay that batch, not skip it."""
     log = tmp_path / "auth.log"

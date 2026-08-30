@@ -408,11 +408,18 @@ class StreamProcessor:
 def run_stream(source, processor: StreamProcessor, once: bool = False,
                batcher: MicroBatcher | None = None,
                poll_seconds: float = STREAM_POLL_SECONDS,
-               on_incident=None, sleep_fn=time.sleep) -> list[dict]:
+               on_incident=None, sleep_fn=time.sleep, stop_fn=None) -> list[dict]:
     """Poll a source, score whole micro-batches, hand incidents to a callback.
 
     `once` drains what is already there and stops -- that is replay-a-file mode
     and what the tests use. Without it this follows the file indefinitely.
+
+    `stop_fn` is polled once per iteration and ends the loop when it returns
+    true. A follow-mode stream has no natural end, so a caller that does not
+    own the process -- the API service running it on a background thread -- has
+    no other way to stop it without killing the interpreter. Whatever is
+    already batched is still flushed and drained, so stopping loses no line
+    that was read.
     """
     batcher = batcher or MicroBatcher()
     emitted: list[dict] = []
@@ -424,6 +431,9 @@ def run_stream(source, processor: StreamProcessor, once: bool = False,
                 on_incident(incident)
 
     while True:
+        if stop_fn is not None and stop_fn():
+            break
+
         arrived = source.read_lines()
         batcher.add(arrived)
 
@@ -439,6 +449,11 @@ def run_stream(source, processor: StreamProcessor, once: bool = False,
             continue
 
         sleep_fn(poll_seconds)
+
+    # A stop can arrive mid-batch. Score what is held rather than discard it.
+    if batcher.pending():
+        emit(processor.process(batcher.flush()))
+        source.commit()
 
     emit(processor.drain())
     return emitted
