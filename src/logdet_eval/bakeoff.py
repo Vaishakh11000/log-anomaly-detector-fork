@@ -29,8 +29,11 @@ runs in real time and is scored honestly.
 
 Usage:
     logdet-bakeoff --attack brute_force --level rephrase
-    logdet-bakeoff --grid --repeat 3
+    logdet-bakeoff --grid --repeat 5
     logdet-bakeoff --benign-only --duration 60
+
+The same grid, driven by whoever is in the room, is
+`streamlit run src/logdet_eval/bakeoff_dashboard.py`.
 """
 
 import argparse
@@ -38,6 +41,7 @@ import copy
 import json
 import random
 import subprocess
+import threading
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -245,14 +249,22 @@ class Fanout:
     Sequential and unbuffered on purpose. The whole claim of a bake-off is that
     both systems saw the same stream; queueing one sink to make the writer
     faster would introduce exactly the skew the claim rules out.
+
+    The lock is what lets a second thread write background traffic while a
+    firing is in progress (the grid page keeps the quiet stream running between
+    cells). Without it two threads could interleave *between* sinks -- our file
+    getting line A then B while the container got B then A -- which is the one
+    thing this class exists to prevent.
     """
 
     def __init__(self, sinks: list) -> None:
         self.sinks = sinks
+        self.lock = threading.Lock()
 
     def write(self, text: str) -> None:
-        for sink in self.sinks:
-            sink.write(text)
+        with self.lock:
+            for sink in self.sinks:
+                sink.write(text)
 
     def close(self) -> None:
         for sink in self.sinks:
@@ -348,17 +360,24 @@ class Session:
     manifest: Manifest = field(default_factory=Manifest)
     benign: BenignFeed = field(default_factory=BenignFeed)
     host: str = SYNTHETIC_HOST
+    # Held across "take the next line number" and "write the line". The grid
+    # page keeps background traffic flowing on a second thread, and a line
+    # numbered on one thread but written after a line numbered later on another
+    # would put the manifest -- which *is* the ground truth -- out of step with
+    # what both systems actually read.
+    lock: threading.Lock = field(default_factory=threading.Lock)
     sleeper = staticmethod(time.sleep)
     clock = staticmethod(datetime.now)
 
     def emit(self, event: dict) -> WrittenLine:
-        text = generate_logs.format_line(event, self.host)
-        line = self.manifest.record(
-            text=text, timestamp=event["ts"], message=event["message"],
-            scenario=event.get("scenario"), instance=event.get("instance"),
-            user=event.get("user"), description=event.get("description"),
-        )
-        self.fanout.write(text)
+        with self.lock:
+            text = generate_logs.format_line(event, self.host)
+            line = self.manifest.record(
+                text=text, timestamp=event["ts"], message=event["message"],
+                scenario=event.get("scenario"), instance=event.get("instance"),
+                user=event.get("user"), description=event.get("description"),
+            )
+            self.fanout.write(text)
         return line
 
     def emit_benign(self, count: int, rate: float) -> None:
@@ -468,23 +487,21 @@ class Readers:
     wazuh_since: Callable | None = None     # (mark) -> alerts written after it
 
 
-def run_condition(session: Session, attack: str, level: str, seed: int,
-                  readers: Readers, repeat: int = 1, compress: float = 1.0,
-                  benign_rate: float = 0.0, settle: float = SETTLE_SECONDS) -> dict:
-    """Fire `repeat` instances of one grid cell and score both systems on them.
+def run_instance(session: Session, attack: str, level: str, seed: int,
+                 readers: Readers, instance: int = 1, compress: float = 1.0,
+                 benign_rate: float = 0.0, settle: float = SETTLE_SECONDS) -> dict:
+    """Fire one attack instance and score both systems on the lines it wrote.
 
     Only the lines this call wrote are scored. The session's manifest keeps
-    growing across conditions -- it has to, because line numbers are positions
-    in one continuous stream -- so the ground truth is narrowed to this cell's
-    instances rather than the whole session's.
+    growing -- it has to, because line numbers are positions in one continuous
+    stream -- so the ground truth is narrowed to this instance rather than the
+    whole session's.
     """
     mark = readers.wazuh_mark() if readers.wazuh_mark else None
     first_line = len(session.manifest) + 1
 
-    for index in range(repeat):
-        events = build_attack(attack, level, seed + index, instance=index + 1)
-        session.fire(events, compress=compress, benign_rate=benign_rate)
-
+    events = build_attack(attack, level, seed, instance=instance)
+    session.fire(events, compress=compress, benign_rate=benign_rate)
     session.sleeper(settle)
 
     ours = ours_flagged(readers.incidents(), session.manifest)
@@ -496,6 +513,50 @@ def run_condition(session: Session, attack: str, level: str, seed: int,
     total = len(session.manifest) - first_line + 1
 
     return {
+        "seed": seed,
+        "instance": instance,
+        "lines_written": total,
+        "ours": scoring.measure_lines(ours, truth, total),
+        "wazuh": scoring.measure_lines(theirs, truth, total, alert_count=len(alerts)),
+    }
+
+
+def run_condition(session: Session, attack: str, level: str, seed: int,
+                  readers: Readers, repeat: int = 1, compress: float = 1.0,
+                  benign_rate: float = 0.0, settle: float = SETTLE_SECONDS,
+                  on_instance: Callable | None = None) -> dict:
+    """Fire `repeat` instances of one grid cell and pool their scores.
+
+    Each instance is fired at its own seed and scored on its own, then the runs
+    are pooled with `scoring.pool_runs` -- the same pooler the kill point uses,
+    which recomputes rates from summed counts rather than averaging them, so an
+    instance that happens to produce fewer attack lines does not get equal
+    weight.
+
+    Pooling is the point of `repeat`. Instance detection over a single instance
+    reads 0% or 100% and nothing in between, so the registered differential
+    (CLAUDE.md 1b) computes to +0.0pt live no matter what either system did.
+    `repeat=n` makes the finest visible step 100/n points; the report prints
+    that step so nobody reads a live figure as if it were a pooled kill-point
+    one. It is still not admissible under CLAUDE.md 4 -- that wants >=5 seeds
+    on the recorded corpus, not a handful of firings in a demo room.
+    """
+    runs = []
+    for index in range(repeat):
+        run = run_instance(session, attack, level, seed + index, readers,
+                           instance=index + 1, compress=compress,
+                           benign_rate=benign_rate, settle=settle)
+        runs.append(run)
+        if on_instance:
+            on_instance(index + 1, repeat, run)
+
+    pooled_ours = scoring.pool_runs([run["ours"] for run in runs])
+    pooled_wazuh = scoring.pool_runs([run["wazuh"] for run in runs])
+    total = sum(run["lines_written"] for run in runs)
+    for pooled in (pooled_ours, pooled_wazuh):
+        pooled["overall"]["total_lines"] = total
+
+    return {
         "attack": attack,
         "level": level,
         "seed": seed,
@@ -505,8 +566,9 @@ def run_condition(session: Session, attack: str, level: str, seed: int,
         # is an artefact of the harness rather than a property of its rules.
         "measured": compress == 1.0 and level not in TIMING_DEPENDENT,
         "lines_written": total,
-        "ours": scoring.measure_lines(ours, truth, total),
-        "wazuh": scoring.measure_lines(theirs, truth, total, alert_count=len(alerts)),
+        "ours": pooled_ours,
+        "wazuh": pooled_wazuh,
+        "runs": runs,
     }
 
 
@@ -525,13 +587,147 @@ def differential_vs_baseline(baseline: dict, condition: dict) -> float | None:
     )
 
 
+# --- Driving the grid from a UI --------------------------------------------
+
+class BackgroundTraffic:
+    """Keeps the quiet stream running between firings, on its own thread.
+
+    Act 1 of the demo is a stream with nothing happening in it, and a stream
+    that stops between clicks is not that -- both systems would be idle, the
+    detector's "seconds since last batch" would climb, and the audience would
+    be looking at a dead log rather than a quiet one.
+    """
+
+    def __init__(self, session: Session, rate: float = 0.5) -> None:
+        self.session = session
+        self.rate = rate
+        self._stop = threading.Event()
+        self._thread: threading.Thread | None = None
+
+    @property
+    def running(self) -> bool:
+        return self._thread is not None and self._thread.is_alive()
+
+    def start(self) -> None:
+        if self.running or self.rate <= 0:
+            return
+        self._stop.clear()
+        self._thread = threading.Thread(target=self._run, daemon=True)
+        self._thread.start()
+
+    def _run(self) -> None:
+        gap = 1.0 / self.rate
+        while not self._stop.wait(gap):
+            self.session.emit(self.session.benign.next_event(self.session.clock()))
+
+    def stop(self, timeout: float = 5.0) -> None:
+        self._stop.set()
+        if self._thread:
+            self._thread.join(timeout)
+        self._thread = None
+
+
+class GridRunner:
+    """Owns one bake-off session and fires grid cells on a worker thread.
+
+    The page the examiner clicks cannot fire a condition inline: a real-time
+    firing takes as long as the attack takes, plus the settle window, and a
+    Streamlit script that blocks for two minutes stops repainting -- so the
+    live incident counts, the stream health and the progress of the firing all
+    freeze at exactly the moment somebody is watching them.
+
+    One firing at a time. Two overlapping attacks would share a stream and a
+    manifest, and each condition scores the lines *it* wrote by line number, so
+    a second firing's lines landing inside the first one's range would be
+    counted as undetected attack lines for the wrong cell.
+    """
+
+    def __init__(self, session: Session, readers: Readers, repeat: int = 1,
+                 compress: float = 1.0, benign_rate: float = 0.5,
+                 settle: float = SETTLE_SECONDS) -> None:
+        self.session = session
+        self.readers = readers
+        self.repeat = repeat
+        self.compress = compress
+        self.settle = settle
+        self.background = BackgroundTraffic(session, benign_rate)
+        self.results: list[dict] = []
+        self._lock = threading.Lock()
+        self._thread: threading.Thread | None = None
+        self._state: dict = {"busy": False, "attack": None, "level": None,
+                             "instance": 0, "repeat": repeat, "error": None}
+
+    @property
+    def busy(self) -> bool:
+        return self._thread is not None and self._thread.is_alive()
+
+    def fire(self, attack: str, level: str, seed: int = 1,
+             repeat: int | None = None) -> bool:
+        """Start one grid cell. False means a firing is already in flight."""
+        if self.busy:
+            return False
+        if attack not in ATTACKS or level not in LEVELS:
+            raise ValueError(f"not a grid cell: {attack!r} x {level!r}")
+        repeat = repeat or self.repeat
+        self._set(busy=True, attack=attack, level=level, instance=0,
+                  repeat=repeat, error=None)
+        self._thread = threading.Thread(
+            target=self._run, args=(attack, level, seed, repeat), daemon=True)
+        self._thread.start()
+        return True
+
+    def _run(self, attack: str, level: str, seed: int, repeat: int) -> None:
+        try:
+            result = run_condition(
+                self.session, attack, level, seed, self.readers, repeat=repeat,
+                compress=self.compress,
+                # The background thread is already writing the quiet stream, so
+                # the firing must not write its own or the demo would run at
+                # twice the background rate whenever an attack is in flight.
+                benign_rate=0.0 if self.background.running else self.background.rate,
+                settle=self.settle,
+                on_instance=lambda index, total, run: self._set(instance=index),
+            )
+            with self._lock:
+                self.results.append(result)
+        except Exception as exc:                      # noqa: BLE001 -- surfaced, not swallowed
+            self._set(error=f"{type(exc).__name__}: {exc}")
+        finally:
+            self._set(busy=False)
+
+    def _set(self, **fields) -> None:
+        with self._lock:
+            self._state.update(fields)
+
+    def state(self) -> dict:
+        """A snapshot the page can render without holding the lock."""
+        with self._lock:
+            return dict(self._state, results=len(self.results))
+
+    def close(self) -> None:
+        self.background.stop()
+        if self._thread:
+            self._thread.join(timeout=1.0)
+        self.session.fanout.close()
+
+
 # --- Reporting -------------------------------------------------------------
 
-def _rate(result: dict, system: str) -> str:
-    return f"{result[system]['overall']['instance_detection_rate'] * 100:.0f}%"
+def instance_cell(result: dict, system: str) -> str:
+    """Instance detection with its denominator attached.
+
+    The denominator is not decoration: "100%" over one instance and "100%" over
+    five are the same string and wildly different evidence, and this number is
+    the one the registered differential is computed from.
+    """
+    overall = result[system]["overall"]
+    text = f"{overall['instance_detection_rate'] * 100:.0f}%"
+    if overall.get("instances"):
+        text += f" ({overall['instances_detected']}/{overall['instances']})"
+    return text
 
 
-def _line_rate(result: dict, system: str) -> str:
+def line_cell(result: dict, system: str) -> str:
     return f"{result[system]['overall']['line_detection_rate'] * 100:.0f}%"
 
 
@@ -561,21 +757,76 @@ def render_report(results: list[dict]) -> str:
             note = "" if row["measured"] else "illustration"
             lines.append(
                 f"| `{row['level']}` | "
-                f"{_rate(row, 'ours')} / {_line_rate(row, 'ours')} | "
-                f"{_rate(row, 'wazuh')} / {_line_rate(row, 'wazuh')} | "
+                f"{instance_cell(row, 'ours')} / {line_cell(row, 'ours')} | "
+                f"{instance_cell(row, 'wazuh')} / {line_cell(row, 'wazuh')} | "
                 f"{row['ours']['overall']['alerts']} | {row['wazuh']['overall']['alerts']} | "
                 f"{'--' if diff is None else f'{diff:+.1f}pt'} | {note} |"
             )
         lines.append("")
 
-    lines.append("The differential is computed on **instance** detection, which is the "
-                 "quantity section 1b is registered in. Over a handful of live instances "
-                 "it saturates -- one instance reads 0% or 100% and nothing in between -- "
-                 "so the line rate is shown beside it as the finer-grained evidence of "
-                 "the same firing. Pooled figures come from the kill-point runs "
-                 "(CLAUDE.md 4), never from a live demo.")
+    lines.append(f"The differential is computed on **instance** detection, which is the "
+                 f"quantity section 1b is registered in. Instances per condition here: "
+                 f"{instances_note(results)}, so the finest step the live differential "
+                 f"can take is {resolution(results)}. The line rate is shown beside it "
+                 f"as the finer-grained evidence of the same firing. Admissible pooled "
+                 f"figures come from the kill-point runs over >=5 seeds (CLAUDE.md 4), "
+                 f"never from a live demo.")
+    note = ceiling_note(results)
+    if note:
+        lines.append("")
+        lines.append(note)
     lines.append("")
     return "\n".join(lines)
+
+
+def ceiling_note(results: list[dict]) -> str:
+    """Say so when every measured row detected every instance.
+
+    A +0.0pt differential has two completely different causes and the table
+    cannot tell them apart. One is granularity -- too few instances for the
+    metric to move -- which more repeats fix. The other is the ceiling: both
+    systems found every instance in every condition, so neither dropped, and no
+    number of repeats changes that. Leaving the reader to guess which one they
+    are looking at is how a live table gets over-read.
+    """
+    measured = [result for result in results if result.get("measured")]
+    if len(measured) < 2:
+        return ""
+    at_ceiling = all(
+        result[system]["overall"]["instance_detection_rate"] == 1.0
+        for result in measured for system in ("ours", "wazuh")
+    )
+    if not at_ceiling:
+        return ""
+    return ("Both systems detected **every instance in every measured condition**, so "
+            "both drops are zero and the differential is +0.0pt by arithmetic rather "
+            "than by a tie in robustness. More repeats cannot move it: one surviving "
+            "line is enough to call an instance detected, and at these magnitudes "
+            "(15-25 failures, 10-12 probes) rewording never removes them all. What "
+            "separates the two systems here is the *share of the attack's lines* each "
+            "one flagged, which is the column beside it.")
+
+
+def instances_pooled(result: dict) -> int:
+    """How many attack instances this condition's numbers were pooled over."""
+    return int(result["ours"]["overall"].get("instances") or result.get("repeat", 1))
+
+
+def instances_note(results: list[dict]) -> str:
+    counts = sorted({instances_pooled(result) for result in results})
+    return ", ".join(str(count) for count in counts) or "0"
+
+
+def resolution(results: list[dict]) -> str:
+    """The smallest non-zero differential this run could have produced.
+
+    Instance detection moves in 100/n point steps, so a run of one instance can
+    only ever report +0.0pt or +/-100pt -- which is why the first live firing
+    (2026-08-30) reported +0.0pt on every row and said nothing. Printing the
+    step keeps a reader from mistaking a coarse live number for a pooled one.
+    """
+    counts = [instances_pooled(result) for result in results] or [1]
+    return f"{100 / max(counts):.0f}pt"
 
 
 # --- CLI -------------------------------------------------------------------
@@ -629,8 +880,11 @@ def cli() -> None:
                         help="Quiet baseline: background traffic and nothing else")
     parser.add_argument("--duration", type=float, default=60.0,
                         help="Seconds of background for --benign-only")
-    parser.add_argument("--repeat", type=int, default=1,
-                        help="Attack instances per condition")
+    parser.add_argument("--repeat", type=int, default=3,
+                        help="Attack instances per condition, pooled. One instance "
+                             "makes instance detection read 0%% or 100%%, so the "
+                             "differential is +0.0pt whatever happened; n instances "
+                             "make the finest step 100/n points (default: 3)")
     parser.add_argument("--seed", type=int, default=1)
     parser.add_argument("--compress", type=float, default=1.0,
                         help="Divide event gaps by this. Anything but 1 makes the run "
@@ -704,7 +958,7 @@ def cli() -> None:
                 session, attack, level, args.seed, readers, repeat=args.repeat,
                 compress=args.compress, benign_rate=args.benign_rate, settle=args.settle)
             results.append(result)
-            print(f"  ours {_rate(result, 'ours')}  wazuh {_rate(result, 'wazuh')}"
+            print(f"  ours {instance_cell(result, 'ours')}  wazuh {instance_cell(result, 'wazuh')}"
                   f"{'' if result['measured'] else '  (illustration)'}")
     finally:
         session.fanout.close()

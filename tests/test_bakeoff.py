@@ -13,6 +13,8 @@ and the sleeper are all injected.
 """
 
 import re
+import threading
+import time
 from datetime import datetime, timedelta
 
 import pandas as pd
@@ -214,6 +216,167 @@ def test_repeat_fires_distinct_instances():
     result = bakeoff.run_condition(session, "brute_force", "none", 1, readers,
                                    repeat=3, settle=0)
     assert result["ours"]["per_scenario"]["A"]["instances"] == 3
+    assert len(result["runs"]) == 3
+    assert [run["seed"] for run in result["runs"]] == [1, 2, 3]
+
+
+def test_repeat_pools_the_instances_instead_of_saturating():
+    """The reason `--repeat` exists. One instance reads 0% or 100% and nothing
+    between, so the registered differential computes to +0.0pt whatever either
+    system did -- which is exactly what the first live firing reported."""
+    session, _ = make_session()
+
+    def incidents():
+        """A detector that misses the first instance and catches the other two."""
+        return [{"events": [
+            {"timestamp": line.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+             "message": line.message}
+            for line in session.manifest.lines
+            if line.scenario and line.instance != 1]}]
+
+    readers = bakeoff.Readers(incidents=incidents)
+    result = bakeoff.run_condition(session, "brute_force", "none", 1, readers,
+                                   repeat=3, settle=0)
+    # Two of three instances detected: a number a single firing cannot express.
+    assert result["ours"]["overall"]["instance_detection_rate"] == round(2 / 3, 3)
+    assert result["ours"]["overall"]["instances"] == 3
+
+
+def test_pooled_rates_come_from_summed_counts_not_averaged_rates():
+    """`scoring.pool_runs` is the kill point's own pooler, so a firing that
+    happened to produce fewer attack lines does not get equal weight."""
+    session, _ = make_session()
+    result = bakeoff.run_condition(session, "brute_force", "none", 1,
+                                   perfect_readers(session), repeat=2, settle=0)
+    overall = result["ours"]["overall"]
+    assert overall["attack_lines"] == sum(
+        run["ours"]["overall"]["attack_lines"] for run in result["runs"])
+    assert overall["seeds"] == 2
+
+
+def test_the_denominator_is_printed_beside_the_percentage():
+    """"100%" over one instance and over five are the same string and wildly
+    different evidence."""
+    result = {"ours": {"overall": {"instance_detection_rate": 0.667,
+                                   "instances": 3, "instances_detected": 2}}}
+    assert bakeoff.instance_cell(result, "ours") == "67% (2/3)"
+
+
+def test_a_zero_differential_at_full_detection_is_labelled_as_a_ceiling():
+    """+0.0pt has two causes and the table cannot tell them apart: too few
+    instances for the metric to move, or both systems catching everything. Only
+    the first is fixed by repeating, so the report has to say which it is."""
+    results = [
+        {"attack": "brute_force", "level": "none", "measured": True, "repeat": 3,
+         "ours": _volume(1.0, 179), "wazuh": _volume(1.0, 190)},
+        {"attack": "brute_force", "level": "rephrase", "measured": True, "repeat": 3,
+         "ours": _volume(1.0, 467, line_rate=1.0), "wazuh": _volume(1.0, 145, line_rate=0.29)},
+    ]
+    assert "every instance in every measured condition" in bakeoff.ceiling_note(results)
+    assert "by arithmetic" in bakeoff.render_report(results)
+
+
+def test_a_genuine_drop_is_not_called_a_ceiling():
+    results = [
+        {"attack": "brute_force", "level": "none", "measured": True, "repeat": 3,
+         "ours": _volume(1.0, 10), "wazuh": _volume(1.0, 10)},
+        {"attack": "brute_force", "level": "rephrase", "measured": True, "repeat": 3,
+         "ours": _volume(1.0, 10), "wazuh": _volume(0.333, 10)},
+    ]
+    assert bakeoff.ceiling_note(results) == ""
+
+
+def test_the_report_states_how_coarse_its_own_differential_is():
+    results = [{"attack": "brute_force", "level": "none", "measured": True,
+                "repeat": 4,
+                "ours": _volume(1.0, 3), "wazuh": _volume(1.0, 9)}]
+    assert bakeoff.resolution(results) == "25pt"
+    assert "25pt" in bakeoff.render_report(results)
+
+
+# --- driving the grid from a page -----------------------------------------
+
+def test_the_grid_runner_fires_a_cell_and_keeps_the_result():
+    session, _ = make_session()
+    runner = bakeoff.GridRunner(session, perfect_readers(session), repeat=2, settle=0)
+    assert runner.fire("brute_force", "rephrase") is True
+    runner._thread.join(30)
+    assert runner.results[0]["level"] == "rephrase"
+    assert runner.state()["busy"] is False
+    assert runner.state()["error"] is None
+
+
+def test_the_grid_runner_refuses_a_second_firing_while_one_is_in_flight():
+    """Two attacks sharing one stream would each score the other's lines as
+    undetected: a condition is scored by line number over the range it wrote."""
+    session, _ = make_session()
+    gate = threading.Event()
+    session.sleeper = lambda seconds: gate.wait(30)
+    runner = bakeoff.GridRunner(session, perfect_readers(session), settle=1)
+
+    assert runner.fire("brute_force", "none") is True
+    assert runner.fire("enumeration", "none") is False
+    gate.set()
+    runner._thread.join(30)
+    assert len(runner.results) == 1
+
+
+def test_a_failed_firing_is_surfaced_not_swallowed():
+    session, _ = make_session()
+
+    def explode():
+        raise RuntimeError("service is gone")
+
+    runner = bakeoff.GridRunner(session, bakeoff.Readers(incidents=explode), settle=0)
+    runner.fire("brute_force", "none")
+    runner._thread.join(30)
+    assert "service is gone" in runner.state()["error"]
+    assert runner.state()["busy"] is False
+
+
+def test_the_grid_runner_only_fires_real_grid_cells():
+    session, _ = make_session()
+    runner = bakeoff.GridRunner(session, perfect_readers(session))
+    with pytest.raises(ValueError):
+        runner.fire("brute_force", "invisibility")
+
+
+def test_background_traffic_keeps_the_quiet_stream_moving():
+    """Act 1 is a stream with nothing happening in it, which is not the same as
+    a stream that has stopped."""
+    session, sinks = make_session()
+    traffic = bakeoff.BackgroundTraffic(session, rate=50.0)
+    traffic.start()
+    deadline = time.time() + 5
+    while len(sinks[0].lines) < 3 and time.time() < deadline:
+        time.sleep(0.05)
+    traffic.stop()
+    written = len(sinks[0].lines)
+    assert written >= 3
+    time.sleep(0.2)
+    assert len(sinks[0].lines) == written      # stop means stopped
+
+
+def test_concurrent_writers_cannot_scramble_the_manifest():
+    """The manifest *is* the ground truth. A line numbered on one thread but
+    written after a line numbered later on another would score both systems
+    against a stream neither of them read."""
+    session, sinks = make_session()
+
+    def write(tag):
+        for index in range(50):
+            session.emit({"ts": datetime(2026, 1, 1), "process": "sshd", "pid": 1,
+                          "message": f"{tag}-{index}"})
+
+    threads = [threading.Thread(target=write, args=(tag,)) for tag in "abcd"]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(30)
+
+    assert [line.line_number for line in session.manifest.lines] == list(range(1, 201))
+    assert [line.text for line in session.manifest.lines] == sinks[0].lines
+    assert sinks[0].lines == sinks[1].lines
 
 
 def test_background_traffic_is_written_during_a_firing():
@@ -313,7 +476,7 @@ def test_report_shows_the_line_rate_beside_the_instance_rate():
     ]
     report = bakeoff.render_report(results)
     assert "92%" in report and "27%" in report
-    assert "saturates" in report
+    assert "finest step" in report
 
 
 # --- the scorer is the kill point's, not a second opinion ------------------
