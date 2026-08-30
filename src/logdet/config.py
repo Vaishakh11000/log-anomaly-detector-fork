@@ -80,3 +80,6 @@ DEFAULT_INCIDENTS_PATH = str(DATA_DIR / "processed" / "incidents.json")
 # New results go here. docs/results.v1/ is the frozen v1 baseline and is never
 # written to (CLAUDE.md section 6).
 RESULTS_DIR = str(PROJECT_ROOT / "results")
+
+# Fitted detectors persisted by Stage 2 (fit on history, score on stream).
+MODELS_DIR = str(PROJECT_ROOT / "models")

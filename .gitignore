@@ -16,3 +16,6 @@ data/external/
 
 # in-progress kill-point checkpoints (transient; deleted on successful completion)
 results/**/*.partial.json
+
+# Fitted detectors (regenerable; provenance is in the file itself)
+models/

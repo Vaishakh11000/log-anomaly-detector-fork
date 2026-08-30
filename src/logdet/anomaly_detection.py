@@ -16,9 +16,15 @@ Also owns two signals the embedding model can't provide on its own:
 
 import numpy as np
 import pandas as pd
+from datetime import datetime, timezone
+from pathlib import Path
+
+import joblib
+import sklearn
 from sklearn.ensemble import IsolationForest
 
 from logdet.config import (
+    EMBEDDING_MODEL,
     CONTAMINATION,
     MIN_SAMPLES_PER_USER,
     RANDOM_STATE,
@@ -31,14 +37,29 @@ SEVERITY_ORDER = {"none": 0, "low": 1, "medium": 2, "high": 3}
 
 
 class PerUserAnomalyDetector:
+    """Per-user Isolation Forests over sentence embeddings, with a global
+    fallback for users too sparse to model on their own.
+
+    Fitting and scoring are separate calls so a detector can be fit on history
+    and then score a live stream (Stage 2). `save`/`load` persist a fitted
+    detector between the two.
+    """
+
+    # Bumped whenever the persisted layout changes, so an old file fails loudly
+    # rather than loading into a structure that no longer means the same thing.
+    FORMAT_VERSION = 1
+
     def __init__(self, contamination: float = CONTAMINATION, random_state: int = RANDOM_STATE):
         self.contamination = contamination
         self.random_state = random_state
         self.models = {}          # user -> fitted IsolationForest
         self.global_model = None  # fallback for users with sparse history
+        self.embedding_model = EMBEDDING_MODEL
+        self.embedding_dim: int | None = None
 
     def fit(self, df: pd.DataFrame, user_col: str = "user", embedding_col: str = "embedding"):
         all_embeddings = np.stack(df[embedding_col].values)
+        self.embedding_dim = all_embeddings.shape[1]
         self.global_model = IsolationForest(
             contamination=self.contamination, random_state=self.random_state
         ).fit(all_embeddings)
@@ -56,7 +77,17 @@ class PerUserAnomalyDetector:
 
     def score(self, df: pd.DataFrame, user_col: str = "user", embedding_col: str = "embedding") -> pd.DataFrame:
         """Adds 'anomaly_score' (lower = more anomalous) and 'is_anomaly' (bool) columns."""
+        if self.global_model is None:
+            raise RuntimeError(
+                "detector has not been fitted -- call fit() or load() first")
         df = df.copy()
+        if len(df) and self.embedding_dim is not None:
+            width = np.asarray(df[embedding_col].iloc[0]).reshape(1, -1).shape[1]
+            if width != self.embedding_dim:
+                raise ValueError(
+                    f"embeddings are {width}-dimensional but this detector was fit on "
+                    f"{self.embedding_dim}. Scoring anyway would produce numbers that "
+                    "look valid and mean nothing.")
         scores = []
         flags = []
 
@@ -72,6 +103,75 @@ class PerUserAnomalyDetector:
         df["anomaly_score"] = scores
         df["is_anomaly"] = flags
         return df
+
+
+    def save(self, path) -> "PerUserAnomalyDetector":
+        """Persist the fitted detector.
+
+        The provenance stamped alongside it is the point: an Isolation Forest
+        will happily score embeddings from a *different* embedding model and
+        return plausible-looking numbers that mean nothing. `load` refuses that
+        rather than letting it through.
+        """
+        if self.global_model is None:
+            raise RuntimeError("refusing to save an unfitted detector")
+
+        path = Path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        joblib.dump({
+            "format_version": self.FORMAT_VERSION,
+            "contamination": self.contamination,
+            "random_state": self.random_state,
+            "embedding_model": self.embedding_model,
+            "embedding_dim": self.embedding_dim,
+            "min_samples_per_user": MIN_SAMPLES_PER_USER,
+            "sklearn_version": sklearn.__version__,
+            "fitted_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "users": sorted(self.models),
+            "global_model": self.global_model,
+            "models": self.models,
+        }, path)
+        return self
+
+    @classmethod
+    def load(cls, path, expect_embedding_model: str | None = EMBEDDING_MODEL
+             ) -> "PerUserAnomalyDetector":
+        """Restore a fitted detector, refusing anything that would score garbage.
+
+        Pass `expect_embedding_model=None` only to inspect a stored detector,
+        never to score with one.
+        """
+        payload = joblib.load(Path(path))
+
+        stored_version = payload.get("format_version")
+        if stored_version != cls.FORMAT_VERSION:
+            raise ValueError(
+                f"detector was written in format {stored_version}, this code reads "
+                f"{cls.FORMAT_VERSION}. Refit rather than guessing at the difference.")
+
+        stored_embedding = payload.get("embedding_model")
+        if expect_embedding_model is not None and stored_embedding != expect_embedding_model:
+            raise ValueError(
+                f"detector was fit on embeddings from '{stored_embedding}' but the "
+                f"pipeline is configured for '{expect_embedding_model}'. The vectors "
+                "are not comparable, so every score would be meaningless.")
+
+        detector = cls(contamination=payload["contamination"],
+                       random_state=payload["random_state"])
+        detector.embedding_model = stored_embedding
+        detector.embedding_dim = payload.get("embedding_dim")
+        detector.global_model = payload["global_model"]
+        detector.models = payload["models"]
+        return detector
+
+    @staticmethod
+    def describe(path) -> dict:
+        """Provenance of a stored detector without loading its models."""
+        payload = joblib.load(Path(path))
+        return {key: payload[key] for key in (
+            "format_version", "contamination", "random_state", "embedding_model",
+            "embedding_dim", "min_samples_per_user", "sklearn_version",
+            "fitted_at", "users") if key in payload}
 
 
 def _subnet_prefix(ip: str, prefix_len: int = TRAVEL_SUBNET_PREFIX_LENGTH) -> str:
@@ -142,7 +242,8 @@ def highest_severity(severities: pd.Series) -> str:
 
 
 def run_anomaly_detection(df: pd.DataFrame,
-                          contamination: float = CONTAMINATION) -> pd.DataFrame:
+                          contamination: float = CONTAMINATION,
+                          detector: "PerUserAnomalyDetector | None" = None) -> pd.DataFrame:
     """Full Phase 3 detection stack: per-user ML scoring + impossible-travel
     rule + severity tiers. This is the entry point pipeline.py should call --
     it owns how the signals combine so orchestration code stays thin.
@@ -154,7 +255,12 @@ def run_anomaly_detection(df: pd.DataFrame,
     alongside 'is_anomaly', so evaluation can attribute a detection to the
     model or to the rule.
     """
-    detector = PerUserAnomalyDetector(contamination=contamination).fit(df)
+    # Passing a detector means "score with this, do not refit" -- the streaming
+    # path (fit on history, score on the stream). Omitting it keeps the batch
+    # behaviour v1 had, fit and score on the same frame, so the pinned
+    # 751 -> 130 -> 94 numbers are unaffected.
+    if detector is None:
+        detector = PerUserAnomalyDetector(contamination=contamination).fit(df)
     scored = detector.score(df)
     scored = detect_impossible_travel(scored)
     scored["ml_anomaly"] = scored["is_anomaly"]
