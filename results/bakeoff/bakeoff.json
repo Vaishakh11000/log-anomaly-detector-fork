@@ -1,0 +1,100 @@
+[
+  {
+    "attack": "brute_force",
+    "level": "none",
+    "seed": 11,
+    "repeat": 1,
+    "compress": 1.0,
+    "measured": true,
+    "lines_written": 71,
+    "ours": {
+      "overall": {
+        "attack_lines": 26,
+        "line_detection_rate": 1.0,
+        "instance_detection_rate": 1.0,
+        "total_flagged_lines": 36,
+        "total_lines": 71,
+        "alerts": 36
+      },
+      "per_scenario": {
+        "A": {
+          "attack_lines": 26,
+          "lines_detected": 26,
+          "line_detection_rate": 1.0,
+          "instances": 1,
+          "instances_detected": 1,
+          "instance_detection_rate": 1.0
+        }
+      }
+    },
+    "wazuh": {
+      "overall": {
+        "attack_lines": 26,
+        "line_detection_rate": 0.923,
+        "instance_detection_rate": 1.0,
+        "total_flagged_lines": 54,
+        "total_lines": 71,
+        "alerts": 54
+      },
+      "per_scenario": {
+        "A": {
+          "attack_lines": 26,
+          "lines_detected": 24,
+          "line_detection_rate": 0.923,
+          "instances": 1,
+          "instances_detected": 1,
+          "instance_detection_rate": 1.0
+        }
+      }
+    }
+  },
+  {
+    "attack": "brute_force",
+    "level": "rephrase",
+    "seed": 11,
+    "repeat": 1,
+    "compress": 1.0,
+    "measured": true,
+    "lines_written": 71,
+    "ours": {
+      "overall": {
+        "attack_lines": 26,
+        "line_detection_rate": 1.0,
+        "instance_detection_rate": 1.0,
+        "total_flagged_lines": 66,
+        "total_lines": 71,
+        "alerts": 66
+      },
+      "per_scenario": {
+        "A": {
+          "attack_lines": 26,
+          "lines_detected": 26,
+          "line_detection_rate": 1.0,
+          "instances": 1,
+          "instances_detected": 1,
+          "instance_detection_rate": 1.0
+        }
+      }
+    },
+    "wazuh": {
+      "overall": {
+        "attack_lines": 26,
+        "line_detection_rate": 0.269,
+        "instance_detection_rate": 1.0,
+        "total_flagged_lines": 37,
+        "total_lines": 71,
+        "alerts": 37
+      },
+      "per_scenario": {
+        "A": {
+          "attack_lines": 26,
+          "lines_detected": 7,
+          "line_detection_rate": 0.269,
+          "instances": 1,
+          "instances_detected": 1,
+          "instance_detection_rate": 1.0
+        }
+      }
+    }
+  }
+]
