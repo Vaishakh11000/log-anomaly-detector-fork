@@ -241,6 +241,10 @@ class IncidentTracker:
         self._next_id = 0
         self.incidents: dict[int, dict] = {}      # id -> {"events": [...], "last_ts": ts}
         self._recent: list[tuple[dict, int]] = []  # (event, incident id) inside the window
+        # Where an incident went when a later event bridged it into another one.
+        # Callers hold ids across a batch, and a merged id no longer exists, so
+        # they need a way to follow it rather than a KeyError.
+        self.merged_into: dict[int, int] = {}
 
     def add(self, event: dict) -> int:
         """File one anomalous event; returns the incident id it landed in."""
@@ -264,12 +268,24 @@ class IncidentTracker:
                     self.incidents[incident_id]["last_ts"], merged["last_ts"])
                 self._recent = [(e, incident_id if i == other else i)
                                 for e, i in self._recent]
+                self.merged_into[other] = incident_id
+                # Anything that had already followed `other` now follows the
+                # survivor too, so a chain of merges resolves in one hop.
+                for source, target in list(self.merged_into.items()):
+                    if target == other:
+                        self.merged_into[source] = incident_id
 
         incident = self.incidents[incident_id]
         incident["events"].append(event)
         incident["events"].sort(key=lambda e: e["timestamp"])
         incident["last_ts"] = max(incident["last_ts"], ts)
         self._recent.append((event, incident_id))
+        return incident_id
+
+    def survivor(self, incident_id: int) -> int:
+        """The incident an id ended up in, following any merges."""
+        while incident_id in self.merged_into:
+            incident_id = self.merged_into[incident_id]
         return incident_id
 
     def prune_recent(self, now: pd.Timestamp) -> None:
@@ -374,6 +390,20 @@ class StreamProcessor:
             incident_id = self.tracker.add(row.to_dict())
             if incident_id not in touched:
                 touched.append(incident_id)
+
+        # A later event in this same batch can bridge two incidents, which
+        # merges one into the other and removes it from the tracker. Ids
+        # collected earlier in the loop then point at something that no longer
+        # exists, and snapshotting one raised KeyError and killed the stream
+        # worker mid-run. Follow each id to whatever it was merged into.
+        touched = list(dict.fromkeys(self.tracker.survivor(i) for i in touched))
+        for incident_id, target in self.tracker.merged_into.items():
+            entry = self._emitted.get(incident_id)
+            if entry is not None and entry.get("status") != "merged":
+                # It was already reported to a client, so say where it went
+                # rather than leaving a stale open incident on the dashboard.
+                entry["status"] = "merged"
+                entry["merged_into"] = self.tracker.survivor(target)
 
         # Snapshot before closing: closing removes an incident from the tracker,
         # and the snapshot is built from the tracker's event list.

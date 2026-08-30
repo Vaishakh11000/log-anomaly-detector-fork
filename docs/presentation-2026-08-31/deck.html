@@ -1,0 +1,590 @@
+<!doctype html><html><head><meta charset='utf-8'>
+<title>LLM-Based Log Anomaly Detector — 31 August 2026</title>
+<style>
+@page { size: 1280px 720px; margin: 0; }
+* { box-sizing: border-box; }
+body { margin: 0; background: #fff; color: #16212e;
+       font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif; }
+.slide { width: 1280px; height: 720px; padding: 38px 56px 54px;
+         page-break-after: always; break-after: page; position: relative;
+         overflow: hidden; display: flex; flex-direction: column; }
+.slide:last-of-type { page-break-after: auto; break-after: auto; }
+h1.slide-title { font-size: 34px; margin: 0 0 6px; color: #12304f;
+                 letter-spacing: -0.2px; }
+.rule { height: 3px; width: 96px; background: #2c5f9e; margin: 0 0 18px; }
+.body { flex: 1; min-height: 0; font-size: 20px; line-height: 1.45; }
+.body.tight { font-size: 17px; line-height: 1.35; }
+.body.tighter { font-size: 15px; line-height: 1.3; }
+ul { margin: 6px 0 10px; padding-left: 24px; }
+li { margin: 0 0 9px; }
+li > strong { color: #12304f; }
+p { margin: 8px 0; }
+table { border-collapse: collapse; width: 100%; margin: 8px 0 10px; }
+th, td { border: 1px solid #c3d0de; padding: 6px 9px; text-align: left;
+         vertical-align: top; }
+th { background: #e6eef8; color: #12304f; font-weight: 600; }
+tr:nth-child(even) td { background: #f7fafd; }
+code { background: #eef2f7; padding: 1px 5px; border-radius: 3px;
+       font-family: "Cascadia Mono", Consolas, monospace; font-size: 0.92em; }
+blockquote { margin: 12px 0; padding: 14px 20px; background: #fbf3d9;
+             border-left: 5px solid #9b7a1a; font-size: 1.02em; }
+blockquote p { margin: 4px 0; }
+em { color: #4a5a6b; }
+.footer { position: absolute; left: 56px; right: 56px; bottom: 18px;
+          display: flex; justify-content: space-between; font-size: 13px;
+          color: #7c8a99; border-top: 1px solid #dde5ee; padding-top: 8px; }
+.diagram { display: flex; justify-content: center; align-items: flex-start;
+           min-height: 0; }
+.diagram svg { width: 100%; height: auto; max-height: 100%; }
+/* A diagram slide carries its bullets above the picture, so the slide still
+   reads as the template's bulleted format rather than as a bare figure. */
+.lead { font-size: 16px; line-height: 1.35; flex: 0 0 auto; }
+.lead ul { margin: 0 0 8px; }
+.lead li { margin: 0 0 4px; }
+/* The college's own title-slide format, kept as it was in the 7 August deck. */
+.title-slide { justify-content: flex-start; align-items: center; text-align: center;
+               padding-top: 46px; }
+.title-slide .trust { font-size: 17px; font-style: italic; color: #3a4a5c; }
+.title-slide .college { font-size: 27px; font-weight: 700; color: #12304f;
+                        margin: 4px 0 2px; }
+.title-slide .naac { font-size: 15px; color: #3a4a5c; }
+.title-slide .dept { font-size: 18px; font-weight: 700; letter-spacing: 0.6px;
+                     color: #12304f; margin: 18px 0 0; }
+.title-slide hr.band { width: 100%; border: 0; border-top: 3px solid #2c5f9e;
+                       margin: 12px 0 20px; }
+.title-slide h1 { font-size: 38px; margin: 8px 0 4px; color: #12304f; }
+.title-slide .sub { font-size: 19px; color: #4a5a6b; margin-bottom: 26px; }
+.title-slide .who { font-size: 18px; line-height: 1.7; color: #16212e; }
+.title-slide .guide { font-size: 18px; margin-top: 14px; color: #16212e; }
+.end-slide { justify-content: center; align-items: center; text-align: center; }
+.end-slide h1 { font-size: 52px; color: #12304f; }
+.shot { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; height: 100%; }
+.shot figure { margin: 0; display: flex; flex-direction: column; min-height: 0; }
+.shot img { width: 100%; flex: 1 1 auto; min-height: 0; object-fit: contain;
+            object-position: top; border: 1px solid #c3d0de; border-radius: 4px;
+            background: #fff; }
+.shot figcaption { font-size: 11.5px; color: #4a5a6b; padding-top: 3px;
+                   line-height: 1.25; flex: 0 0 auto; }
+</style></head><body>
+<section class="slide title-slide"><div class="trust">Aldel Education Trust&rsquo;s</div><div class="college">St. John College of Engineering and Management, Palghar</div><div class="naac">NAAC Accredited with Grade A+</div><div class="dept">DEPARTMENT OF COMPUTER ENGINEERING</div><hr class="band"><h1>LLM-Based Log Anomaly Detector</h1><div class="sub">with Attack Narrative and Adversarial Robustness</div><div class="who">Harsh Bangera (Roll No. 3)<br>Manas Chaudhari (Roll No. 17)<br>Krish Mendon (Roll No. 62)<br>Anandan Nair (Roll No. 68)</div><div class="guide">Prof. Darshan Mhapsekar<br>31 August 2026</div><div class="footer"><span></span><span>Department of Computer Engineering | SJCEM &nbsp;&nbsp; 1</span></div></section>
+<section class="slide"><h1 class="slide-title">Contents</h1><div class="rule"></div><div class="body "><ul>
+<li>Background of the Problem</li>
+<li>Problem Statement</li>
+<li>Motivation</li>
+<li>Literature Review</li>
+<li>Research Gaps</li>
+<li>Objectives</li>
+<li>Proposed Methodology</li>
+<li>System Architecture</li>
+<li><strong>Implementation and Results</strong> <em>(new — the working system)</em></li>
+<li>Technologies and Resources</li>
+<li>Project Schedule</li>
+<li>References</li>
+</ul></div><div class="footer"><span></span><span>Department of Computer Engineering | SJCEM &nbsp;&nbsp; 2</span></div></section>
+<section class="slide"><h1 class="slide-title">Background of the Problem</h1><div class="rule"></div><div class="body "><ul>
+<li>Every server writes a log line for each login, process and network event. A small
+  company produces millions a day; nobody reads them by hand.</li>
+<li>Security teams use a <strong>SIEM</strong> (Security Information and Event Management tool —
+  Splunk, Wazuh, QRadar) that matches those lines against <strong>written rules</strong>.</li>
+<li>A rule matches <strong>text</strong>, not meaning. <code>Failed password for root</code> matches; the same
+  event worded differently does not.</li>
+<li>Recent surveys of log anomaly detection [R2, R7] evaluate on fixed datasets where the
+  attacker is not trying to avoid the detector.</li>
+</ul>
+<p><em>Speaker line: "The tools in use today read the words, not the meaning."</em></p></div><div class="footer"><span></span><span>Department of Computer Engineering | SJCEM &nbsp;&nbsp; 3</span></div></section>
+<section class="slide"><h1 class="slide-title">Background: the evidence</h1><div class="rule"></div><div class="body "><p>Everything here is our own measurement on real logs, not a claim from a website.</p>
+<ul>
+<li><strong>Sigma rules: 0 of ~3,300 match an SSH login line.</strong> We searched the whole open rule
+  library for <code>Failed password</code>, <code>Accepted password</code>, <code>Invalid user</code>, <code>pam_unix</code>.
+  – No coverage at all for the commonest attack surface on Linux.</li>
+<li><strong>Wazuh keeps 91% of a brute force — 29% after we reword it.</strong> Same attack, same
+  volume, different words.</li>
+<li><strong>Our detector: 97-100% of the same lines, both times.</strong> Rewording barely moves
+  meaning, and meaning is what we compare.</li>
+<li><strong>Alert volume on one clean day: Wazuh 4,546 alerts, us 1,415 incidents</strong> — for 9 real
+  attacks. Both far too many. That is analyst fatigue, measured on both sides.</li>
+</ul>
+<p><em>Sources: <code>CLAUDE.md</code> Decision Log 2026-08-18; <code>results/bakeoff/bakeoff.md</code>;
+<code>results/killpoint/killpoint_ambient0.05.md</code>.</em></p></div><div class="footer"><span></span><span>Department of Computer Engineering | SJCEM &nbsp;&nbsp; 4</span></div></section>
+<section class="slide"><h1 class="slide-title">Problem Statement</h1><div class="rule"></div><div class="body "><ul>
+<li>SIEM rules match the <strong>text</strong> of a log line, not its meaning — so an attacker who
+  simply rewords an attack walks straight past them.</li>
+<li>And nobody reports <strong>how much detection is actually lost</strong> when the attacker is
+  deliberately hiding, so the size of the problem is unknown.</li>
+</ul></div><div class="footer"><span></span><span>Department of Computer Engineering | SJCEM &nbsp;&nbsp; 5</span></div></section>
+<section class="slide"><h1 class="slide-title">Motivation</h1><div class="rule"></div><div class="body "><ul>
+<li><strong>Analysts drown in alerts.</strong> On one clean corpus a production SIEM raised 4,546
+  alerts for 9 real attacks. Alert fatigue is not a talking point; it is measurable.</li>
+<li><strong>Words change, behaviour does not.</strong> An attack keeps its shape — many failures from
+  one place, a login from two countries an hour apart — even when the wording changes.
+  Meaning-based detection can follow that; string matching cannot.</li>
+<li><strong>It has to run where the budget is.</strong> The whole system runs on an ordinary laptop with
+  no GPU and no cloud account. A GPU only speeds the written explanation up (5.2 s vs
+  24.2 s per incident). A team with no security budget can still deploy it.</li>
+</ul></div><div class="footer"><span></span><span>Department of Computer Engineering | SJCEM &nbsp;&nbsp; 6</span></div></section>
+<section class="slide"><h1 class="slide-title">Literature Review (1 of 2)</h1><div class="rule"></div><div class="body tight"><p>Journal papers only — IEEE Transactions and Web of Science / Scopus indexed journals.
+Full PDFs are attached with this presentation.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Paper</th>
+<th>Journal, Year</th>
+<th>Method</th>
+<th>Finding</th>
+<th>Limitation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R1</td>
+<td>LogFiT — Almodovar et al.</td>
+<td><strong>IEEE Trans. Network &amp; Service Management</strong>, 2024</td>
+<td>BERT fine-tuned on log text, self-supervised</td>
+<td>Language models read logs without labelled data</td>
+<td>Tested on clean benchmark logs only; no evading attacker</td>
+</tr>
+<tr>
+<td>R2</td>
+<td>Landauer et al. — survey of deep learning for log anomaly detection</td>
+<td>Machine Learning with Applications (Elsevier), 2023</td>
+<td>Survey of the field</td>
+<td>Maps every major method and dataset</td>
+<td>Reports that evaluation is almost always on static, non-adversarial data</td>
+</tr>
+<tr>
+<td>R3</td>
+<td>Ali et al. — ML techniques for log anomaly detection</td>
+<td>Empirical Software Engineering (Springer), 2025</td>
+<td>Classical ML vs deep learning, measured</td>
+<td>Simpler models compete with deep models on log data</td>
+<td>Clean data only; no attacker adapting</td>
+</tr>
+<tr>
+<td>R4</td>
+<td>Wu, Li &amp; Khomh — effectiveness of log representation</td>
+<td>Empirical Software Engineering (Springer), 2023</td>
+<td>Compares how logs are turned into vectors</td>
+<td>Representation choice changes results a lot; embeddings work well</td>
+<td>Does not test reworded or disguised attacks</td>
+</tr>
+</tbody>
+</table></div><div class="footer"><span></span><span>Department of Computer Engineering | SJCEM &nbsp;&nbsp; 7</span></div></section>
+<section class="slide"><h1 class="slide-title">Literature Review (2 of 2)</h1><div class="rule"></div><div class="body tight"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Paper</th>
+<th>Journal, Year</th>
+<th>Method</th>
+<th>Finding</th>
+<th>Limitation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R5</td>
+<td>Khan et al. — impact of log parsing</td>
+<td>Empirical Software Engineering (Springer), 2024</td>
+<td>Measures how parsing quality affects detection</td>
+<td>Bad parsing quietly ruins detection accuracy</td>
+<td>Parsing studied on clean logs</td>
+</tr>
+<tr>
+<td>R6</td>
+<td>Pang et al. — deep learning for anomaly detection: a review</td>
+<td>ACM Computing Surveys, 2021</td>
+<td>Field review</td>
+<td>Standard definitions and method families</td>
+<td>General; not security-log specific</td>
+</tr>
+<tr>
+<td>R7</td>
+<td>Kheddar — transformers and LLMs for intrusion detection</td>
+<td>Information Fusion (Elsevier), 2025</td>
+<td>2025 survey</td>
+<td>LLMs are moving into intrusion detection fast</td>
+<td>Evaluation still on fixed public datasets</td>
+</tr>
+<tr>
+<td>R8</td>
+<td>Debicha et al. — TAD: detecting evasion attacks against intrusion detection</td>
+<td>Future Generation Computer Systems (Elsevier), 2023</td>
+<td>Attackers actively evading a detector</td>
+<td>Evasion measurably breaks detectors</td>
+<td>Network traffic, <strong>not logs</strong>; no SIEM comparison</td>
+</tr>
+</tbody>
+</table>
+<p><strong>What all eight share:</strong> the attacker is not trying to hide from the detector being
+tested. R8 is the only one with a real adversary, and it is on network traffic.</p></div><div class="footer"><span></span><span>Department of Computer Engineering | SJCEM &nbsp;&nbsp; 8</span></div></section>
+<section class="slide"><h1 class="slide-title">Research Gaps</h1><div class="rule"></div><div class="body "><table>
+<thead>
+<tr>
+<th>What exists</th>
+<th>Gap</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Rule-based SIEMs match fixed text patterns [R2, R7]</td>
+<td>Miss the same attack once it is reworded — we measured 91% → 29%</td>
+</tr>
+<tr>
+<td>Log anomaly models are evaluated on clean benchmark data [R1, R3, R4, R5]</td>
+<td>Nobody reports how much detection survives when the attacker actively hides</td>
+</tr>
+<tr>
+<td>Adversarial evasion is studied for network intrusion detection [R8]</td>
+<td>Not for log analysis, and never against a real SIEM ruleset side by side</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Our gap, in one line:</strong> how much worse does each system get when the attacker tries to
+hide — measured, on the same logs, at the same moment, for a research detector and a
+production SIEM together.</p></div><div class="footer"><span></span><span>Department of Computer Engineering | SJCEM &nbsp;&nbsp; 9</span></div></section>
+<section class="slide"><h1 class="slide-title">Objectives</h1><div class="rule"></div><div class="body "><ul>
+<li>Parse raw Linux system and authentication logs into a clean, structured form.</li>
+<li>Detect anomalies from the <strong>meaning</strong> of a log line, using sentence embeddings and a
+  per-user Isolation Forest, with no labelled training data.</li>
+<li>Group related anomalies into a single incident and attach the matching MITRE ATT&amp;CK
+  technique from a lookup table, never from the language model.</li>
+<li>Explain each incident in plain English with a local LLM that runs offline.</li>
+<li>Measure the system and a production SIEM (Wazuh) on the same logs, under eight
+  camouflage strategies, and report the difference — including where we lose.</li>
+<li>Keep the whole system running on a laptop with no GPU and no cloud service.</li>
+</ul></div><div class="footer"><span></span><span>Department of Computer Engineering | SJCEM &nbsp;&nbsp; 10</span></div></section>
+<section class="slide"><h1 class="slide-title">Proposed Methodology</h1><div class="rule"></div><div class="lead"><ul>
+<li>Read logs → parse and mask → embed the meaning → score each user → group into
+  incidents → attach MITRE technique → explain in English → show the analyst.</li>
+<li>Camouflaged attacks are fed back in and both systems re-scored on every change.</li>
+<li>Isolation Forest over embeddings is <strong>standard</strong>; we do not claim it as the novelty.
+  The measurement is the contribution.</li>
+</ul></div><div class="body diagram"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 560" width="1180" height="560"
+     font-family="Segoe UI, Helvetica Neue, Arial, sans-serif">
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+          orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#41556b"/></marker>
+  <marker id="arrowlight" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+          orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b1442e"/></marker>
+</defs>
+<rect x="60" y="44" width="252" height="96" rx="9" fill="#e8f2e8" stroke="#3f7d3f" stroke-width="2"/>
+<text x="186.0" y="75.5" text-anchor="middle" font-size="17" font-weight="600" fill="#1e3a1e">1 · Read the logs</text>
+<text x="186.0" y="93.0" text-anchor="middle" font-size="13.5" fill="#1e3a1e">real OpenSSH, 655k lines</text>
+<text x="186.0" y="110.5" text-anchor="middle" font-size="13.5" fill="#1e3a1e">+ 751-line test corpus</text>
+<rect x="344" y="44" width="252" height="96" rx="9" fill="#e6eef8" stroke="#2c5f9e" stroke-width="2"/>
+<text x="470.0" y="75.5" text-anchor="middle" font-size="17" font-weight="600" fill="#12304f">2 · Parse and mask</text>
+<text x="470.0" y="93.0" text-anchor="middle" font-size="13.5" fill="#12304f">split the line into fields;</text>
+<text x="470.0" y="110.5" text-anchor="middle" font-size="13.5" fill="#12304f">hide IP, port and PID</text>
+<rect x="628" y="44" width="252" height="96" rx="9" fill="#f0e8f6" stroke="#7a4a9e" stroke-width="2"/>
+<text x="754.0" y="75.5" text-anchor="middle" font-size="17" font-weight="600" fill="#3d2352">3 · Embed the meaning</text>
+<text x="754.0" y="93.0" text-anchor="middle" font-size="13.5" fill="#3d2352">MiniLM turns each line</text>
+<text x="754.0" y="110.5" text-anchor="middle" font-size="13.5" fill="#3d2352">into 384 numbers</text>
+<rect x="912" y="44" width="252" height="96" rx="9" fill="#f0e8f6" stroke="#7a4a9e" stroke-width="2"/>
+<text x="1038.0" y="75.5" text-anchor="middle" font-size="17" font-weight="600" fill="#3d2352">4 · Score each user</text>
+<text x="1038.0" y="93.0" text-anchor="middle" font-size="13.5" fill="#3d2352">Isolation Forest per user;</text>
+<text x="1038.0" y="110.5" text-anchor="middle" font-size="13.5" fill="#3d2352">no labelled data needed</text>
+<rect x="60" y="208" width="252" height="96" rx="9" fill="#e6eef8" stroke="#2c5f9e" stroke-width="2"/>
+<text x="186.0" y="239.5" text-anchor="middle" font-size="17" font-weight="600" fill="#12304f">5 · Group into incidents</text>
+<text x="186.0" y="257.0" text-anchor="middle" font-size="13.5" fill="#12304f">same user, 30 minutes,</text>
+<text x="186.0" y="274.5" text-anchor="middle" font-size="13.5" fill="#12304f">+ impossible-travel check</text>
+<rect x="344" y="208" width="252" height="96" rx="9" fill="#e6eef8" stroke="#2c5f9e" stroke-width="2"/>
+<text x="470.0" y="239.5" text-anchor="middle" font-size="17" font-weight="600" fill="#12304f">6 · Attach MITRE technique</text>
+<text x="470.0" y="257.0" text-anchor="middle" font-size="13.5" fill="#12304f">from a lookup table —</text>
+<text x="470.0" y="274.5" text-anchor="middle" font-size="13.5" fill="#12304f">never from the LLM</text>
+<rect x="628" y="208" width="252" height="96" rx="9" fill="#f0e8f6" stroke="#7a4a9e" stroke-width="2"/>
+<text x="754.0" y="239.5" text-anchor="middle" font-size="17" font-weight="600" fill="#3d2352">7 · Explain in English</text>
+<text x="754.0" y="257.0" text-anchor="middle" font-size="13.5" fill="#3d2352">local phi3 via Ollama,</text>
+<text x="754.0" y="274.5" text-anchor="middle" font-size="13.5" fill="#3d2352">fully offline</text>
+<rect x="912" y="208" width="252" height="96" rx="9" fill="#dfe8f5" stroke="#1e3f66" stroke-width="2"/>
+<text x="1038.0" y="239.5" text-anchor="middle" font-size="17" font-weight="600" fill="#12283f">8 · Show the analyst</text>
+<text x="1038.0" y="257.0" text-anchor="middle" font-size="13.5" fill="#12283f">dashboard + HTTP API,</text>
+<text x="1038.0" y="274.5" text-anchor="middle" font-size="13.5" fill="#12283f">ranked by severity</text>
+<path d="M315,92.0 L339,92.0" fill="none" stroke="#41556b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M599,92.0 L623,92.0" fill="none" stroke="#41556b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M883,92.0 L907,92.0" fill="none" stroke="#41556b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M315,256.0 L339,256.0" fill="none" stroke="#41556b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M599,256.0 L623,256.0" fill="none" stroke="#41556b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M883,256.0 L907,256.0" fill="none" stroke="#41556b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M1038.0,143 L1038.0,174 L186.0,174 L186.0,203" fill="none" stroke="#41556b" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="48" y="372" width="1096" height="158" rx="12" fill="#fdf5f3" stroke="#b1442e" stroke-width="1.5" stroke-dasharray="7 5"/><text x="62" y="391" font-size="13.5" font-weight="600" fill="#b1442e">Adversarial evaluation — the gate every change has to pass</text>
+<rect x="72" y="406" width="320" height="100" rx="9" fill="#fbe9e7" stroke="#b1442e" stroke-width="2"/>
+<text x="232.0" y="430.75" text-anchor="middle" font-size="17" font-weight="600" fill="#6d2317">Camouflage the attack</text>
+<text x="232.0" y="448.25" text-anchor="middle" font-size="13.5" fill="#6d2317">reword · mimic normal traffic ·</text>
+<text x="232.0" y="465.75" text-anchor="middle" font-size="13.5" fill="#6d2317">rotate source IPs · slow it down ·</text>
+<text x="232.0" y="483.25" text-anchor="middle" font-size="13.5" fill="#6d2317">or all of them together</text>
+<rect x="448" y="406" width="320" height="100" rx="9" fill="#fbe9e7" stroke="#b1442e" stroke-width="2"/>
+<text x="608.0" y="439.5" text-anchor="middle" font-size="17" font-weight="600" fill="#6d2317">Fire it at both systems</text>
+<text x="608.0" y="457.0" text-anchor="middle" font-size="13.5" fill="#6d2317">ours and Wazuh, same lines,</text>
+<text x="608.0" y="474.5" text-anchor="middle" font-size="13.5" fill="#6d2317">same moment, same scorer</text>
+<rect x="824" y="406" width="320" height="100" rx="9" fill="#fbe9e7" stroke="#b1442e" stroke-width="2"/>
+<text x="984.0" y="439.5" text-anchor="middle" font-size="17" font-weight="600" fill="#6d2317">Report the drop</text>
+<text x="984.0" y="457.0" text-anchor="middle" font-size="13.5" fill="#6d2317">how much detection each one</text>
+<text x="984.0" y="474.5" text-anchor="middle" font-size="13.5" fill="#6d2317">loses — including where we lose</text>
+<path d="M395,456.0 L443,456.0" fill="none" stroke="#b1442e" stroke-width="2" marker-end="url(#arrowlight)"/>
+<path d="M771,456.0 L819,456.0" fill="none" stroke="#b1442e" stroke-width="2" marker-end="url(#arrowlight)"/>
+<path d="M69,456.0 L26,456.0 L26,92.0 L55,92.0" fill="none" stroke="#b1442e" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arrowlight)"/><text x="236" y="360" text-anchor="middle" font-size="12" fill="#b1442e">disguised attacks go back in</text>
+<path d="M1038.0,307 L1038.0,356 L984.0,356 L984.0,401" fill="none" stroke="#b1442e" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arrowlight)"/><text x="944.0" y="348" text-anchor="middle" font-size="12" fill="#b1442e">what each system detected</text>
+</svg></div><div class="footer"><span></span><span>Department of Computer Engineering | SJCEM &nbsp;&nbsp; 11</span></div></section>
+<section class="slide"><h1 class="slide-title">System Architecture</h1><div class="rule"></div><div class="lead"><ul>
+<li>Three live sources — a tailed file, this machine's journal, or a paced replay.</li>
+<li>The model is fitted once on history and only <strong>scores</strong> the stream after that.</li>
+<li>Streaming produces exactly the batch result: 751 lines → 130 events → 94 incidents.</li>
+<li>The Wazuh comparison track is a separate package the pipeline may never import.</li>
+</ul></div><div class="body diagram"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 560" width="1180" height="560"
+     font-family="Segoe UI, Helvetica Neue, Arial, sans-serif">
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+          orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#41556b"/></marker>
+  <marker id="arrowlight" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+          orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b1442e"/></marker>
+</defs>
+<rect x="14" y="382" width="1152" height="168" rx="12" fill="#fdf5f3" stroke="#b1442e" stroke-width="1.5" stroke-dasharray="7 5"/><text x="28" y="401" font-size="13.5" font-weight="600" fill="#b1442e">Comparison track — a separate package; the pipeline never imports it</text>
+<rect x="14" y="46" width="232" height="64" rx="9" fill="#e8f2e8" stroke="#3f7d3f" stroke-width="2"/>
+<text x="130.0" y="70.75" text-anchor="middle" font-size="15" font-weight="600" fill="#1e3a1e">File tail</text>
+<text x="130.0" y="87.25" text-anchor="middle" font-size="12.5" fill="#1e3a1e">/var/log/auth.log</text>
+<rect x="14" y="122" width="232" height="64" rx="9" fill="#e8f2e8" stroke="#3f7d3f" stroke-width="2"/>
+<text x="130.0" y="146.75" text-anchor="middle" font-size="15" font-weight="600" fill="#1e3a1e">journald</text>
+<text x="130.0" y="163.25" text-anchor="middle" font-size="12.5" fill="#1e3a1e">this machine's own journal</text>
+<rect x="14" y="198" width="232" height="64" rx="9" fill="#e8f2e8" stroke="#3f7d3f" stroke-width="2"/>
+<text x="130.0" y="222.75" text-anchor="middle" font-size="15" font-weight="600" fill="#1e3a1e">Paced replay</text>
+<text x="130.0" y="239.25" text-anchor="middle" font-size="12.5" fill="#1e3a1e">a recording, at real speed</text>
+<rect x="14" y="282" width="232" height="78" rx="9" fill="#fbf3d9" stroke="#9b7a1a" stroke-width="2"/>
+<text x="130.0" y="305.5" text-anchor="middle" font-size="15" font-weight="600" fill="#4d3c05">Saved detector model</text>
+<text x="130.0" y="322.0" text-anchor="middle" font-size="12.5" fill="#4d3c05">fitted once on history;</text>
+<text x="130.0" y="338.5" text-anchor="middle" font-size="12.5" fill="#4d3c05">fingerprint checked on load</text>
+<rect x="288" y="46" width="336" height="64" rx="9" fill="#e6eef8" stroke="#2c5f9e" stroke-width="2"/>
+<text x="456.0" y="70.75" text-anchor="middle" font-size="15" font-weight="600" fill="#12304f">Parser</text>
+<text x="456.0" y="87.25" text-anchor="middle" font-size="12.5" fill="#12304f">one common event shape · OpenSSH 100% · Linux 99.4%</text>
+<rect x="288" y="122" width="336" height="64" rx="9" fill="#e6eef8" stroke="#2c5f9e" stroke-width="2"/>
+<text x="456.0" y="146.75" text-anchor="middle" font-size="15" font-weight="600" fill="#12304f">Streaming processor</text>
+<text x="456.0" y="163.25" text-anchor="middle" font-size="12.5" fill="#12304f">a batch every 50 lines or 5 seconds</text>
+<rect x="288" y="198" width="336" height="64" rx="9" fill="#f0e8f6" stroke="#7a4a9e" stroke-width="2"/>
+<text x="456.0" y="222.75" text-anchor="middle" font-size="15" font-weight="600" fill="#3d2352">Embedding + Isolation Forest</text>
+<text x="456.0" y="239.25" text-anchor="middle" font-size="12.5" fill="#3d2352">scores the stream, never refits</text>
+<rect x="288" y="274" width="336" height="64" rx="9" fill="#e6eef8" stroke="#2c5f9e" stroke-width="2"/>
+<text x="456.0" y="298.75" text-anchor="middle" font-size="15" font-weight="600" fill="#12304f">Incidents + MITRE technique</text>
+<text x="456.0" y="315.25" text-anchor="middle" font-size="12.5" fill="#12304f">grouping · impossible travel · lookup table</text>
+<rect x="666" y="46" width="300" height="64" rx="9" fill="#dfe8f5" stroke="#1e3f66" stroke-width="2"/>
+<text x="816.0" y="70.75" text-anchor="middle" font-size="15" font-weight="600" fill="#12283f">FastAPI service</text>
+<text x="816.0" y="87.25" text-anchor="middle" font-size="12.5" fill="#12283f">/incidents · live /events · /stream/status</text>
+<rect x="666" y="122" width="300" height="64" rx="9" fill="#dfe8f5" stroke="#1e3f66" stroke-width="2"/>
+<text x="816.0" y="146.75" text-anchor="middle" font-size="15" font-weight="600" fill="#12283f">Streamlit dashboard</text>
+<text x="816.0" y="163.25" text-anchor="middle" font-size="12.5" fill="#12283f">ranked incidents · MITRE tags · health</text>
+<rect x="666" y="198" width="300" height="64" rx="9" fill="#f0e8f6" stroke="#7a4a9e" stroke-width="2"/>
+<text x="816.0" y="222.75" text-anchor="middle" font-size="15" font-weight="600" fill="#3d2352">Local LLM narrative</text>
+<text x="816.0" y="239.25" text-anchor="middle" font-size="12.5" fill="#3d2352">phi3 on demand · 5.2 s GPU / 24.2 s CPU</text>
+<rect x="40" y="428" width="320" height="96" rx="9" fill="#fbe9e7" stroke="#b1442e" stroke-width="2"/>
+<text x="200.0" y="459.5" text-anchor="middle" font-size="17" font-weight="600" fill="#6d2317">Wazuh 4.9 in Docker</text>
+<text x="200.0" y="477.0" text-anchor="middle" font-size="13.5" fill="#6d2317">the real manager, with its own</text>
+<text x="200.0" y="494.5" text-anchor="middle" font-size="13.5" fill="#6d2317">rules and its own engine</text>
+<rect x="430" y="428" width="320" height="96" rx="9" fill="#fbe9e7" stroke="#b1442e" stroke-width="2"/>
+<text x="590.0" y="459.5" text-anchor="middle" font-size="17" font-weight="600" fill="#6d2317">One shared scorer</text>
+<text x="590.0" y="477.0" text-anchor="middle" font-size="13.5" fill="#6d2317">the same code scores both</text>
+<text x="590.0" y="494.5" text-anchor="middle" font-size="13.5" fill="#6d2317">systems, from the same lines</text>
+<rect x="820" y="428" width="320" height="96" rx="9" fill="#fbe9e7" stroke="#b1442e" stroke-width="2"/>
+<text x="980.0" y="459.5" text-anchor="middle" font-size="17" font-weight="600" fill="#6d2317">Robustness report</text>
+<text x="980.0" y="477.0" text-anchor="middle" font-size="13.5" fill="#6d2317">the drop under camouflage,</text>
+<text x="980.0" y="494.5" text-anchor="middle" font-size="13.5" fill="#6d2317">side by side, losses included</text>
+<text x="14" y="32" font-size="14" font-weight="600" fill="#3f7d3f">Live sources</text>
+<text x="288" y="32" font-size="14" font-weight="600" fill="#2c5f9e">Detection engine — always running</text>
+<text x="666" y="32" font-size="14" font-weight="600" fill="#1e3f66">What the analyst uses</text>
+<path d="M249,78.0 L283,102.0" fill="none" stroke="#41556b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M249,154.0 L283,102.0" fill="none" stroke="#41556b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M249,230.0 L283,102.0" fill="none" stroke="#41556b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M456.0,113 L456.0,117" fill="none" stroke="#41556b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M456.0,189 L456.0,193" fill="none" stroke="#41556b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M456.0,265 L456.0,269" fill="none" stroke="#41556b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M249,307.0 L283,244.0" fill="none" stroke="#41556b" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arrow)"/><text x="266.0" y="266.5" text-anchor="middle" font-size="12" fill="#41556b">loaded once</text>
+<path d="M627,78.0 L644,78.0 L644,78.0 L661,78.0" fill="none" stroke="#41556b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M816.0,113 L816.0,117" fill="none" stroke="#41556b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M816.0,195 L816.0,191" fill="none" stroke="#41556b" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arrow)"/><text x="816.0" y="206.0" text-anchor="middle" font-size="12" fill="#41556b">narrative, on demand</text>
+<path d="M627,306.0 L644,306.0 L644,230.0 L661,230.0" fill="none" stroke="#41556b" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arrow)"/>
+<path d="M285,66.0 L268,66.0 L268,416 L200.0,416 L200.0,423" fill="none" stroke="#b1442e" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arrowlight)"/><text x="360" y="412" text-anchor="middle" font-size="12" fill="#b1442e">the identical lines</text>
+<path d="M456.0,341 L590.0,423" fill="none" stroke="#b1442e" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arrowlight)"/><text x="523.0" y="376.0" text-anchor="middle" font-size="12" fill="#b1442e">our verdicts</text>
+<path d="M363,476.0 L425,476.0" fill="none" stroke="#b1442e" stroke-width="2" marker-end="url(#arrowlight)"/>
+<path d="M753,476.0 L815,476.0" fill="none" stroke="#b1442e" stroke-width="2" marker-end="url(#arrowlight)"/>
+</svg></div><div class="footer"><span></span><span>Department of Computer Engineering | SJCEM &nbsp;&nbsp; 12</span></div></section>
+<section class="slide"><h1 class="slide-title">Implementation: keeping the comparison fair</h1><div class="rule"></div><div class="body "><ul>
+<li>One writer appends <strong>every line to both systems in the same call</strong> — neither can be
+  handed different traffic.</li>
+<li>Our injector wrote the attack, so every line's label is recorded as it goes out:
+  ground truth is automatic.</li>
+<li>The <strong>same scoring code</strong> grades both systems.</li>
+<li>Built so far: foundation and 449 tests · benchmark platform with a real SIEM ·
+  live streaming, API and dashboard · the live bake-off.</li>
+</ul></div><div class="footer"><span></span><span>Department of Computer Engineering | SJCEM &nbsp;&nbsp; 13</span></div></section>
+<section class="slide"><h1 class="slide-title">Results</h1><div class="rule"></div><div class="body tight"><p><strong>Robustness (5 seeds, real OpenSSH logs, both systems on the same corpus).</strong> The number
+is the drop in detection when the attack is camouflaged: bigger is worse.</p>
+<table>
+<thead>
+<tr>
+<th>Camouflage</th>
+<th>Us</th>
+<th>Wazuh</th>
+<th>Difference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Reworded (<code>rephrase</code>)</strong></td>
+<td>−2.2</td>
+<td><strong>−33.3</strong></td>
+<td><strong>+31.1 in our favour</strong></td>
+</tr>
+<tr>
+<td>Mimicry / noise / volume / timing</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>tie ×4</td>
+</tr>
+<tr>
+<td>IP rotation</td>
+<td>−11.1</td>
+<td>0.0</td>
+<td><strong>−11.1 against us</strong></td>
+</tr>
+<tr>
+<td>Slowed down</td>
+<td>−8.9</td>
+<td>0.0</td>
+<td><strong>−8.9 against us</strong></td>
+</tr>
+<tr>
+<td>Realistic combination</td>
+<td>−13.3</td>
+<td>0.0</td>
+<td><strong>−13.3 against us</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Result: 1 win, 4 ties, 3 losses.</strong> The registered threshold (≥25 points on at least one
+strategy, written into git before we had any result) is cleared by rewording, so the
+project continues — but the honest claim is narrow: <em>signature rules break when you
+reword an attack; embeddings do not.</em></p>
+<p><strong>Live demonstration of the same effect</strong> (<code>results/bakeoff/bakeoff.md</code>, 18 conditions):
+rewording an impossible-travel attack took Wazuh from 3 of 3 instances to <strong>0 of 3</strong>,
+while we stayed at 3 of 3 — a 100-point gap, live.</p>
+<blockquote>
+<p><strong>Where we are weaker, stated by us:</strong> precision 0.29 — 94 incidents raised for 9 real
+attacks. Impossible travel is caught by a distance-over-time rule, not by the
+embeddings. IP rotation, slowing down and the realistic combination all beat us and
+not Wazuh. Fixing precision is the next stage of work.</p>
+</blockquote></div><div class="footer"><span></span><span>Department of Computer Engineering | SJCEM &nbsp;&nbsp; 14</span></div></section>
+<section class="slide"><h1 class="slide-title">Working system</h1><div class="rule"></div><div class="lead"><ul>
+<li>Replaying the test corpus: <strong>751 lines seen, 751 parsed, 94 incidents</strong>, 19 notable.</li>
+<li>Quiet baseline, no attack at all: <strong>we flag 5 of 30 lines, Wazuh flags 19 of 30</strong> —
+  every one a false positive, on both sides.</li>
+<li>Live bake-off, enumeration: both systems 3 of 3 instances, 100% of the attack's lines.</li>
+</ul></div><div class="body"><div class="shot"><figure><img src="screenshots/dashboard-incidents.png" alt="Live dashboard: incidents as the stream emits them, with stream health"><figcaption>Live dashboard: incidents as the stream emits them, with stream health</figcaption></figure><figure><img src="screenshots/incident-narrative.png" alt="One incident: events, severity, MITRE technique, LLM narrative"><figcaption>One incident: events, severity, MITRE technique, LLM narrative</figcaption></figure><figure><img src="screenshots/bakeoff-grid.png" alt="The bake-off grid: the examiner picks attack and camouflage level"><figcaption>The bake-off grid: the examiner picks attack and camouflage level</figcaption></figure><figure><img src="screenshots/bakeoff-scored.png" alt="Both systems scored live on the same firing"><figcaption>Both systems scored live on the same firing</figcaption></figure></div></div><div class="footer"><span></span><span>Department of Computer Engineering | SJCEM &nbsp;&nbsp; 15</span></div></section>
+<section class="slide"><h1 class="slide-title">Technologies and Resources</h1><div class="rule"></div><div class="body "><p><strong>Software</strong></p>
+<ul>
+<li>Python 3.11+, managed with <code>uv</code></li>
+<li><code>sentence-transformers</code> (all-MiniLM-L6-v2) — turns a log line into a vector of its meaning</li>
+<li><code>scikit-learn</code> Isolation Forest — flags the unusual ones, one model per user</li>
+<li><strong>Ollama + phi3</strong> — local LLM for the written explanation. No cloud, no API key</li>
+<li><strong>Wazuh 4.9 manager in Docker</strong> — the third-party SIEM we are compared against</li>
+<li>FastAPI (service and live feed) · Streamlit (dashboard) · pytest (436 tests) · GitHub Actions</li>
+</ul>
+<p><strong>Data</strong></p>
+<ul>
+<li>LogHub <strong>OpenSSH</strong> (655,147 real lines, contains real internet attacks) — primary</li>
+<li>LogHub <strong>Linux</strong> (parses at 99.4% after our parser fix) — companion</li>
+<li>751-line synthetic corpus with full ground truth — regression testing</li>
+</ul>
+<p><strong>Hardware</strong></p>
+<ul>
+<li>Minimum, and fully supported: any laptop, <strong>no GPU</strong>, 8 GB RAM</li>
+<li>Optional: NVIDIA GPU, which only speeds up the written explanation (5.2 s vs 24.2 s)</li>
+<li>Demonstration setup: two laptops, one attacking and running the SIEM, one detecting</li>
+</ul></div><div class="footer"><span></span><span>Department of Computer Engineering | SJCEM &nbsp;&nbsp; 16</span></div></section>
+<section class="slide"><h1 class="slide-title">Project Schedule</h1><div class="rule"></div><div class="body tight"><table>
+<thead>
+<tr>
+<th>Task</th>
+<th>Month 1</th>
+<th>Month 2</th>
+<th>Month 3</th>
+<th>Month 4</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Literature review</td>
+<td>✓</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Requirement analysis</td>
+<td>✓</td>
+<td>✓</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Design</td>
+<td></td>
+<td>✓</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Development</td>
+<td></td>
+<td>✓</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Testing</td>
+<td></td>
+<td>✓</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Documentation</td>
+<td></td>
+<td>✓</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Completed so far:</strong> foundation and test suite; benchmark platform with a real SIEM;
+the pre-registered robustness measurement; live streaming, API and dashboard; the live
+side-by-side bake-off.</p>
+<p><strong>Next:</strong> sequence modelling to fix precision, then an entity graph for correlation, then
+attacks generated by real tools on the Kali machine.</p></div><div class="footer"><span></span><span>Department of Computer Engineering | SJCEM &nbsp;&nbsp; 17</span></div></section>
+<section class="slide"><h1 class="slide-title">References</h1><div class="rule"></div><div class="body tighter"><p>All eight are journal papers; the PDFs are attached with this presentation
+(<code>references/</code>, and <code>combined-references.pdf</code> for all of them in one file).</p>
+<ol>
+<li>C. Almodovar, F. Sabrina, S. Karimi and S. Azad, "LogFiT: Log anomaly detection using
+   fine-tuned language models," <em>IEEE Trans. Network and Service Management</em>, 21(2),
+   1715–1723, 2024. doi:10.1109/TNSM.2024.3358730</li>
+<li>M. Landauer, S. Onder, F. Skopik and M. Wurzenberger, "Deep learning for anomaly
+   detection in log data: A survey," <em>Machine Learning with Applications</em>, 12, 100470,</li>
+<li>doi:10.1016/j.mlwa.2023.100470</li>
+<li>S. Ali, C. Boufaied, D. Bianculli, P. Branco and L. Briand, "A comprehensive study of
+   machine learning techniques for log-based anomaly detection," <em>Empirical Software
+   Engineering</em>, 30(5), 129, 2025. doi:10.1007/s10664-025-10669-3</li>
+<li>X. Wu, H. Li and F. Khomh, "On the effectiveness of log representation for log-based
+   anomaly detection," <em>Empirical Software Engineering</em>, 28(6), 137, 2023.
+   doi:10.1007/s10664-023-10364-1</li>
+<li>Z. Khan, D. Shin, D. Bianculli and L. Briand, "Impact of log parsing on deep
+   learning-based anomaly detection," <em>Empirical Software Engineering</em>, 29(6), 139, 2024.
+   doi:10.1007/s10664-024-10533-w</li>
+<li>G. Pang, C. Shen, L. Cao and A. van den Hengel, "Deep learning for anomaly detection:
+   A review," <em>ACM Computing Surveys</em>, 54(2), 1–38, 2021. doi:10.1145/3439950</li>
+<li>H. Kheddar, "Transformers and large language models for efficient intrusion detection
+   systems: A comprehensive survey," <em>Information Fusion</em>, 124, 103347, 2025.
+   doi:10.1016/j.inffus.2025.103347</li>
+<li>I. Debicha, R. Bauwens, T. Debatty, J.-M. Dricot, T. Kenaza and W. Mees, "TAD: Transfer
+   learning-based multi-adversarial detection of evasion attacks against network intrusion
+   detection systems," <em>Future Generation Computer Systems</em>, 138, 185–197, 2023.
+   doi:10.1016/j.future.2022.08.011</li>
+</ol></div><div class="footer"><span></span><span>Department of Computer Engineering | SJCEM &nbsp;&nbsp; 18</span></div></section>
+<section class="slide end-slide"><h1>Thank you</h1><p style='font-size:24px;color:#4a5a6b'>Questions</p><div class="footer"><span></span><span>Department of Computer Engineering | SJCEM &nbsp;&nbsp; 19</span></div></section>
+</body></html>

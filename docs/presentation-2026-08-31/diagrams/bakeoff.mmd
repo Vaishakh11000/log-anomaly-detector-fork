@@ -1,0 +1,39 @@
+flowchart LR
+  classDef eval fill:#fbe9e7,stroke:#b1442e,stroke-width:2px,color:#6d2317
+  classDef proc fill:#e6eef8,stroke:#2c5f9e,stroke-width:2px,color:#12304f
+  classDef out fill:#dfe8f5,stroke:#1e3f66,stroke-width:2px,color:#12283f
+  classDef store fill:#fbf3d9,stroke:#9b7a1a,stroke-width:2px,color:#4d3c05
+
+  subgraph PICKG["The examiner chooses"]
+    direction TB
+    PICK["3 attacks × 6 camouflage levels<br/>brute force · impossible travel · enumeration"]:::eval
+    GEN["Injector builds that attack<br/>and camouflages it"]:::eval
+    PICK --> GEN
+  end
+
+  subgraph WG["One writer, one stream"]
+    direction TB
+    W1{{"Each line written to<br/><b>both</b> systems in the same call"}}:::proc
+    GT[("Manifest = ground truth<br/>every line numbered and labelled<br/>as it goes on the wire")]:::store
+    W1 --> GT
+  end
+
+  subgraph DG["Both systems read it"]
+    direction TB
+    D1["<b>Our detector</b><br/>embeddings + Isolation Forest"]:::proc
+    D2["<b>Wazuh manager</b><br/>its own sshd rules"]:::eval
+  end
+
+  subgraph SG["Scored live"]
+    direction TB
+    SC["One shared scorer<br/>same code for both"]:::out
+    R["Scoreboard<br/>instances found · share of lines<br/>alerts raised · difference"]:::out
+    SC --> R
+  end
+
+  GEN --> W1
+  W1 --> D1
+  W1 --> D2
+  D1 --> SC
+  D2 --> SC
+  GT -.->|"the correct answer,<br/>known automatically"| SC

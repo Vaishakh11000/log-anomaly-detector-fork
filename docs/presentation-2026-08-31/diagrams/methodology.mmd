@@ -1,0 +1,49 @@
+flowchart LR
+  classDef src fill:#e8f2e8,stroke:#3f7d3f,stroke-width:2px,color:#1e3a1e
+  classDef proc fill:#e6eef8,stroke:#2c5f9e,stroke-width:2px,color:#12304f
+  classDef model fill:#f0e8f6,stroke:#7a4a9e,stroke-width:2px,color:#3d2352
+  classDef out fill:#dfe8f5,stroke:#1e3f66,stroke-width:2px,color:#12283f
+  classDef eval fill:#fbe9e7,stroke:#b1442e,stroke-width:2px,color:#6d2317
+
+  subgraph G1["1 · Read the logs"]
+    direction TB
+    A["Real logs<br/>OpenSSH, 655k lines"]:::src
+    A2["Test corpus<br/>751 lines, answers known"]:::src
+    B["Parse and mask<br/>hide IP, port, PID"]:::proc
+    A --> B
+    A2 --> B
+  end
+
+  subgraph G2["2 · Understand each line"]
+    direction TB
+    C["Embed the meaning<br/>MiniLM: line becomes<br/>384 numbers"]:::model
+    D["Score per user<br/>Isolation Forest,<br/>no labels needed"]:::model
+    C --> D
+  end
+
+  subgraph G3["3 · Turn alerts into a story"]
+    direction TB
+    E["Group into incidents<br/>same user, 30 minutes<br/>+ impossible travel"]:::proc
+    F["Attach MITRE technique<br/>lookup table,<br/>never the LLM"]:::proc
+    E --> F
+  end
+
+  subgraph G4["4 · Explain and show"]
+    direction TB
+    G["Local LLM narrative<br/>phi3 via Ollama, offline"]:::model
+    H["Dashboard + HTTP API<br/>ranked by severity"]:::out
+    G --> H
+  end
+
+  subgraph G5["Adversarial evaluation<br/>gate on every change"]
+    direction TB
+    X1["Camouflage the attack<br/>reword · mimic · rotate IPs<br/>slow down · combine"]:::eval
+    X2["Score us and Wazuh<br/>on the same lines;<br/>the drop is the result"]:::eval
+    X1 --- X2
+  end
+
+  B --> C
+  D --> E
+  F --> G
+  X1 -.->|"disguised attacks"| A
+  D -.->|"our verdicts"| X2

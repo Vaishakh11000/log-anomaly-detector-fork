@@ -385,3 +385,73 @@ def test_the_offset_is_committed_only_after_a_batch_is_scored(tmp_path):
 
     saved = json.loads((tmp_path / "offset.json").read_text())
     assert saved["offset"] == log.stat().st_size
+
+
+# --- A merge inside one batch ----------------------------------------------
+
+def test_an_event_bridging_two_incidents_in_one_batch_does_not_crash():
+    """The failure this pins killed a live run, not a test.
+
+    Within a single micro-batch, an event can link to two incidents that were
+    created earlier in the same batch. Merging removes one of them from the
+    tracker, and the id collected before the merge then pointed at nothing --
+    snapshotting it raised `KeyError` on the stream's own worker thread, so the
+    service went on reporting a running stream while it had stopped reading.
+    """
+    tracker = IncidentTracker(window_minutes=30)
+    base = pd.Timestamp("2026-01-01 10:00:00")
+
+    first = tracker.add({"timestamp": base, "user": "alice",
+                         "source_ip": "10.0.0.1", "message": "one"})
+    second = tracker.add({"timestamp": base + pd.Timedelta(minutes=40),
+                          "user": "bob", "source_ip": "10.0.0.2", "message": "two"})
+    assert first != second
+
+    # A bridging event: close enough in time to both, linked to both.
+    bridge = tracker.add({"timestamp": base + pd.Timedelta(minutes=20),
+                          "user": "alice", "source_ip": "10.0.0.2",
+                          "message": "three"})
+
+    survivors = {tracker.survivor(i) for i in (first, second, bridge)}
+    assert len(survivors) == 1, "the bridge should have merged them into one"
+    survivor = survivors.pop()
+    assert survivor in tracker.incidents
+    assert len(tracker.incidents[survivor]["events"]) == 3
+
+
+def test_survivor_follows_a_chain_of_merges():
+    tracker = IncidentTracker(window_minutes=30)
+    tracker.merged_into = {1: 2}
+    tracker.merged_into[2] = 3
+    assert tracker.survivor(1) == 3
+    assert tracker.survivor(3) == 3
+
+
+def test_the_processor_survives_a_merge_inside_one_batch(monkeypatch):
+    """End to end version of the crash: one batch, two incidents, one bridge.
+
+    This is the shape that killed a live run. The processor collected the two
+    incident ids while adding events, the third event merged them, and the
+    snapshot pass then looked up an id the merge had removed.
+    """
+    proc = StreamProcessor(FakeDetector(), year=2026)
+    # The bridge has to arrive last in *timestamp* order, not just last in the
+    # list: the processor sorts a batch by time before filing it, so an
+    # out-of-order bridge is simply filed first and no merge ever happens.
+    lines = [
+        line("Jul 18 10:00:00", "Failed password for alice from 10.0.0.1 port 1 ssh2"),
+        line("Jul 18 10:10:00", "Failed password for bob from 10.0.0.2 port 2 ssh2"),
+        # links to alice by user and to bob by source IP, inside both windows
+        line("Jul 18 10:20:00", "Failed password for alice from 10.0.0.2 port 3 ssh2"),
+    ]
+
+    emitted = proc.process(lines)
+
+    assert emitted, "the batch produced no incidents at all"
+    assert proc.tracker.merged_into, "the batch did not actually merge anything"
+    ids = {entry["incident_id"] for entry in emitted if entry.get("status") != "merged"}
+    live = set(proc.tracker.incidents)
+    assert ids <= live | set(proc.tracker.merged_into), ids
+    merged = [e for e in emitted if e.get("status") == "merged"]
+    for entry in merged:
+        assert entry["merged_into"] in live

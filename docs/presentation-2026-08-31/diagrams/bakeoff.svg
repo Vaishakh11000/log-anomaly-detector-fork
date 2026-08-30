@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 560" width="1180" height="560"
+     font-family="Segoe UI, Helvetica Neue, Arial, sans-serif">
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+          orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#41556b"/></marker>
+  <marker id="arrowlight" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+          orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b1442e"/></marker>
+</defs>
+<rect x="14" y="54" width="252" height="110" rx="9" fill="#fbe9e7" stroke="#b1442e" stroke-width="2"/>
+<text x="140.0" y="92.5" text-anchor="middle" font-size="17" font-weight="600" fill="#6d2317">The examiner picks</text>
+<text x="140.0" y="110.0" text-anchor="middle" font-size="13.5" fill="#6d2317">3 attacks × 6 camouflage levels</text>
+<text x="140.0" y="127.5" text-anchor="middle" font-size="13.5" fill="#6d2317">— nothing scripted in advance</text>
+<rect x="14" y="214" width="252" height="110" rx="9" fill="#fbe9e7" stroke="#b1442e" stroke-width="2"/>
+<text x="140.0" y="252.5" text-anchor="middle" font-size="17" font-weight="600" fill="#6d2317">The injector builds it</text>
+<text x="140.0" y="270.0" text-anchor="middle" font-size="13.5" fill="#6d2317">makes the attack, then</text>
+<text x="140.0" y="287.5" text-anchor="middle" font-size="13.5" fill="#6d2317">camouflages it as chosen</text>
+<rect x="310" y="134" width="272" height="110" rx="9" fill="#e6eef8" stroke="#2c5f9e" stroke-width="2"/>
+<text x="446.0" y="172.5" text-anchor="middle" font-size="17" font-weight="600" fill="#12304f">One writer</text>
+<text x="446.0" y="190.0" text-anchor="middle" font-size="13.5" fill="#12304f">appends every line to BOTH</text>
+<text x="446.0" y="207.5" text-anchor="middle" font-size="13.5" fill="#12304f">systems in the same call</text>
+<rect x="310" y="316" width="272" height="110" rx="9" fill="#fbf3d9" stroke="#9b7a1a" stroke-width="2"/>
+<text x="446.0" y="354.5" text-anchor="middle" font-size="17" font-weight="600" fill="#4d3c05">Manifest = ground truth</text>
+<text x="446.0" y="372.0" text-anchor="middle" font-size="13.5" fill="#4d3c05">every line numbered and</text>
+<text x="446.0" y="389.5" text-anchor="middle" font-size="13.5" fill="#4d3c05">labelled as it is written</text>
+<rect x="626" y="54" width="252" height="110" rx="9" fill="#e6eef8" stroke="#2c5f9e" stroke-width="2"/>
+<text x="752.0" y="92.5" text-anchor="middle" font-size="17" font-weight="600" fill="#12304f">Our detector</text>
+<text x="752.0" y="110.0" text-anchor="middle" font-size="13.5" fill="#12304f">embeddings +</text>
+<text x="752.0" y="127.5" text-anchor="middle" font-size="13.5" fill="#12304f">Isolation Forest</text>
+<rect x="626" y="214" width="252" height="110" rx="9" fill="#fbe9e7" stroke="#b1442e" stroke-width="2"/>
+<text x="752.0" y="252.5" text-anchor="middle" font-size="17" font-weight="600" fill="#6d2317">Wazuh manager</text>
+<text x="752.0" y="270.0" text-anchor="middle" font-size="13.5" fill="#6d2317">its own sshd rules,</text>
+<text x="752.0" y="287.5" text-anchor="middle" font-size="13.5" fill="#6d2317">its own engine</text>
+<rect x="626" y="374" width="252" height="96" rx="9" fill="#dfe8f5" stroke="#1e3f66" stroke-width="2"/>
+<text x="752.0" y="414.25" text-anchor="middle" font-size="17" font-weight="600" fill="#12283f">One shared scorer</text>
+<text x="752.0" y="431.75" text-anchor="middle" font-size="13.5" fill="#12283f">same code, both systems</text>
+<rect x="922" y="134" width="244" height="250" rx="9" fill="#dfe8f5" stroke="#1e3f66" stroke-width="2"/>
+<text x="1044.0" y="207.5" text-anchor="middle" font-size="17" font-weight="600" fill="#12283f">Live scoreboard</text>
+<text x="1044.0" y="225.0" text-anchor="middle" font-size="13.5" fill="#12283f">instances found</text>
+<text x="1044.0" y="242.5" text-anchor="middle" font-size="13.5" fill="#12283f">share of the attack's lines</text>
+<text x="1044.0" y="260.0" text-anchor="middle" font-size="13.5" fill="#12283f">alerts raised by each</text>
+<text x="1044.0" y="277.5" text-anchor="middle" font-size="13.5" fill="#12283f">the difference between them</text>
+<text x="1044.0" y="295.0" text-anchor="middle" font-size="13.5" fill="#12283f"></text>
+<text x="1044.0" y="312.5" text-anchor="middle" font-size="13.5" fill="#12283f">computed while they watch</text>
+<path d="M140.0,167 L140.0,209" fill="none" stroke="#41556b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M269,249.0 L305,209.0" fill="none" stroke="#41556b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M585,165.0 L621,133.0" fill="none" stroke="#41556b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M585,213.0 L621,245.0" fill="none" stroke="#41556b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M446.0,247 L446.0,311" fill="none" stroke="#41556b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M881,109.0 L900,109.0 L900,422.0 L883,422.0" fill="none" stroke="#41556b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M881,269.0 L900,269.0 L900,408.0 L883,408.0" fill="none" stroke="#41556b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M585,401.0 L621,432.0" fill="none" stroke="#41556b" stroke-width="2" marker-end="url(#arrow)"/><text x="603.0" y="450.5" text-anchor="middle" font-size="12" fill="#41556b">the right answer, known automatically</text>
+<path d="M881,448.0 L1044.0,448.0 L1044.0,389" fill="none" stroke="#41556b" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="626" y="34" font-size="14" font-weight="600" fill="#41556b">Both systems read the very same stream, line for line</text>
+</svg>

@@ -23,3 +23,7 @@ models/
 # Demo replay output: logdet-replay rewrites a recorded corpus into here, so it
 # is regenerable and changes every run.
 data/live/
+
+# Presentation: the combined reference bundle is regenerable (see REFERENCES.md)
+docs/presentation-2026-08-31/references/combined-references.pdf
+docs/presentation-2026-08-31/diagrams/mermaid.min.js

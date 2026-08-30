@@ -1,0 +1,404 @@
+<!doctype html><html><head><meta charset='utf-8'><title>Knowledge Pack</title><style>
+@page { size: A4; margin: 20mm 18mm; }
+body { font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+       color: #16212e; font-size: 12.5px; line-height: 1.55; margin: 0; }
+h1 { font-size: 25px; color: #12304f; border-bottom: 3px solid #2c5f9e;
+     padding-bottom: 6px; margin: 26px 0 12px; page-break-after: avoid; }
+h1:first-child { margin-top: 0; }
+h2 { font-size: 18px; color: #1c4a78; margin: 20px 0 8px; page-break-after: avoid; }
+h3 { font-size: 15px; color: #2c5f9e; margin: 14px 0 6px; page-break-after: avoid; }
+table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 11.5px; }
+th, td { border: 1px solid #c3d0de; padding: 5px 8px; text-align: left;
+         vertical-align: top; }
+th { background: #e6eef8; color: #12304f; }
+code { background: #eef2f7; padding: 1px 4px; border-radius: 3px;
+       font-family: Consolas, monospace; font-size: 0.92em; }
+blockquote { margin: 10px 0; padding: 10px 16px; background: #fbf3d9;
+             border-left: 4px solid #9b7a1a; }
+li { margin: 0 0 5px; }
+hr { border: 0; border-top: 1px solid #dde5ee; margin: 22px 0; }
+</style></head><body><h1>Knowledge Pack — everything on the slides, explained from scratch</h1>
+<p>For the team. Read your slides' sections before the review. Nothing here assumes you
+have touched the code. If you can explain the section, you can present the slide and
+answer follow-ups.</p>
+<p><code>QA-PREP.pdf</code> is the companion: the questions the panel is likely to ask, with answers.</p>
+<hr />
+<h2>Part 0 — The project in six sentences</h2>
+<p>Computers write a line of text every time something happens: a login, a failed password,
+a program starting. These files are called <strong>logs</strong>. Companies buy a tool called a
+<strong>SIEM</strong> that reads those lines and raises an alert when a line matches a written rule.</p>
+<p>Our project reads the same logs but judges lines by their <strong>meaning</strong> rather than their
+exact words, groups related alerts into one <strong>incident</strong>, labels the incident with the
+industry-standard attack code (<strong>MITRE ATT&amp;CK</strong>), and has a small <strong>language model
+running on the laptop itself</strong> write a plain-English explanation of what happened.</p>
+<p>The part that is unusual is not the detector. It is that we <strong>measure how much detection
+each system loses when the attacker is deliberately hiding</strong>, against a real production
+SIEM, on the same logs, at the same moment — and we report the cases where we lose.</p>
+<hr />
+<h2>Part 1 — Words you must be able to define</h2>
+<table>
+<thead>
+<tr>
+<th>Word</th>
+<th>What it means, plainly</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Log</strong></td>
+<td>A text file where a computer records events, one line each. <code>Failed password for alice from 172.16.5.191</code> is a log line.</td>
+</tr>
+<tr>
+<td><strong>SIEM</strong></td>
+<td>Security Information and Event Management. The industry tool that collects logs and applies written rules to them. Splunk, QRadar, Wazuh.</td>
+</tr>
+<tr>
+<td><strong>Wazuh</strong></td>
+<td>A free, open-source, production SIEM. We run the real thing in a container and compare against it. We did not write its rules and cannot change them.</td>
+</tr>
+<tr>
+<td><strong>Rule / signature</strong></td>
+<td>A written pattern, e.g. "8 failed passwords from one IP in 120 seconds → alert". It matches exact text.</td>
+</tr>
+<tr>
+<td><strong>Embedding</strong></td>
+<td>A way of turning a sentence into a list of numbers (384 of them here) such that sentences with similar meaning get similar numbers. This is what lets us compare <em>meaning</em> instead of <em>spelling</em>.</td>
+</tr>
+<tr>
+<td><strong>MiniLM</strong></td>
+<td>The specific small model that produces those numbers (<code>all-MiniLM-L6-v2</code>). Tiny, fast, runs on a CPU.</td>
+</tr>
+<tr>
+<td><strong>Isolation Forest</strong></td>
+<td>A classic machine-learning method that finds the odd ones out in a pile of data, without being told in advance what "odd" looks like. No labelled examples needed.</td>
+</tr>
+<tr>
+<td><strong>Per-user model</strong></td>
+<td>We build one Isolation Forest for each user, so "unusual" means unusual <em>for that person</em>, not for the company.</td>
+</tr>
+<tr>
+<td><strong>Incident</strong></td>
+<td>A group of related suspicious events — same user, close together in time — presented as one thing to the analyst instead of forty separate alerts.</td>
+</tr>
+<tr>
+<td><strong>MITRE ATT&amp;CK</strong></td>
+<td>A public catalogue of attacker techniques, each with a code. <code>T1110</code> is Brute Force. Security teams speak in these codes.</td>
+</tr>
+<tr>
+<td><strong>LLM / language model</strong></td>
+<td>The thing that writes the English explanation. We use <strong>phi3</strong>, a small model that runs on the laptop with <strong>Ollama</strong>. It never decides whether something is an attack.</td>
+</tr>
+<tr>
+<td><strong>Camouflage</strong></td>
+<td>Changing an attack so it is harder to spot <em>without changing what it does</em>. Rewording the message, slowing it down, spreading it across several IP addresses.</td>
+</tr>
+<tr>
+<td><strong>Instance detection</strong></td>
+<td>Did the system notice the attack <strong>at all</strong>? One flagged line out of twenty counts as detected. This is the number our main result is measured in.</td>
+</tr>
+<tr>
+<td><strong>Line detection rate</strong></td>
+<td>What <em>share</em> of the attack's lines the system flagged. Finer-grained than instance detection.</td>
+</tr>
+<tr>
+<td><strong>Differential</strong></td>
+<td>How much more the SIEM's detection dropped than ours did, in percentage points. Our headline number, +31.1, is a differential.</td>
+</tr>
+<tr>
+<td><strong>Precision</strong></td>
+<td>Of everything we flagged, how much was really an attack. Ours is 0.29 — our known weakness.</td>
+</tr>
+<tr>
+<td><strong>Recall</strong></td>
+<td>Of all the real attack lines, how many we flagged. Ours is 0.86.</td>
+</tr>
+<tr>
+<td><strong>Seed</strong></td>
+<td>A number that fixes the random choices, so a run can be repeated exactly. We pool results over 5 seeds because one run is not evidence.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Part 2 — Slide by slide</h2>
+<h3>Slides 3 and 4 — Background</h3>
+<p><strong>What the slides say.</strong> Logs are enormous, so tools read them for us. Those tools match
+text against rules. Text matching breaks when the text changes.</p>
+<p><strong>Why slide 4 exists.</strong> The panel asked for proof rather than claims. Every row on that
+slide is something we ran ourselves:</p>
+<ul>
+<li><strong>Sigma, 0 of ~3,300.</strong> Sigma is the community's open library of detection rules. We
+  searched every rule in it for the four phrases that make up almost all Linux SSH
+  security logging — <code>Failed password</code>, <code>Accepted password</code>, <code>Invalid user</code>, <code>pam_unix</code>.
+  Not one rule matches. So for this attack surface the open rule library gives no
+  coverage at all before any attacker does anything clever.</li>
+<li><strong>91% → 29%.</strong> We fired a brute-force attack at Wazuh and it flagged 91% of the
+  attack's lines. We fired the <em>same attack with the wording changed</em> and it flagged 29%.
+  The attack did not get smarter; the words changed.</li>
+<li><strong>97-100%.</strong> Our detector flagged nearly every line in both cases, because rewording
+  barely moves the meaning, and meaning is what we compare.</li>
+<li><strong>4,546 vs 1,415.</strong> On one clean corpus of real logs with 9 known attacks, Wazuh raised
+  4,546 alerts and we raised 1,415 incidents. Both numbers are far too high for 9 real
+  attacks. That is alert fatigue, measured on both sides — including ours.</li>
+</ul>
+<p><strong>Say it like this:</strong> "We did not read that rules are brittle, we measured it. Wazuh
+keeps 91% of the attack when we play fair and 29% when we reword it."</p>
+<h3>Slide 5 — Problem statement</h3>
+<p>Two sentences, and both matter. The first is the technical problem (text matching misses
+meaning). The second is the <em>research</em> problem (nobody publishes how much is lost when
+the attacker actively hides). The second is what makes this a project and not a product.</p>
+<h3>Slide 6 — Motivation</h3>
+<p>Three reasons, in the order they matter: analysts are drowning in alerts; behaviour
+survives rewording where words do not; and the whole thing runs on a normal laptop, so a
+school, a hospital or a small company with no security budget could actually use it.</p>
+<p>The laptop point is not a limitation we are excusing. It is a design decision, and it is
+why we refuse to make the GPU compulsory.</p>
+<h3>Slides 7 and 8 — Literature review</h3>
+<p>Eight journal papers, all from IEEE Transactions or Web of Science / Scopus indexed
+journals. The PDFs travel with the presentation.</p>
+<p>The point to land: <strong>every one of them evaluates on data where the attacker is not trying
+to evade the detector being tested.</strong> One paper (R8) does have an active attacker, but it
+is about network traffic, not logs, and it does not compare with a SIEM. That is the hole
+we are working in.</p>
+<p>If the panel asks about <strong>DeepLog</strong> or <strong>LogBERT</strong> — the famous names that used to be on
+this slide — the answer is: they are conference papers (ACM CCS 2017 and IJCNN 2021), and
+the panel asked for indexed journals, so they were replaced with journal work that covers
+the same ground. We know them and can discuss them; they are simply not journal articles.</p>
+<h3>Slide 9 — Research gaps</h3>
+<p>Three gaps, each pointing at a paper, ending on ours. Keep the last line memorised:</p>
+<blockquote>
+<p>How much worse does each system get when the attacker tries to hide — measured, on the
+same logs, at the same moment, for a research detector and a production SIEM together.</p>
+</blockquote>
+<h3>Slide 10 — Objectives</h3>
+<p>Six flat bullets. The one that is easy to skip and shouldn't be is the fifth: measuring
+against Wazuh under camouflage <strong>including where we lose</strong>. That sentence is the project.</p>
+<h3>Slide 11 — Proposed methodology (the diagram)</h3>
+<p>Read the diagram out loud in order:</p>
+<ol>
+<li><strong>Read the logs.</strong> Real SSH logs from a public research dataset (LogHub OpenSSH,
+   655,147 lines, which contains genuine brute-force attacks from the open internet),
+   plus a small 751-line synthetic file where we know every answer and use it to check
+   nothing broke.</li>
+<li><strong>Parse and mask.</strong> Split each line into fields, and replace the IP address, port and
+   process ID with a symbol. Why: <code>Failed password from 10.0.0.5</code> and
+   <code>Failed password from 10.0.0.9</code> are the same <em>kind</em> of event and should look identical
+   to the model.</li>
+<li><strong>Embed the meaning.</strong> MiniLM turns the masked line into 384 numbers.</li>
+<li><strong>Score each user.</strong> An Isolation Forest per user flags the lines that do not fit that
+   person's normal pattern. No labelled attack data is needed, which matters because no
+   real company has labelled logs.</li>
+<li><strong>Group into incidents.</strong> Suspicious events from one user within 30 minutes become one
+   incident. There is also a physics rule: the same account logging in from two places
+   too far apart to travel between in the time available is impossible, so it is flagged
+   regardless of what the embeddings think.</li>
+<li><strong>Attach the MITRE technique</strong> from a lookup table.</li>
+<li><strong>Explain in English</strong> with the local LLM.</li>
+<li><strong>Show the analyst</strong>, ranked.</li>
+</ol>
+<p>The band along the bottom is the adversarial evaluation, and the arrow going back into
+step 1 is the point: camouflaged attacks are fed back in and both systems are re-scored
+every time anything changes.</p>
+<p><strong>The line on the slide that protects you:</strong> Isolation Forest over embeddings is standard
+and we say so. Claiming it as novel would be dishonest and the panel would catch it.</p>
+<h3>Slide 12 — System architecture (the diagram)</h3>
+<p>Three columns and a band.</p>
+<ul>
+<li><strong>Live sources.</strong> Three ways lines arrive: tailing a file the way <code>tail -f</code> does;
+  reading the machine's own systemd journal; or replaying a recording at its original
+  speed for a demo.</li>
+<li><strong>Detection engine.</strong> Parser → streaming processor → embedding and Isolation Forest →
+  incidents and MITRE. The streaming processor scores in small batches (every 50 lines or
+  5 seconds, whichever comes first) and remembers where it got to, so a restart neither
+  skips nor repeats lines.</li>
+<li><strong>What the analyst uses.</strong> An HTTP service that other machines can read, and the
+  dashboard on top of it. The LLM explanation is requested per incident, by clicking,
+  because writing one takes 5 seconds on a GPU and 24 on a CPU — narrating all 94 as they
+  arrive would put the detector minutes behind the log.</li>
+<li><strong>Comparison track.</strong> Wazuh and the scorer live in a <em>separate package that the pipeline
+  is not allowed to import</em>. There is an automated test that fails if anybody breaks that
+  rule. Reason: if the thing being measured can reach into the thing doing the measuring,
+  the measurement stops meaning anything.</li>
+</ul>
+<p><strong>One fact worth quoting:</strong> streaming and batch produce <strong>identical</strong> results on the same
+file — 751 lines, 130 flagged events, 94 incidents — and a test fails if that ever
+changes. That is what makes the live demo's numbers comparable to the recorded ones.</p>
+<p><strong>Saved detector model.</strong> We fit the model once on history and then only <em>use</em> it on the
+stream. It stores a fingerprint of which embedding model produced its training data and
+refuses to load against a different one — because otherwise it would happily score the
+wrong kind of numbers and return results that look completely normal and mean nothing.</p>
+<h3>Slide 13 — Implementation (the bake-off diagram)</h3>
+<p>The fairness problem: if we ran the attack twice, once for each system, the two systems
+would not have seen the same traffic and any difference could be ours to arrange.</p>
+<p>The fix: <strong>one writer</strong>. Each line is appended to the file our detector is reading and to
+the file Wazuh is reading <em>in the same function call</em>, before the next line is generated.</p>
+<p>The ground-truth problem: to score a system you must know which lines were the attack.
+Because our injector generated them, we record every line's number and label as it is
+written. So scoring is automatic, and the same scoring code runs on both systems' output.</p>
+<p>That diagram is the answer to "how do we know you did not rig this?"</p>
+<h3>Slide 14 — Results</h3>
+<p><strong>The table.</strong> Each number is how many percentage points of <em>instance detection</em> the
+system lost when the attack was camouflaged. Zero means the camouflage did nothing.</p>
+<ul>
+<li><code>rephrase</code> — we lose 2.2, Wazuh loses 33.3. Difference <strong>+31.1 to us</strong>.</li>
+<li>Four strategies are ties at 0.0 for both.</li>
+<li><code>ip_rotate</code>, <code>slow</code>, <code>realistic-combo</code> — <strong>we lose and Wazuh does not</strong>.</li>
+</ul>
+<p><strong>Why we win on rewording.</strong> Wazuh's SSH rules match literal strings. Change the wording
+and the line falls out of its decoder entirely. Our embedding of a reworded line stays
+close to the original in the number space, so it still looks like the same kind of event.</p>
+<p><strong>Why we lose on IP rotation.</strong> Our model builds a picture per user and leans on the
+context of the source; spreading an attack across many IPs breaks that. Wazuh's rules
+count per IP and simply fire on whichever IP still crosses the threshold.</p>
+<p><strong>Why we lose when it is slowed down.</strong> Spreading an attack over hours makes each
+individual line look ordinary to us. Wazuh, replayed at true speed, does not drop at all
+— though note that Wazuh firing a "brute force" rule on events spread over 15 hours is
+arguably indiscriminate rather than robust, which is why we report its alert volume too.</p>
+<p><strong>The threshold.</strong> Before writing any of this code, we wrote down in the project's git
+history: if the best difference is 25 points or more, continue; 10-25, do only the cheap
+work; under 10, stop and publish the negative result. We hit 31.1. Writing the rule down
+in advance is what stops us from moving the goalposts after seeing results.</p>
+<p><strong>The live number.</strong> On the live grid, rewording an impossible-travel attack took Wazuh
+from 3 of 3 instances to 0 of 3 while we stayed at 3 of 3. That is the biggest gap on the
+board and it happens because impossible travel is only two lines long — reword both and
+there is nothing left for a string-matching rule to catch. A 20-line brute force always
+leaves one line behind, which is why most cells tie.</p>
+<p><strong>The weaknesses box.</strong> Do not skip it. Precision 0.29 means most of what we flag is not
+an attack: 94 incidents raised where 9 were real. Impossible travel is caught by the
+physics rule, not the embeddings — so never say "our embeddings catch impossible travel".
+Both of these are written in our own documentation as known issues, and the fix
+(modelling sequences of events rather than single lines) is the next stage.</p>
+<h3>Slide 15 — Working screenshots</h3>
+<p>All four are captures of the system running, taken for this deck. Numbers to quote:</p>
+<ul>
+<li>Replaying the test corpus: <strong>751 lines seen, 751 parsed, 94 incidents, 19 notable</strong>.</li>
+<li>The quiet baseline with no attack at all: we flagged <strong>5 of 30</strong> benign lines, Wazuh
+  flagged <strong>19 of 30</strong>. Every alert in that run is a false positive by construction —
+  it is the fairest picture of the noise problem on both sides.</li>
+</ul>
+<h3>Slide 16 — Technologies</h3>
+<p>Note three deliberate choices in case they are questioned:</p>
+<ul>
+<li><strong>No fine-tuning.</strong> We do not train the language model. Training it would not fix the
+  detection problem and would make the results much harder for anyone to reproduce.</li>
+<li><strong>Wazuh, not Splunk.</strong> Splunk is commercial and cannot be scripted into an automated
+  comparison for free. Wazuh is a real production SIEM, free, and runs the same rules
+  a real deployment would.</li>
+<li><strong>CPU is the supported floor.</strong> The GPU makes the explanation 4-5× faster. It is never
+  required.</li>
+</ul>
+<h3>Slide 17 — Project schedule</h3>
+<p>Ticks stop at month 2 because that is what is genuinely finished. Months 3 and 4 are
+testing and documentation and have not been done.</p>
+<hr />
+<h2>Part 3 — Material that did not fit on a slide</h2>
+<h3>The eight camouflage strategies</h3>
+<table>
+<thead>
+<tr>
+<th>Strategy</th>
+<th>What it does to the attack</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>rephrase</code></td>
+<td>Says the same thing in different words</td>
+</tr>
+<tr>
+<td><code>mimicry</code></td>
+<td>Pads the attack with ordinary-looking lines so it blends in</td>
+</tr>
+<tr>
+<td><code>noise</code></td>
+<td>Adds unrelated junk events around it</td>
+</tr>
+<tr>
+<td><code>volume</code></td>
+<td>Changes how many events the attack produces</td>
+</tr>
+<tr>
+<td><code>ip_rotate</code></td>
+<td>Spreads the attack across many source addresses</td>
+</tr>
+<tr>
+<td><code>slow</code></td>
+<td>Stretches the same attack over hours instead of minutes</td>
+</tr>
+<tr>
+<td><code>temporal</code></td>
+<td>Moves the attack to a different time of day</td>
+</tr>
+<tr>
+<td><code>realistic-combo</code></td>
+<td>Several of the above together — the closest to a real attacker</td>
+</tr>
+</tbody>
+</table>
+<h3>Why the timing strategies need a different instrument</h3>
+<p>Wazuh decides "8 failures in 120 seconds" using the time the line <strong>arrives at it</strong>, not
+the timestamp written in the line. We verified this: 15 identical lines fire the same
+rule whether we feed them 3 seconds apart or an hour apart. So if we replay a log file at
+full speed, every event arrives at once and Wazuh's score under a "slow" attack is fixed
+by our replay speed rather than by its rules.</p>
+<p>That is why those three strategies are measured by a <strong>paced replay</strong> that writes lines
+at their real spacing, which took 6.5 hours to run. Fixing the instrument is not the same
+as changing the criterion: the threshold, the strategies and the deciding quantity were
+all left exactly as registered.</p>
+<h3>Why not HDFS or BGL</h3>
+<p>Those are the datasets the literature uses, and they are labelled, which is convenient.
+We rejected them because their "anomalies" are <strong>hardware and software faults, not
+attackers</strong>. With no attacker there is no MITRE technique to attach, no attack story to
+explain, and camouflage is meaningless — you cannot ask a failing disk to hide. Using
+them would have benchmarked the one layer we do not claim as our contribution while
+switching off both of the things that make this project distinctive.</p>
+<h3>How the real corpus was built</h3>
+<p>OpenSSH's logs turned out to be <strong>66-83% attack traffic</strong> — the open internet hammers any
+SSH server continuously. If we had injected our attacks straight in, brute force would
+have been the statistical <em>normal</em>, and our attack would score as ordinary. So the
+background is built explicitly: real benign lines, real usernames, the real host, plus
+real attacker traffic thinned to a declared percentage that we then report results
+across. Everything in the background is real; what is authored is the injected attack and
+the camouflage.</p>
+<h3>Numbers, and where they come from</h3>
+<table>
+<thead>
+<tr>
+<th>Number</th>
+<th>Source file in the repository</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>+31.1 / four ties / −11.1, −8.9, −13.3</td>
+<td><code>results/killpoint/killpoint_eight_strategies_ambient0.05.md</code></td>
+</tr>
+<tr>
+<td>4,546 Wazuh alerts vs 1,415 our incidents</td>
+<td><code>results/killpoint/killpoint_ambient0.05.md</code></td>
+</tr>
+<tr>
+<td>Wazuh 91% → 29% of brute-force lines</td>
+<td><code>results/bakeoff/bakeoff.md</code></td>
+</tr>
+<tr>
+<td>Impossible travel reworded: Wazuh 0/3, ours 3/3</td>
+<td><code>results/bakeoff/bakeoff.md</code></td>
+</tr>
+<tr>
+<td>Quiet baseline: ours 5/30, Wazuh 19/30</td>
+<td><code>results/bakeoff/act1_benign/benign_baseline.md</code></td>
+</tr>
+<tr>
+<td>Precision 0.29 / recall 0.86 / F1 0.43</td>
+<td><code>results/evaluation.md</code></td>
+</tr>
+<tr>
+<td>751 → 130 → 94, streaming equals batch</td>
+<td><code>tests/test_stream_regression.py</code></td>
+</tr>
+<tr>
+<td>5.2 s GPU vs 24.2 s CPU narration</td>
+<td>measured 2026-08-30, recorded in the project log</td>
+</tr>
+</tbody>
+</table></body></html>

@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 560" width="1180" height="560"
+     font-family="Segoe UI, Helvetica Neue, Arial, sans-serif">
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+          orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#41556b"/></marker>
+  <marker id="arrowlight" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+          orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b1442e"/></marker>
+</defs>
+<rect x="60" y="44" width="252" height="96" rx="9" fill="#e8f2e8" stroke="#3f7d3f" stroke-width="2"/>
+<text x="186.0" y="75.5" text-anchor="middle" font-size="17" font-weight="600" fill="#1e3a1e">1 · Read the logs</text>
+<text x="186.0" y="93.0" text-anchor="middle" font-size="13.5" fill="#1e3a1e">real OpenSSH, 655k lines</text>
+<text x="186.0" y="110.5" text-anchor="middle" font-size="13.5" fill="#1e3a1e">+ 751-line test corpus</text>
+<rect x="344" y="44" width="252" height="96" rx="9" fill="#e6eef8" stroke="#2c5f9e" stroke-width="2"/>
+<text x="470.0" y="75.5" text-anchor="middle" font-size="17" font-weight="600" fill="#12304f">2 · Parse and mask</text>
+<text x="470.0" y="93.0" text-anchor="middle" font-size="13.5" fill="#12304f">split the line into fields;</text>
+<text x="470.0" y="110.5" text-anchor="middle" font-size="13.5" fill="#12304f">hide IP, port and PID</text>
+<rect x="628" y="44" width="252" height="96" rx="9" fill="#f0e8f6" stroke="#7a4a9e" stroke-width="2"/>
+<text x="754.0" y="75.5" text-anchor="middle" font-size="17" font-weight="600" fill="#3d2352">3 · Embed the meaning</text>
+<text x="754.0" y="93.0" text-anchor="middle" font-size="13.5" fill="#3d2352">MiniLM turns each line</text>
+<text x="754.0" y="110.5" text-anchor="middle" font-size="13.5" fill="#3d2352">into 384 numbers</text>
+<rect x="912" y="44" width="252" height="96" rx="9" fill="#f0e8f6" stroke="#7a4a9e" stroke-width="2"/>
+<text x="1038.0" y="75.5" text-anchor="middle" font-size="17" font-weight="600" fill="#3d2352">4 · Score each user</text>
+<text x="1038.0" y="93.0" text-anchor="middle" font-size="13.5" fill="#3d2352">Isolation Forest per user;</text>
+<text x="1038.0" y="110.5" text-anchor="middle" font-size="13.5" fill="#3d2352">no labelled data needed</text>
+<rect x="60" y="208" width="252" height="96" rx="9" fill="#e6eef8" stroke="#2c5f9e" stroke-width="2"/>
+<text x="186.0" y="239.5" text-anchor="middle" font-size="17" font-weight="600" fill="#12304f">5 · Group into incidents</text>
+<text x="186.0" y="257.0" text-anchor="middle" font-size="13.5" fill="#12304f">same user, 30 minutes,</text>
+<text x="186.0" y="274.5" text-anchor="middle" font-size="13.5" fill="#12304f">+ impossible-travel check</text>
+<rect x="344" y="208" width="252" height="96" rx="9" fill="#e6eef8" stroke="#2c5f9e" stroke-width="2"/>
+<text x="470.0" y="239.5" text-anchor="middle" font-size="17" font-weight="600" fill="#12304f">6 · Attach MITRE technique</text>
+<text x="470.0" y="257.0" text-anchor="middle" font-size="13.5" fill="#12304f">from a lookup table —</text>
+<text x="470.0" y="274.5" text-anchor="middle" font-size="13.5" fill="#12304f">never from the LLM</text>
+<rect x="628" y="208" width="252" height="96" rx="9" fill="#f0e8f6" stroke="#7a4a9e" stroke-width="2"/>
+<text x="754.0" y="239.5" text-anchor="middle" font-size="17" font-weight="600" fill="#3d2352">7 · Explain in English</text>
+<text x="754.0" y="257.0" text-anchor="middle" font-size="13.5" fill="#3d2352">local phi3 via Ollama,</text>
+<text x="754.0" y="274.5" text-anchor="middle" font-size="13.5" fill="#3d2352">fully offline</text>
+<rect x="912" y="208" width="252" height="96" rx="9" fill="#dfe8f5" stroke="#1e3f66" stroke-width="2"/>
+<text x="1038.0" y="239.5" text-anchor="middle" font-size="17" font-weight="600" fill="#12283f">8 · Show the analyst</text>
+<text x="1038.0" y="257.0" text-anchor="middle" font-size="13.5" fill="#12283f">dashboard + HTTP API,</text>
+<text x="1038.0" y="274.5" text-anchor="middle" font-size="13.5" fill="#12283f">ranked by severity</text>
+<path d="M315,92.0 L339,92.0" fill="none" stroke="#41556b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M599,92.0 L623,92.0" fill="none" stroke="#41556b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M883,92.0 L907,92.0" fill="none" stroke="#41556b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M315,256.0 L339,256.0" fill="none" stroke="#41556b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M599,256.0 L623,256.0" fill="none" stroke="#41556b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M883,256.0 L907,256.0" fill="none" stroke="#41556b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M1038.0,143 L1038.0,174 L186.0,174 L186.0,203" fill="none" stroke="#41556b" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="48" y="372" width="1096" height="158" rx="12" fill="#fdf5f3" stroke="#b1442e" stroke-width="1.5" stroke-dasharray="7 5"/><text x="62" y="391" font-size="13.5" font-weight="600" fill="#b1442e">Adversarial evaluation — the gate every change has to pass</text>
+<rect x="72" y="406" width="320" height="100" rx="9" fill="#fbe9e7" stroke="#b1442e" stroke-width="2"/>
+<text x="232.0" y="430.75" text-anchor="middle" font-size="17" font-weight="600" fill="#6d2317">Camouflage the attack</text>
+<text x="232.0" y="448.25" text-anchor="middle" font-size="13.5" fill="#6d2317">reword · mimic normal traffic ·</text>
+<text x="232.0" y="465.75" text-anchor="middle" font-size="13.5" fill="#6d2317">rotate source IPs · slow it down ·</text>
+<text x="232.0" y="483.25" text-anchor="middle" font-size="13.5" fill="#6d2317">or all of them together</text>
+<rect x="448" y="406" width="320" height="100" rx="9" fill="#fbe9e7" stroke="#b1442e" stroke-width="2"/>
+<text x="608.0" y="439.5" text-anchor="middle" font-size="17" font-weight="600" fill="#6d2317">Fire it at both systems</text>
+<text x="608.0" y="457.0" text-anchor="middle" font-size="13.5" fill="#6d2317">ours and Wazuh, same lines,</text>
+<text x="608.0" y="474.5" text-anchor="middle" font-size="13.5" fill="#6d2317">same moment, same scorer</text>
+<rect x="824" y="406" width="320" height="100" rx="9" fill="#fbe9e7" stroke="#b1442e" stroke-width="2"/>
+<text x="984.0" y="439.5" text-anchor="middle" font-size="17" font-weight="600" fill="#6d2317">Report the drop</text>
+<text x="984.0" y="457.0" text-anchor="middle" font-size="13.5" fill="#6d2317">how much detection each one</text>
+<text x="984.0" y="474.5" text-anchor="middle" font-size="13.5" fill="#6d2317">loses — including where we lose</text>
+<path d="M395,456.0 L443,456.0" fill="none" stroke="#b1442e" stroke-width="2" marker-end="url(#arrowlight)"/>
+<path d="M771,456.0 L819,456.0" fill="none" stroke="#b1442e" stroke-width="2" marker-end="url(#arrowlight)"/>
+<path d="M69,456.0 L26,456.0 L26,92.0 L55,92.0" fill="none" stroke="#b1442e" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arrowlight)"/><text x="236" y="360" text-anchor="middle" font-size="12" fill="#b1442e">disguised attacks go back in</text>
+<path d="M1038.0,307 L1038.0,356 L984.0,356 L984.0,401" fill="none" stroke="#b1442e" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arrowlight)"/><text x="944.0" y="348" text-anchor="middle" font-size="12" fill="#b1442e">what each system detected</text>
+</svg>

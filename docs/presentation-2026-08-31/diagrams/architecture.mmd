@@ -1,0 +1,47 @@
+flowchart LR
+  classDef src fill:#e8f2e8,stroke:#3f7d3f,stroke-width:2px,color:#1e3a1e
+  classDef proc fill:#e6eef8,stroke:#2c5f9e,stroke-width:2px,color:#12304f
+  classDef model fill:#f0e8f6,stroke:#7a4a9e,stroke-width:2px,color:#3d2352
+  classDef store fill:#fbf3d9,stroke:#9b7a1a,stroke-width:2px,color:#4d3c05
+  classDef out fill:#dfe8f5,stroke:#1e3f66,stroke-width:2px,color:#12283f
+  classDef eval fill:#fbe9e7,stroke:#b1442e,stroke-width:2px,color:#6d2317
+
+  subgraph IN["Live sources"]
+    direction TB
+    S1["File tail<br/>/var/log/auth.log"]:::src
+    S2["journald<br/>this machine's journal"]:::src
+    S3["Paced replay<br/>a recording at real speed"]:::src
+  end
+
+  subgraph CORE["Detection engine"]
+    direction TB
+    P["<b>Parser</b><br/>one common event shape<br/>OpenSSH 100% · Linux 99.4%"]:::proc
+    ST["<b>Streaming processor</b><br/>batch every 50 lines or 5 s<br/>rolling context · offset saved after scoring"]:::proc
+    EMB["<b>Embedding + Isolation Forest</b><br/>scores only, never refits"]:::model
+    GR["<b>Incidents + MITRE</b><br/>grouping · impossible travel<br/>technique lookup"]:::proc
+    P --> ST --> EMB --> GR
+  end
+
+  subgraph FACE["Interfaces"]
+    direction TB
+    LLM["<b>Local LLM narrative</b><br/>phi3 on demand<br/>5.2 s GPU / 24.2 s CPU"]:::model
+    API["<b>FastAPI service</b><br/>/incidents · live /events<br/>/stream/status health"]:::out
+    UI["<b>Streamlit dashboard</b><br/>ranked incidents<br/>narrative · MITRE tags"]:::out
+    LLM --> API --> UI
+  end
+
+  subgraph CMP["Comparison track<br/>separate package · never imported by the pipeline"]
+    direction TB
+    W["<b>Wazuh 4.9 in Docker</b><br/>its own rules and engine"]:::eval
+    SC["<b>Shared scorer</b><br/>one scorer, both systems"]:::eval
+    W --> SC
+  end
+
+  M[("<b>Saved detector</b><br/>fitted once on history<br/>fingerprint checked on load")]:::store
+
+  IN --> P
+  M -.-> EMB
+  GR --> API
+  GR -.->|"on click"| LLM
+  P -.->|"identical lines"| W
+  GR -.-> SC
