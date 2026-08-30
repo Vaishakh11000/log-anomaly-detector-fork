@@ -579,10 +579,29 @@ justified building that far.
       (fit on history, score on stream). File tailer + micro-batches; **journald as a
       real live source** (this machine is Arch — `journalctl -f` is genuine live
       traffic); replay mode for demos; FastAPI service so the dashboard is not the
-      only interface. On CPU, LLM narration is **on-demand, not real-time** —
-      40-60s/incident is a floor, not a tuning problem, and must be stated honestly
-      rather than hidden. On the 4060 it becomes genuinely near-real-time; report both
-      numbers, never quote the GPU one as if it were the CPU one.
+      only interface.
+
+      **Narration latency, measured 2026-08-30** on the dev box (§2c), phi3, the
+      pipeline's own prompt, median of 3 runs:
+
+      | Machine | Median per incident |
+      |---|---|
+      | GPU, RTX 3050 6GB | **5.2s** |
+      | CPU only, i5-13450HX 10c/16t | **24.2s** |
+      | v1 CPU, old laptop | 40-60s |
+
+      This supersedes the "40-60s/incident on CPU is a floor" figure carried from
+      v1 — that was *one machine's* number, not a property of CPU inference, and a
+      faster CPU roughly halved it. **All three figures must be labelled with the
+      machine that produced them and never blended.** The GPU result is the
+      important one: at ~5s, near-real-time narration is honest rather than an
+      apology, and it was measured on the *smaller* GPU, so the 4060 is at least
+      this good. Re-measure there before quoting a demo number.
+
+      **Ollama needs the `ollama-cuda` package on Arch, not `ollama`** — the plain
+      package ships only `libggml-cpu-*.so` and runs 100% CPU while `nvidia-smi`
+      looks perfectly healthy. Verify with `ollama ps` and check the `PROCESSOR`
+      column says GPU; a loaded driver proves nothing.
 - [ ] **Stage 2b — Live Bake-Off.** ⭐ *The demo. Depends on Stage 1 + Stage 2.*
       Benign traffic streams continuously into a tailed file; an **injection grid
       (attack type × camouflage level)** lets the audience fire attacks at both
