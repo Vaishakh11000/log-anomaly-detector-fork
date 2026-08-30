@@ -19,3 +19,7 @@ results/**/*.partial.json
 
 # Fitted detectors (regenerable; provenance is in the file itself)
 models/
+
+# Demo replay output: logdet-replay rewrites a recorded corpus into here, so it
+# is regenerable and changes every run.
+data/live/
