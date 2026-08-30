@@ -106,3 +106,9 @@ STREAM_RETENTION_MINUTES = max(INCIDENT_WINDOW_MINUTES, IMPOSSIBLE_TRAVEL_WINDOW
 # Where the tailer records how far it has read, so a restart neither re-scores
 # old lines nor skips the ones written while it was down.
 DEFAULT_OFFSET_STORE = str(PROJECT_ROOT / "models" / "stream_offset.json")
+
+# Where journald ingestion records the last entry it scored. Kept apart from the
+# file tailer's offset because a cursor and a byte offset are not
+# interchangeable resume tokens, and one file holding both would let a file run
+# and a journald run overwrite each other's position.
+DEFAULT_CURSOR_STORE = str(PROJECT_ROOT / "models" / "stream_cursor.json")

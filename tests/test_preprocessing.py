@@ -90,3 +90,31 @@ def test_preprocess_file_on_the_committed_sample(tmp_path):
     # a parsed corpus that produced one template per line would mean templating
     # did nothing at all
     assert df["template"].nunique() < len(df)
+
+
+# --- process names carrying parentheses -----------------------------------
+# journald names user-session pam `(systemd)` and `(sd-pam)`, and LogHub's
+# Linux.log carries `su(pam_unix)`. Both are auth lines, and both were silently
+# dropped while the process field rejected parentheses.
+
+def test_a_parenthesised_process_name_parses():
+    line = ("Aug 30 19:10:10 archlinux (systemd)[1865]: "
+            "pam_unix(systemd-user:session): session opened for user sddm(uid=968)")
+    parsed = parse_line(line)
+    assert parsed is not None
+    assert parsed["process"] == "(systemd)"
+    assert parsed["pid"] == "1865"
+
+
+def test_a_process_name_with_an_embedded_module_parses():
+    line = "Jun 15 04:06:18 combo su(pam_unix)[2077]: session opened for user news by (uid=0)"
+    parsed = parse_line(line)
+    assert parsed is not None
+    assert parsed["process"] == "su(pam_unix)"
+
+
+def test_ordinary_process_names_are_unaffected():
+    line = "Aug 30 14:08:45 archlinux sshd[11866]: Failed password for root from 10.0.0.5 port 22 ssh2"
+    parsed = parse_line(line)
+    assert parsed["process"] == "sshd"
+    assert parsed["pid"] == "11866"

@@ -27,7 +27,7 @@ USER_PATTERN = re.compile(r"\buser[= ]([\w\-]+)\b", re.IGNORECASE)
 LOG_LINE_RE = re.compile(
     r"^(?P<timestamp>\w{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2})\s+"
     r"(?P<host>\S+)\s+"
-    r"(?P<process>[\w\-/.]+)(?:\[(?P<pid>\d+)\])?:\s+"
+    r"(?P<process>[\w\-/.()]+)(?:\[(?P<pid>\d+)\])?:\s+"
     r"(?P<message>.*)$"
 )
 

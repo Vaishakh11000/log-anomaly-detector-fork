@@ -22,10 +22,15 @@ The reader's byte offset is written to disk after every batch, so a restart
 resumes where it stopped instead of re-alerting on the whole file or silently
 skipping whatever arrived while it was down.
 
+A source is either a file being tailed or the systemd journal (see
+`journald.py`); both implement the same `read_lines()` / `commit()` contract, so
+nothing below the source knows which one it is reading.
+
 Usage:
     logdet-fit --input data/processed/parsed.csv
     logdet-stream --input /var/log/auth.log --follow
     logdet-stream --input data/raw/synthetic.log --from-start --once
+    logdet-stream --journald                       # this machine's live auth log
 """
 
 import argparse
@@ -41,6 +46,7 @@ from logdet.anomaly_detection import (
     detect_impossible_travel,
 )
 from logdet.config import (
+    DEFAULT_CURSOR_STORE,
     DEFAULT_DETECTOR_PATH,
     DEFAULT_OFFSET_STORE,
     GROUP_BY_SOURCE_IP,
@@ -51,6 +57,7 @@ from logdet.config import (
     STREAM_RETENTION_MINUTES,
 )
 from logdet.embedding import add_embeddings_to_df
+from logdet.journald import AUTHPRIV_FACILITY, CursorStore, JournaldSource
 from logdet.preprocessing import LineParser
 from logdet.sequence_grouping import linked
 
@@ -446,7 +453,9 @@ def _format_alert(incident: dict) -> str:
 def cli() -> None:
     parser = argparse.ArgumentParser(
         description="Score a live log file in micro-batches against a fitted detector.")
-    parser.add_argument("--input", required=True, help="Log file to tail")
+    parser.add_argument("--input", help="Log file to tail")
+    parser.add_argument("--journald", action="store_true",
+                        help="Read this machine's systemd journal instead of a file")
     parser.add_argument("--detector", default=DEFAULT_DETECTOR_PATH,
                         help="Detector saved by logdet-fit")
     parser.add_argument("--output", help="Append emitted incidents here as JSON lines")
@@ -460,19 +469,39 @@ def cli() -> None:
                         help="Keep tailing (the default unless --once is given)")
     parser.add_argument("--no-offset-store", action="store_true",
                         help="Do not record or resume a read position")
+    parser.add_argument("--journald-unit",
+                        help="Journald: restrict to one unit (e.g. sshd) instead of authpriv")
+    parser.add_argument("--journald-since",
+                        help="Journald: start at this time (journalctl --since syntax)")
+    parser.add_argument("--cursor-store", default=DEFAULT_CURSOR_STORE,
+                        help="Where the journald cursor is recorded between runs")
     parser.add_argument("--batch-lines", type=int, default=STREAM_BATCH_MAX_LINES)
     parser.add_argument("--batch-seconds", type=float, default=STREAM_BATCH_MAX_SECONDS)
     parser.add_argument("--narrate", action="store_true",
                         help="Generate an LLM narrative for closed high-severity incidents")
     args = parser.parse_args()
 
+    if bool(args.input) == bool(args.journald):
+        parser.error("give exactly one of --input <file> or --journald")
+
     detector = PerUserAnomalyDetector.load(args.detector)
     print(f"Loaded detector: {len(detector.models)} per-user models, "
           f"{detector.embedding_dim}-d embeddings from '{detector.embedding_model}'")
 
-    store = None if args.no_offset_store else OffsetStore(args.offset_store)
-    source = FileTailSource(args.input, offset_store=store,
-                            from_start=args.from_start or args.once)
+    if args.journald:
+        cursors = None if args.no_offset_store else CursorStore(args.cursor_store)
+        source = JournaldSource(
+            unit=args.journald_unit,
+            facility=None if args.journald_unit else AUTHPRIV_FACILITY,
+            follow=not args.once,
+            since=args.journald_since or ("-1h" if args.once else None),
+            cursor_store=cursors)
+        source_label = f"journald ({source.key})"
+    else:
+        store = None if args.no_offset_store else OffsetStore(args.offset_store)
+        source = FileTailSource(args.input, offset_store=store,
+                                from_start=args.from_start or args.once)
+        source_label = args.input
     processor = StreamProcessor(detector)
     batcher = MicroBatcher(max_lines=args.batch_lines, max_seconds=args.batch_seconds)
 
@@ -492,7 +521,7 @@ def cli() -> None:
             out.write(json.dumps(incident, default=str) + "\n")
             out.flush()
 
-    print(f"Streaming {args.input} "
+    print(f"Streaming {source_label} "
           f"({'replay, then exit' if args.once else 'following'}); Ctrl-C to stop")
     try:
         run_stream(source, processor, once=args.once, batcher=batcher,
@@ -503,6 +532,8 @@ def cli() -> None:
     finally:
         if out:
             out.close()
+        if hasattr(source, "close"):
+            source.close()
         print(f"Read {processor.lines_seen} lines, parsed {processor.lines_parsed}")
 
 

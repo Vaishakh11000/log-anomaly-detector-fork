@@ -431,7 +431,7 @@ justified building that far.
 
 **Current stage:** Stage 2 — live ingestion
 **Stage 1 started:** 2026-08-18 → **kill-point deadline 2026-09-15** (4 weeks, §1b)
-**Last session:** 2026-08-30 (Stage 2: file tailer + micro-batch scoring; the stream reproduces the batch 130/94 exactly)
+**Last session:** 2026-08-30 (Stage 2: journald as a live source; the process-field regex now accepts parentheses, taking Linux.log from 76% to 99.4%)
 **Last commit:** _(see `git log`)_
 
 > ## ✅ Kill-point verdict: **CONTINUE** (31.1pt, 5 seeds, 2026-08-19)
@@ -600,10 +600,30 @@ justified building that far.
       (`sequence_grouping.linked`) with merge-on-bridge for transitivity, and a
       byte offset committed only after a batch is scored. 28 new tests; 269 pass
       (`-m "not slow"`), 278 with the slow locks.
-      Still to do: **journald as a real live source** (this machine is Arch —
-      `journalctl -f` is genuine live traffic); paced replay for demos (the
-      eval track already has `paced_replay.py`); FastAPI service so the
-      dashboard is not the only interface.
+      ✅ **journald as a live source** — `logdet-stream --journald` reads this
+      machine's own systemd journal instead of a file. Same `read_lines()` /
+      `commit()` contract as the file tailer, so nothing below the source
+      changed. Defaults to the **authpriv facility** (`SYSLOG_FACILITY=10`:
+      sshd, sudo, su, pam), which is the auth.log vocabulary the detector is
+      fitted on; `--journald-unit sshd` narrows it further. Resume is by
+      journald's own **cursor**, kept in a store separate from the file
+      tailer's byte offset and committed only after a batch is scored.
+      Verified live on this box, not only in tests: a one-shot run over the
+      last 24h scored 22/22 lines; a second run against the same cursor store
+      read 0 lines and re-alerted on nothing; and in follow mode six
+      `logger -p authpriv.info` failed-password lines arrived through
+      `journalctl -f` and grouped into one T1110 incident. 27 new tests, all
+      driving an injected chunk reader so CI needs no journal. Note
+      **`--since now` does not mean "from this moment"** — journalctl returns
+      the whole journal for it, so follow mode uses `-n 0`, which is the
+      primitive that actually replays no history.
+      **No sshd runs on this dev box** (`journalctl -u sshd` is empty), so the
+      live auth traffic available here is sudo/su/pam. Start sshd before using
+      journald as the source for anything ssh-shaped.
+
+      Still to do: paced replay for demos (the eval track already has
+      `paced_replay.py`); FastAPI service so the dashboard is not the only
+      interface.
 
       **Narration latency, measured 2026-08-30** on the dev box (§2c), phi3, the
       pipeline's own prompt, median of 3 runs:
@@ -695,12 +715,13 @@ justified building that far.
   honest fix.
 - `preprocessing.py`'s `__main__` is a required-args CLI, so it has no no-arg smoke test.
   Moot once pytest lands in Stage 0.
-- **`Linux.log` parses at only 76%.** The 6,140 unparsed lines are all
-  `su(pam_unix)[2077]:` — the process field carries parentheses, which
-  `LOG_LINE_RE`'s `[\w\-/.]+` rejects. These are exactly the user-session lines
-  that would be most interesting in that corpus. OpenSSH (the primary) parses at
-  100%, so this does not block the kill point. Fix when the Linux corpus is
-  actually used.
+- ~~**`Linux.log` parses at only 76%.**~~ **Fixed 2026-08-30.** The process
+  field now accepts parentheses (`[\w\-/.()]+`), so `su(pam_unix)[2077]:` and
+  journald's `(systemd)` / `(sd-pam)` parse. Linux.log went **75.98% → 99.37%**
+  and the live journal on this box went 11/22 → 22/22. Verified a no-op where
+  it matters: the parsed output of `synthetic.log` (751 lines) and `SSH.log`
+  (655,147 lines) is **byte-identical before and after** — SHA-256 over every
+  parsed record — so no number in `results/` moved and §4 was not triggered.
 - **Alert volume is worse on real data than the v1 headline.** The clean
   kill-point corpus (2,532 lines, 9 attack instances) produces **193 incidents**
   against v1's 94 on 751 synthetic lines. Instance detection is still 100%. More
@@ -964,6 +985,9 @@ uv run logdet-fit --input data/processed/parsed.csv          # -> models/detecto
 uv run logdet-stream --input /var/log/auth.log               # follow and alert
 uv run logdet-stream --input data/raw/synthetic.log --once   # replay a file, then exit
 uv run logdet-stream --input /var/log/auth.log --narrate     # + LLM narrative on close
+uv run logdet-stream --journald                             # this machine's live auth journal
+uv run logdet-stream --journald --journald-unit sshd        # one unit instead of authpriv
+uv run logdet-stream --journald --once --journald-since=-24h   # replay a journal window
 
 # Stage 1 (kill point). Wazuh must be up: docker start wazuh  (see Known Issues)
 uv run logdet-fetch-data openssh                # Zenodo LogHub fetch, SHA-256 verified
@@ -1029,4 +1053,5 @@ The frozen demo folder deliberately commits it instead — do not copy that choi
 | 2026-08-20 | **`ambient_ratio` sensitivity settled: `rephrase` reads +31.2 / +31.1 / +31.1 across a 20× range of background density, so the one surviving win is a mechanism and not an artefact of the corpus. Stage 1 closed** | The single most available objection to this project's result was that `ambient_ratio=0.05` had been chosen with no justification, and that the entire claim rested on one number measured at that one setting — an objection that costs two 40-minute runs to answer and would have been fatal to leave open. It does not survive: a 0.1pt spread across 0.01→0.20 is what a mechanism looks like, and the reason is legible rather than statistical — Wazuh's sshd decoder matches literal strings, so rewording drops a line out of it regardless of what else is in the log. The ties hold at every density too. The one real result that moves is `ip_rotate`, from −13.3 in the quietest background to −8.9 in the noisiest: still a loss everywhere, but its size depends on how much ambient traffic there is to hide in, so the write-up must carry the range rather than the single friendliest figure. Timing-dependent rows are rendered in the sweep but explicitly marked artefacts, because batch replay pins Wazuh's drop at 0pt by construction and their apparent sensitivity is only *our* drop moving. Also closed a standing infrastructure defect found while recovering the 0.20 run: checkpoints had been written since 2026-08-19 and nothing could read one, so three separate runs discarded completed conditions — `--resume` now reuses them, and refuses any checkpoint whose parameters differ, because splicing two experiments into one reported result would be worse than losing the compute |
 | 2026-08-20 | **The paced measurement returned two losses and a tie (`slow` −8.9, `temporal` +0.0, `realistic-combo` −13.3), recorded exactly as computed. The §1b verdict is unchanged: CONTINUE, on `rephrase` alone** | The instrument was built specifically because three strategies could not be measured against an arrival-time-keyed SIEM, and the honest outcome of building it is that this project *loses* on two of them. Wazuh replayed at true speed does not degrade at all under slowed-down or combined camouflage, while this system drops 8.9 and 13.3 points. The temptation this creates is exactly the one §1b names as the biggest risk to the project's integrity, and it takes a specific form here: **the alert level is a knob that changes the answer, and there was a ready-made argument for turning it.** `killpoint.py` justifies `PRIMARY_LEVEL=3` on the grounds that higher levels "a 7-second replay cannot exercise" — an argument that genuinely no longer applies to a 6.5-hour paced replay, and which would have licensed moving to L7/L10 after seeing the result. It was not moved, for two reasons: changing the deciding threshold *after* seeing results is the thing the kill point exists to prevent regardless of how good the reason sounds, and the higher levels do not actually favour us anyway — Wazuh detects 11.1% at L7/L10 on the *clean* corpus, so its drops there are a floor effect, and the best differential across every level is +11.1pt, still under the registered bar. All three levels are now rendered in the report so the reader can see the shape rather than take the primary on trust. Net effect on the roadmap: none — `rephrase` at +31.1pt clears "≥25pt on at least one strategy" as registered — but the claim this project may make has narrowed to *"signature rules break when you reword an attack; embeddings do not"*, and the eight-strategy tally (1 win, 4 ties, 3 losses, including `realistic-combo`) belongs in the write-up beside it |
 | 2026-08-19 | **Paced replay is scheduled per source IP with gaps clamped at 75s, and global line order is deliberately not preserved.** Nothing about Wazuh — ruleset, engine, or container clock — is modified | Replaying the corpus at true speed costs 144h for a 5-seed run, which is not a measurement anyone will make. Two properties *of the shipped rules* make a far cheaper schedule equivalent rather than approximate, and both were read off the ruleset rather than assumed: the sshd frequency rules are **rate limits**, so a real gap only has to be honoured up to `timeframe/frequency` (60s, binding case 5703/5705 at 360/6) and any larger real gap is indistinguishable past that; and they carry **`same_source_ip`**, so spacing is per-IP and unrelated sources replay concurrently. Dropping global order is the single largest lever (~3x) and is sound only when no frequency rule can fire without a source key — the three such rules (5705, 5714, 5719) need `Timeout before authentication`, a CRC-32 attack, or a denied user, and the corpus contains **zero** of all three, checked by `verify_order_relaxation_safe` rather than asserted. The two alternatives that would have made runs *minutes* were both rejected for the same reason: **time dilation** (compressing the clock and dividing Wazuh's `timeframe`/`ignore` by the same factor) and **`libfaketime` on analysisd** each alter the third party we are being compared against, which is precisely what §1b exists to prevent — and dilation is capped at ~12x anyway by the ~2s ingestion latency. The instrument was probed *before* being built: 15 `Invalid user` lines from one IP fire 5712 at 0.2s spacing and do not at 20s spacing. Thinning the ambient layer (`max_events_per_ip`) is the remaining cost lever and is a declared parameter, because one real attacker IP with 88 events costs 10h on its own |
+| 2026-08-30 | **journald is a second source behind the same interface, resumed by journald's own cursor rather than a byte offset; and the process-field regex was widened to accept parentheses after the live journal proved it was dropping half its auth lines** | A tailed file is a replay of traffic somebody already wrote down, so "live ingestion" was not yet demonstrably live. `journalctl -f` on this Arch box is the machine's own auth stream, and making it a source that implements `read_lines()`/`commit()` means nothing below the source — batching, scoring, incident growth, the offset discipline — had to change or be re-verified. Three things were measured rather than assumed. **`-o json`, not `-o short`**: the short form parses but carries no cursor, and the cursor is the only honest equivalent of the byte offset, so the syslog-shaped line is rebuilt from the JSON fields instead. **`--since now` does not restrict journalctl to new entries** — it returned all 28 journal entries, so a first follow run would have re-alerted on the entire history; `-n 0` is the primitive that means what follow means, and the test now pins that finding rather than the intention. **The cursor lives in its own store**: a byte offset is meaningful only with an inode and a cursor only with the journal filter it was taken from, so one file holding both would let a file run and a journald run silently overwrite each other's resume point — and a cursor taken under `-u sshd` is refused for an authpriv run for the same reason. The regex fix was not planned work: the first live run read 22 lines and parsed 11, and the 11 failures were `(systemd)` and `(sd-pam)` — journald's names for user-session pam, the same defect already logged against LogHub's `su(pam_unix)`. This is a preprocessing change, so §4 was the question. It is a **strict no-op on every corpus any published number came from**: SHA-256 over every parsed record of `synthetic.log` and `SSH.log` is identical before and after, both still 100%, and the pinned 751 → 130 → 94 locks stayed green on both the batch and stream paths — so no adversarial re-run was owed. What it does change is corpora nobody has reported on yet: Linux.log 75.98% → 99.37%, live journal 11/22 → 22/22 |
 | 2026-08-19 | **The §1b kill point returned CONTINUE: best measurable differential 31.1pt on `rephrase`, 5 seeds, Wazuh available throughout.** Recorded exactly as computed, including the `ip_rotate` loss. The roadmap continues; the amplifiers (streaming, bake-off, two-machine, GPU) are unlocked | The assumption the whole roadmap rested on — that v1's robustness gap survives rules the author did not write — held, but *narrowly and by one mechanism*. Wazuh loses 33.3pt under `rephrase` while this system loses 2.2pt: sshd rules match on literal strings (`Failed password`, `Invalid user`), so rewording the message drops them out of the decoder entirely, whereas a sentence embedding of a reworded line stays near the original in vector space. That is a real and explainable property, not luck. It is also the *only* strategy that produced a gap: `mimicry`, `noise` and `volume` are 0.0pt ties, and **`ip_rotate` goes the other way — we lose 11.1pt, Wazuh loses nothing**, because rotating source IPs defeats per-user embedding context while Wazuh's per-IP frequency rules simply fire on whichever IP still crosses the threshold. §1b's registered wording is "≥25pt on at least one strategy", so `verdict()` taking the maximum is the reading as registered rather than a post-hoc choice — the function is a hard-coded literal ladder written before any result existed and pinned by 11 tests. The write-up must therefore claim the mechanism ("signature rules break when you reword; embeddings do not"), never the broad claim ("more robust to camouflage"), and must carry the `ip_rotate` loss in the same table. Three strategies stay excluded pending paced replay, so this verdict is provisional in scope even though it is final in force |
