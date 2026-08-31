@@ -2,6 +2,12 @@
 build_deck.py
 Renders the presentation folder's Markdown into printable HTML and then PDF.
 
+This produces `deck-preview.pdf`, a quick way to read the slide text without
+PowerPoint. **The deck that gets presented is `deck.pptx` / `deck.pdf`, built by
+`build_pptx.py` inside the college's own template.** This builder also renders
+the knowledge pack, the Q&A pack and the reference list, which are documents
+rather than slides.
+
 Why this exists: the slide content lives in PRESENTATION.md so it can be
 hand-checked as text, but what goes into the review room is a PDF. Keeping one
 builder means the two can never drift -- the PDF is always the Markdown, and
@@ -253,7 +259,7 @@ def build_deck() -> Path:
         )
 
     html.append("</body></html>")
-    out = HERE / "deck.html"
+    out = HERE / "deck-preview.html"
     out.write_text("\n".join(html))
     return out
 
@@ -298,7 +304,7 @@ def main() -> None:
     what = sys.argv[1] if len(sys.argv) > 1 else "all"
     jobs = []
     if what in ("deck", "all"):
-        jobs.append((build_deck(), HERE / "deck.pdf", True))
+        jobs.append((build_deck(), HERE / "deck-preview.pdf", True))
     if what in ("docs", "all"):
         for md_name, html_name, pdf_name, title in [
             ("KNOWLEDGE-PACK.md", "knowledge-pack.html", "KNOWLEDGE-PACK.pdf",

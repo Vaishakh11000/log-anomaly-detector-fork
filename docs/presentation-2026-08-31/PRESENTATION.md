@@ -4,8 +4,20 @@
 Harsh Bangera (3) · Manas Chaudhari (17) · Krish Mendon (62) · Anandan Nair (68)
 Guide: Prof. Darshan Mhapsekar
 
-This file is the source of truth for the slides. Hand-check it first; the rendered
-`deck.pdf` is generated from it and should never be edited directly.
+This file is the readable source of truth for the slide content. Hand-check it here.
+
+**What you present:** `deck.pptx` — built by `build_pptx.py` *inside the college's own
+PowerPoint template*, so the header artwork, footer and slide numbering are the
+template's own, not an imitation — and `deck.pdf`, converted from that pptx.
+
+```bash
+uv run python docs/presentation-2026-08-31/build_pptx.py          # -> deck.pptx
+nix run nixpkgs#libreoffice-fresh -- --headless --convert-to pdf \
+    --outdir docs/presentation-2026-08-31 docs/presentation-2026-08-31/deck.pptx
+```
+
+`deck-preview.pdf` is the plain HTML rendering of this file — handy for reading the text
+quickly, but it is not the template and is not what goes in the room.
 
 Companion files in this folder:
 
