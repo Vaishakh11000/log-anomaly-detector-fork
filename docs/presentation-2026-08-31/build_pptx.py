@@ -95,7 +95,7 @@ MOTIVATION = [
     "Semantic detection can follow that; string matching cannot.",
     "It has to run where the budget is: the whole system runs on an ordinary laptop, "
     "no GPU and no cloud account.",
-    ("A GPU only speeds the written explanation up: 5.2 s versus 24.2 s per incident.", 1),
+    ("A GPU only speeds the written explanation up: 3.9 s versus 18.2 s per incident.", 1),
 ]
 
 LIT_HEAD = ["Paper (journal, year)", "Method", "Finding", "Limitation"]
@@ -223,7 +223,7 @@ TECH = [
     "Data: LogHub OpenSSH (655,147 real lines, contains real internet attacks), LogHub "
     "Linux (99.4% parsed), and a 751-line synthetic corpus with full ground truth.",
     "Hardware, minimum and fully supported: any laptop, no GPU, 8 GB RAM.",
-    ("Optional NVIDIA GPU only speeds the written explanation up (5.2 s vs 24.2 s).", 1),
+    ("Optional NVIDIA GPU only speeds the written explanation up (3.9 s vs 18.2 s).", 1),
     ("Demonstration setup: two laptops — one attacking and running the SIEM, one detecting.", 1),
 ]
 

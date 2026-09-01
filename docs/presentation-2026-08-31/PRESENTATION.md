@@ -39,7 +39,7 @@ by our own measurements, so they are corrected rather than repeated.
 | Datasets: HDFS / BGL / CIC-IDS | Those logs contain **hardware faults, not attackers**. No attacker means no MITRE technique to map, no attack story to explain, and camouflage is meaningless. Switched to LogHub **OpenSSH** (655,147 lines, real internet brute force) | `CLAUDE.md` §3b |
 | Fine-tune a small LLM to classify each line | We do **not** fine-tune. Detection is sentence embeddings + Isolation Forest; the LLM only writes the explanation and is never allowed to pick a MITRE ID | `CLAUDE.md` §2, §8 |
 | SIEM baseline: Splunk / Elastic | Baseline is the real **Wazuh manager** running in Docker. **Sigma was tested and dropped**: 0 of ~3,300 rules match a single SSH auth line | Decision Log 2026-08-18 |
-| Needs a GPU / Colab, 16 GB RAM | Runs end to end on CPU. GPU only makes the explanation faster: **5.2 s vs 24.2 s** per incident | `CLAUDE.md` §2c |
+| Needs a GPU / Colab, 16 GB RAM | Runs end to end on CPU. GPU only makes the explanation faster: **3.9 s vs 18.2 s** per incident | `CLAUDE.md` §2c |
 | Benchmark on accuracy / precision / recall | We report those **and** robustness under camouflage against third-party rules, on a criterion registered in git before any result existed | `CLAUDE.md` §1b |
 | "Block diagram to be finalized" | Three diagrams, all reflecting the code as it stands | `diagrams/` |
 
@@ -124,8 +124,8 @@ Everything here is our own measurement on real logs, not a claim from a website.
   one place, a login from two countries an hour apart — even when the wording changes.
   Meaning-based detection can follow that; string matching cannot.
 - **It has to run where the budget is.** The whole system runs on an ordinary laptop with
-  no GPU and no cloud account. A GPU only speeds the written explanation up (5.2 s vs
-  24.2 s per incident). A team with no security budget can still deploy it.
+  no GPU and no cloud account. A GPU only speeds the written explanation up (3.9 s vs
+  18.2 s per incident). A team with no security budget can still deploy it.
 
 ---
 
@@ -274,7 +274,7 @@ while we stayed at 3 of 3 — a 100-point gap, live.
 **Hardware**
 
 - Minimum, and fully supported: any laptop, **no GPU**, 8 GB RAM
-- Optional: NVIDIA GPU, which only speeds up the written explanation (5.2 s vs 24.2 s)
+- Optional: NVIDIA GPU, which only speeds up the written explanation (3.9 s vs 18.2 s)
 - Demonstration setup: two laptops, one attacking and running the SIEM, one detecting
 
 ---
@@ -350,6 +350,6 @@ All eight are journal papers; the PDFs are attached with this presentation
 | Precision 0.29, recall 0.86, F1 0.43, 94 incidents for 9 attacks | 14 | `results/evaluation.md` |
 | 751 lines → 130 events → 94 incidents, batch = streaming | 12, 15 | `tests/test_stream_regression.py` |
 | Quiet baseline: ours 5 of 30 lines, Wazuh 19 of 30 | 15 | `results/bakeoff/act1_benign/benign_baseline.md` |
-| Narration 5.2 s GPU (RTX 3050) vs 24.2 s CPU (i5-13450HX) | 6, 16 | `CLAUDE.md` §3, measured 2026-08-30 |
+| Narration 3.9 s GPU (RTX 4060) vs 18.2 s CPU (i7-13650HX) | 6, 16 | `CLAUDE.md` §3, measured 2026-09-01 on the demo machine |
 | OpenSSH 655,147 lines; Linux.log parses at 99.37% | 16 | `CLAUDE.md` Known Issues, 2026-08-30 |
 | 436 automated tests | 13, 16 | `uv run pytest -m "not slow"` |

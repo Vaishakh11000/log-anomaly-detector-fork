@@ -228,15 +228,21 @@ Two roles, split by **role, not by clustering.**
 
 ### Third machine: the day-to-day dev box (added 2026-08-30)
 
-The SSD now boots on a **borrowed laptop of the same model family but a different
-GPU**, and that is where development happens for now. The RTX 4060 machine is
-reserved for **final testing and the demo**.
+> **Update 2026-09-01: the SSD is now booted on the RTX 4060 machine — the
+> final-test/demo box — and the figures in the "Final-test box" column below are
+> measured rather than blank.** Development happened on the borrowed 3050 laptop
+> up to 2026-08-31.
 
-| | Dev box (this one) | Final-test box |
+The SSD boots on a **borrowed laptop of the same model family but a different
+GPU**, and that is where development happened up to 2026-08-31. The RTX 4060
+machine is reserved for **final testing and the demo**.
+
+| | Dev box (3050) | Final-test / demo box (4060) |
 |---|---|---|
-| GPU | **RTX 3050 6GB Laptop** (GA107BM) | RTX 4060 8GB |
-| CPU | i5-13450HX, 10c/16t | — |
-| RAM | 15GB total, ~11GB available | — |
+| GPU | **RTX 3050 6GB Laptop** (GA107BM) | **RTX 4060 8GB Laptop**, 8188 MiB |
+| CPU | i5-13450HX, 10c/16t | **i7-13650HX, 14c/20t** |
+| Driver | 610.57.04 | 610.57.04 (same SSD, carried across) |
+| Narration, GPU / CPU | 5.2s / 24.2s | **3.9s / 18.2s** |
 
 Verified on first boot 2026-08-30: the SSD booted, `nvidia-smi` reports driver
 610.57.04, and `dkms status` shows `nvidia/610.57.04, 7.1.8-arch1-3: installed`.
@@ -251,7 +257,11 @@ result:
 - **GPU timing numbers do not transfer.** Narration latency measured on a 3050
   is not the 4060 number and must never be quoted as one. §2c already requires
   reporting CPU and GPU figures separately; this adds a third measurement point,
-  so label every latency figure with the machine that produced it.
+  so label every latency figure with the machine that produced it. **Settled
+  2026-09-01 by measuring both on the 4060 box: 3.9s GPU, 18.2s CPU** — the
+  direction was as expected (the bigger GPU is faster) but the *size* was not
+  guessable from the 3050 figures, which is why it had to be measured rather
+  than extrapolated.
 - **Developing on the smaller GPU is the safe direction.** Anything that fits
   6GB fits 8GB. The reverse would not hold, which is why the borrowed machine is
   an acceptable dev box but not an acceptable place to measure the demo.
@@ -260,7 +270,9 @@ result:
 the "Wazuh manager only, never the full stack" decision (Decision Log
 2026-08-17). That decision is not reversed — the manager-only setup is also the
 better comparison and the better demo — but it is no longer *forced* by memory
-on this machine, and it may still be forced on the 4060 box. Re-check there.
+on this machine. **Re-checked on the 4060 box 2026-09-01: 23GB total, ~18GB
+available**, so it is not forced there either. The manager-only setup stays on
+its own merits, not on a memory limit.
 
 The **CPU-floor benchmark target** is the same SSD env booted *without* using the GPU
 (or on any GPU-less machine) — that is what keeps "runs on CPU" a measured claim.
@@ -431,7 +443,7 @@ justified building that far.
 
 **Current stage:** Stage 2b — live bake-off
 **Stage 1 started:** 2026-08-18 → **kill-point deadline 2026-09-15** (4 weeks, §1b)
-**Last session:** 2026-08-31 (review deck built in `docs/presentation-2026-08-31/`; fixed a stream crash — a merge inside one micro-batch killed the worker with `KeyError` and the service went on reporting a healthy stream)
+**Last session:** 2026-09-01 (SSD booted on the RTX 4060 demo box; narration re-measured there at 3.9s GPU / 18.2s CPU and the whole deck repointed off the 3050's figures; demo path re-verified on this hardware)
 **Last commit:** _(see `git log`)_
 
 > ## ✅ Kill-point verdict: **CONTINUE** (31.1pt, 5 seeds, 2026-08-19)
@@ -691,27 +703,42 @@ justified building that far.
 
       Stage 2 is complete. Stage 2b is in progress — see below.
 
-      **Narration latency, measured 2026-08-30** on the dev box (§2c), phi3, the
-      pipeline's own prompt, median of 3 runs:
+      **Narration latency**, phi3, the pipeline's own prompt, median of 3 timed
+      runs after one warm-up. **The 2026-09-01 row is the demo machine and is the
+      one the deck quotes.**
 
-      | Machine | Median per incident |
-      |---|---|
-      | GPU, RTX 3050 6GB | **5.2s** |
-      | CPU only, i5-13450HX 10c/16t | **24.2s** |
-      | v1 CPU, old laptop | 40-60s |
+      | Machine | Median per incident | Measured |
+      |---|---|---|
+      | **GPU, RTX 4060 8GB (demo box)** | **3.9s** | 2026-09-01 |
+      | **CPU only, i7-13650HX 14c/20t (demo box)** | **18.2s** | 2026-09-01 |
+      | GPU, RTX 3050 6GB (dev box) | 5.2s | 2026-08-30 |
+      | CPU only, i5-13450HX 10c/16t (dev box) | 24.2s | 2026-08-30 |
+      | v1 CPU, old laptop | 40-60s | v1 |
 
       This supersedes the "40-60s/incident on CPU is a floor" figure carried from
-      v1 — that was *one machine's* number, not a property of CPU inference, and a
-      faster CPU roughly halved it. **All three figures must be labelled with the
-      machine that produced them and never blended.** The GPU result is the
-      important one: at ~5s, near-real-time narration is honest rather than an
-      apology, and it was measured on the *smaller* GPU, so the 4060 is at least
-      this good. Re-measure there before quoting a demo number.
+      v1 — that was *one machine's* number, not a property of CPU inference, and
+      each faster CPU has cut it again (40-60s → 24.2s → 18.2s). **Every figure
+      must be labelled with the machine that produced it and never blended.** The
+      GPU result is the important one: at ~4s, near-real-time narration is honest
+      rather than an apology.
 
-      **Ollama needs the `ollama-cuda` package on Arch, not `ollama`** — the plain
-      package ships only `libggml-cpu-*.so` and runs 100% CPU while `nvidia-smi`
-      looks perfectly healthy. Verify with `ollama ps` and check the `PROCESSOR`
-      column says GPU; a loaded driver proves nothing.
+      Reproduce it with the module's own smoke-test incident
+      (`llm_narrative.__main__`, 4 events, 592 prompt tokens) so the comparison is
+      the same prompt on every machine. Generated length varies run to run
+      (254-360 tokens), which is why the figure is a median and not a single run.
+      To measure the CPU-only side without disturbing the GPU service, start a
+      second server rather than stopping the first:
+      `CUDA_VISIBLE_DEVICES="" OLLAMA_HOST=127.0.0.1:11435 OLLAMA_MODELS=/var/lib/ollama ollama serve`
+      — the systemd unit runs as user `ollama` with its models in
+      `/var/lib/ollama`, so a user-run server sees no models without that path.
+
+      **On Arch, `ollama-cuda` is an add-on to `ollama`, not a replacement** — it
+      depends on `ollama` and only adds `/usr/lib/ollama/cuda_v13/libggml-cuda.so`
+      to the plain package's `libggml-cpu-*.so`. **Having both installed is
+      correct**, and is what the demo box has (`ollama` 0.32.9-1 +
+      `ollama-cuda` 0.32.15-1, GPU confirmed working despite the version skew).
+      What is *not* safe is assuming: `nvidia-smi` looking healthy proves nothing,
+      so verify with `ollama ps` and check the `PROCESSOR` column says GPU.
 - [ ] **Stage 2b — Live Bake-Off.** ▶ *in progress, started 2026-08-30.* ⭐ *The demo. Depends on Stage 1 + Stage 2.*
       Benign traffic streams continuously into a tailed file; an **injection grid
       (attack type × camouflage level)** lets the audience fire attacks at both
@@ -884,8 +911,12 @@ justified building that far.
       at one background rate, so it is a demo artifact, not a false-positive
       rate for either system.
 
-      Still to do: re-measure narration latency on the 4060 before quoting a
-      demo number, and decide whether Stage 2b is finished or wants the
+      ✅ **Narration latency re-measured on the 4060 demo box, 2026-09-01**:
+      **3.9s GPU / 18.2s CPU** (§2c). Every figure in
+      `docs/presentation-2026-08-31/` was repointed from the 3050's 5.2s/24.2s
+      and the deck rebuilt.
+
+      Still to do: decide whether Stage 2b is finished or wants the
       Kali-generated attacks (§2d, currently Stage 6).
 - [ ] **Stage 3 — Detection depth.**
       **Drain3** online template mining replacing hand-written regex (makes the system
@@ -1324,3 +1355,4 @@ The frozen demo folder deliberately commits it instead — do not copy that choi
 | 2026-08-19 | **The §1b kill point returned CONTINUE: best measurable differential 31.1pt on `rephrase`, 5 seeds, Wazuh available throughout.** Recorded exactly as computed, including the `ip_rotate` loss. The roadmap continues; the amplifiers (streaming, bake-off, two-machine, GPU) are unlocked | The assumption the whole roadmap rested on — that v1's robustness gap survives rules the author did not write — held, but *narrowly and by one mechanism*. Wazuh loses 33.3pt under `rephrase` while this system loses 2.2pt: sshd rules match on literal strings (`Failed password`, `Invalid user`), so rewording the message drops them out of the decoder entirely, whereas a sentence embedding of a reworded line stays near the original in vector space. That is a real and explainable property, not luck. It is also the *only* strategy that produced a gap: `mimicry`, `noise` and `volume` are 0.0pt ties, and **`ip_rotate` goes the other way — we lose 11.1pt, Wazuh loses nothing**, because rotating source IPs defeats per-user embedding context while Wazuh's per-IP frequency rules simply fire on whichever IP still crosses the threshold. §1b's registered wording is "≥25pt on at least one strategy", so `verdict()` taking the maximum is the reading as registered rather than a post-hoc choice — the function is a hard-coded literal ladder written before any result existed and pinned by 11 tests. The write-up must therefore claim the mechanism ("signature rules break when you reword; embeddings do not"), never the broad claim ("more robust to camouflage"), and must carry the `ip_rotate` loss in the same table. Three strategies stay excluded pending paced replay, so this verdict is provisional in scope even though it is final in force |
 | 2026-08-30 | **The merged bake-off report is generated by `logdet-bakeoff --merge`, with the interpretation kept in a separate `--notes` file; and Act 1 is now a recorded artifact rather than a line on a terminal** | The 18-cell table was assembled by a script written in a scratch directory and then thrown away, which left `results/bakeoff/bakeoff.md` as the one artifact in `results/` whose numbers were reproducible but whose file was not — every per-invocation JSON was committed and the commands were written into the prose, so nothing was lost, but nobody could rebuild it. The merge orders cells by the grid rather than by the order the evening's runs happened, so two merges of the same runs cannot produce two different-looking reports, and it derives each source directory's invocation from the rows it contains rather than from a recorded string, so the provenance cannot drift away from the data beside it. A cell present in two source directories is **refused** rather than resolved by argument order: two firings of one cell are two measurements, the table holds one row, and choosing between them is the operator's call — silently reporting whichever sorted first would put a number in the report nobody picked. The reading of the table is deliberately not generated. A generator that wrote conclusions would be scripting the demo narrative, which §8 names as an anti-goal, so the prose lives in `results/bakeoff/notes.md` and is appended verbatim. Regenerating the committed report changed no table row. As for Act 1: the quiet baseline is the act the demo opens with and it had never been recorded, because `--benign-only` printed a line count and returned. It now scores both systems on traffic containing no attack at all, which is the one act where the number needs no camouflage level attached — every alert is a false positive by construction. Measured live: 30 benign lines, ours 5 flagged in 3 incidents (17%), Wazuh 19 (63%) at level >=3, which is the same rule-5715 saturation the grid firing found and is worth showing precisely because Act 1 is where this project's own precision weakness is most visible. Nothing in this session touched detection, grouping or scoring, so §4 did not apply; 436 tests pass. |
 | 2026-08-31 | **A merge inside one micro-batch crashed the stream worker (`KeyError`), and the fix follows a merged incident id instead of assuming it still exists.** The presentation folder for the 31 Aug review is built as its own directory with its own generators | Found the expensive way: a live bake-off firing scored this detector at 0% while Wazuh scored 100%, and the reason was not detection at all — `/stream/status` carried `error: "KeyError: 4"`. Inside one batch, `StreamProcessor.process` collects the incident id each event lands in, then snapshots them; but a later event in the same batch can bridge two incidents, and `IncidentTracker.add` merges one into the other and pops it, so the snapshot pass looked up an id that no longer existed and killed the worker thread. Everything downstream then behaved exactly as if the log had gone quiet — the service still reported a running stream, the dashboard still showed its last incidents, and the bake-off scored a detector that had stopped reading two minutes earlier. That silence is the real defect; the `KeyError` was merely where it started. The tracker now records `merged_into` and exposes `survivor()`, `process` maps its collected ids through it, and an incident that was already emitted before being merged is marked `status: "merged"` with the id it went into, so a client is told where its events moved rather than being left with a stale open incident. The regression test is load-bearing rather than decorative: it reproduces `KeyError` on the unfixed code, and it only does so because the bridging event arrives last **in timestamp order** — the processor sorts a batch by time before filing it, so the obvious version of the test files the bridge first and never merges anything. Behaviour is otherwise unchanged: 449 tests pass, including both slow locks (751 → 130 → 94 in batch and streamed), so §4 was not triggered. A second, non-code finding from the same session is in Known Issues: two bake-off sessions writing one log file silently produce a 0% score for this detector, which is a demo hazard rather than a bug. As for the deck, it lives in `docs/presentation-2026-08-31/` with the slide text in Markdown and `build_deck.py` rendering it to PDF through headless Chromium, because a deck whose content is only inside a binary cannot be reviewed line by line or regenerated when a number changes. The three diagrams are hand-laid-out SVG rather than Mermaid — measured, not assumed: `render_diagrams.py` reports Mermaid's automatic layout of the same graphs at 6.9:1 and 0.6:1 against a slide area of 1.9:1, which scales the labels to about 7px, and Mermaid drops a subgraph's `direction` as soon as an edge crosses its boundary, so the two-row layout the pipeline needs cannot be expressed at all. Screenshots are captured from the running system by Playwright rather than mocked, and the eight references are journal-only with author-version PDFs, because the panel asked for indexed journals and the previous deck's literature table contained a row that was not a published paper |
+| 2026-09-01 | **Narration latency re-measured on the RTX 4060 demo box — 3.9s GPU, 18.2s CPU — and every deck figure repointed to it. Having both `ollama` and `ollama-cuda` installed on Arch turns out to be correct, not the CPU-only trap the 2026-08-30 entry warned about** | The deck was quoting 5.2s/24.2s from the borrowed 3050 laptop while being presented from the 4060 machine, which §2c forbids in as many words — "GPU timing numbers do not transfer" — so this was a correctness fix to the presentation, not a nice-to-have. The numbers moved in the expected direction and by an amount nobody could have guessed: the GPU figure fell only 25% (5.2s → 3.9s, because phi3-mini is small enough that neither card is the bottleneck) while the CPU figure fell 25% too (24.2s → 18.2s) purely from a wider CPU (i5-13450HX 10c/16t → i7-13650HX 14c/20t). That is the third consecutive machine to cut the CPU number, which retires v1's "40-60s on CPU is a floor" claim for good. Two method points are now written down, because the 2026-08-30 measurement did not record them and this one had to guess at reproducing it: the input is `llm_narrative.__main__`'s own 4-event smoke incident (592 prompt tokens, so the prompt is identical on every machine), and the figure is a median of 3 timed runs after a warm-up, because generated length varies 254-360 tokens run to run and a single run is therefore not a machine property. Measuring the CPU side does **not** require stopping the GPU service: a second `ollama serve` with `CUDA_VISIBLE_DEVICES=""` on port 11435 does it, but it needs `OLLAMA_MODELS=/var/lib/ollama` because the systemd unit runs as user `ollama` and a user-run server otherwise reports an empty model list and returns 404, not a useful error. The package finding corrects the previous entry rather than repeating it: `ollama-cuda` on Arch **depends on** `ollama` and only adds `cuda_v13/libggml-cuda.so` beside the plain package's `libggml-cpu-*.so`, so both being installed is the normal, working configuration — verified here at `100% GPU` and 3734 MiB of VRAM despite a version skew (binary 0.32.9-1, CUDA libs 0.32.15-1). What stands from 2026-08-30 is the *check*, not the diagnosis: `nvidia-smi` looking healthy proves nothing and `ollama ps`'s `PROCESSOR` column is the only evidence. Nothing here touched detection, grouping or scoring, so §4 did not apply |

@@ -25,10 +25,11 @@ you were making.
 - [ ] `git log --oneline -1` shows the commit you expect.
 - [ ] The presentation folder is on the machine you will actually present from, including
       `deck.pdf`, `KNOWLEDGE-PACK.pdf`, `QA-PREP.pdf` and `references/`.
-- [ ] **Say the latency number for the machine you are on.** The 5.2 s figure was measured
-      on the RTX 3050 development laptop. If you present on the RTX 4060 machine,
-      re-measure it once before quoting it, or quote the CPU number instead. Quoting a
-      figure from a different machine is the one thing here that would be dishonest.
+- [ ] **Say the latency number for the machine you are on.** The deck now quotes
+      **3.9 s GPU / 18.2 s CPU**, measured 2026-09-01 on the RTX 4060 demo machine
+      (i7-13650HX). If you present from any other laptop, re-measure before quoting it.
+      Quoting a figure from a different machine is the one thing here that would be
+      dishonest.
 
 ---
 
@@ -55,9 +56,10 @@ ollama serve                            # leave running
 ollama ps                               # PROCESSOR column must say GPU
 ```
 
-If `PROCESSOR` says CPU, the machine has the wrong Ollama package installed
-(`ollama` rather than `ollama-cuda`). Do not try to fix that in the room — narration
-still works, it takes about 24 seconds instead of 5, so say so and move on.
+If `PROCESSOR` says CPU, the machine is missing the `ollama-cuda` package — it is an
+add-on that sits *beside* `ollama`, so both should be installed, not one or the other.
+Do not try to fix that in the room — narration still works, it takes about 18 seconds
+instead of 4, so say so and move on.
 
 **3. The detector service.**
 

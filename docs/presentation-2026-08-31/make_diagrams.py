@@ -233,7 +233,7 @@ def architecture() -> None:
         Box(rx, 122, rw, 64, "Streamlit dashboard",
             ["ranked incidents · MITRE tags · health"], "out", small=True),
         Box(rx, 198, rw, 64, "Local LLM narrative",
-            ["phi3 on demand · 5.2 s GPU / 24.2 s CPU"], "model", small=True),
+            ["phi3 on demand · 3.9 s GPU / 18.2 s CPU"], "model", small=True),
     ]
     parts.append(f'<text x="{rx}" y="32" font-size="14" font-weight="600" fill="#1e3f66">'
                  f'What the analyst uses</text>')

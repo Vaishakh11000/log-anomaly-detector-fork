@@ -318,4 +318,4 @@ the camouflage.
 | Quiet baseline: ours 5/30, Wazuh 19/30 | `results/bakeoff/act1_benign/benign_baseline.md` |
 | Precision 0.29 / recall 0.86 / F1 0.43 | `results/evaluation.md` |
 | 751 → 130 → 94, streaming equals batch | `tests/test_stream_regression.py` |
-| 5.2 s GPU vs 24.2 s CPU narration | measured 2026-08-30, recorded in the project log |
+| 3.9 s GPU vs 18.2 s CPU narration | measured 2026-09-01 on the demo machine (RTX 4060 / i7-13650HX), recorded in the project log |

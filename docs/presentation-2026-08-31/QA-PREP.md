@@ -178,7 +178,7 @@ presentation do not.
 
 **Q. What hardware does it need?**
 Any laptop. No GPU, no cloud. A GPU makes the written explanation about four times faster
-— 5.2 seconds per incident instead of 24.2 — and nothing else changes.
+— 3.9 seconds per incident instead of 18.2 — and nothing else changes.
 
 **Q. How fast is it? Would it keep up with a real server?**
 Detection is a scoring pass over small batches — it keeps up with the log comfortably at
