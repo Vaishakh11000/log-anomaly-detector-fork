@@ -17,6 +17,7 @@ dependencies = [
     "joblib>=1.3",
     "fastapi>=0.110",
     "uvicorn>=0.27",
+    "drain3>=0.9.11",
 ]
 
 [project.scripts]
@@ -35,6 +36,7 @@ logdet-corpus      = "logdet_eval.corpus_openssh:cli"
 logdet-killpoint   = "logdet_eval.killpoint:cli"
 logdet-paced-killpoint = "logdet_eval.paced_killpoint:cli"
 logdet-killpoint-summary = "logdet_eval.killpoint_summary:cli"
+logdet-templates   = "logdet_eval.template_report:cli"
 logdet-bakeoff     = "logdet_eval.bakeoff:cli"
 
 [dependency-groups]

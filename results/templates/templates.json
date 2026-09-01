@@ -1,0 +1,650 @@
+{
+  "path": "/home/shiva/log-anomaly-detector-fork/data/external/SSH.log",
+  "total_lines": 655147,
+  "parsed_lines": 655147,
+  "mined_clusters": 45,
+  "regex_templates": 5669,
+  "growth": [
+    [
+      1000,
+      22
+    ],
+    [
+      5000,
+      24
+    ],
+    [
+      10000,
+      24
+    ],
+    [
+      25000,
+      24
+    ],
+    [
+      50000,
+      29
+    ],
+    [
+      100000,
+      32
+    ],
+    [
+      250000,
+      43
+    ],
+    [
+      500000,
+      43
+    ],
+    [
+      655147,
+      45
+    ]
+  ],
+  "templates": [
+    {
+      "template_id": 10,
+      "template": "Failed password for <*> from <IP> port <PORT> ssh2",
+      "size": 140768
+    },
+    {
+      "template_id": 9,
+      "template": "pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= <*> <*>",
+      "size": 140701
+    },
+    {
+      "template_id": 7,
+      "template": "Connection closed by <IP> [preauth]",
+      "size": 68958
+    },
+    {
+      "template_id": 8,
+      "template": "Received disconnect from <IP>: 11: <*> <*> <*>",
+      "size": 46642
+    },
+    {
+      "template_id": 14,
+      "template": "PAM service(sshd) ignoring max retries; <*> > 3",
+      "size": 37963
+    },
+    {
+      "template_id": 12,
+      "template": "Disconnecting: Too many authentication failures for <*> [preauth]",
+      "size": 37298
+    },
+    {
+      "template_id": 13,
+      "template": "PAM <*> more authentication <*> logname= uid=0 euid=0 tty=ssh ruser= <*> <*>",
+      "size": 37029
+    },
+    {
+      "template_id": 11,
+      "template": "message repeated <*> times: [ Failed password for <*> from <IP> port <PORT> ssh2]",
+      "size": 36967
+    },
+    {
+      "template_id": 6,
+      "template": "Failed <*> for invalid user <*> from <IP> port <PORT> ssh2",
+      "size": 20271
+    },
+    {
+      "template_id": 4,
+      "template": "pam_unix(sshd:auth): check pass; user unknown",
+      "size": 19852
+    },
+    {
+      "template_id": 1,
+      "template": "reverse mapping checking getaddrinfo for <*> [<IP>] failed - POSSIBLE BREAK-IN ATTEMPT!",
+      "size": 18909
+    },
+    {
+      "template_id": 2,
+      "template": "Invalid user <*> from <IP>",
+      "size": 14581
+    },
+    {
+      "template_id": 3,
+      "template": "input_userauth_request: invalid user <*> [preauth]",
+      "size": 14581
+    },
+    {
+      "template_id": 5,
+      "template": "pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= <*>",
+      "size": 14356
+    },
+    {
+      "template_id": 18,
+      "template": "PAM <*> more authentication <*> logname= uid=0 euid=0 tty=ssh ruser= <*>",
+      "size": 1289
+    },
+    {
+      "template_id": 24,
+      "template": "fatal: Read from socket failed: Connection reset by peer [preauth]",
+      "size": 952
+    },
+    {
+      "template_id": 19,
+      "template": "error: Received disconnect from <IP>: <*> <*> <*> <*> <*> <*> <*> [preauth]",
+      "size": 932
+    },
+    {
+      "template_id": 15,
+      "template": "Did not receive identification string from <IP>",
+      "size": 838
+    },
+    {
+      "template_id": 17,
+      "template": "Received disconnect from <IP>: 11: <*> <*> <*> <*> <*> <*>",
+      "size": 595
+    },
+    {
+      "template_id": 28,
+      "template": "Address <IP> maps to <*> but this does not map back to the address - POSSIBLE BREAK-IN ATTEMPT!",
+      "size": 497
+    },
+    {
+      "template_id": 20,
+      "template": "Accepted password for <*> from <IP> port <PORT> ssh2",
+      "size": 182
+    },
+    {
+      "template_id": 21,
+      "template": "pam_unix(sshd:session): session opened for user <*> by (uid=0)",
+      "size": 182
+    },
+    {
+      "template_id": 22,
+      "template": "pam_unix(sshd:session): session closed for user <*>",
+      "size": 182
+    },
+    {
+      "template_id": 16,
+      "template": "error: Received disconnect from <IP>: 3: com.jcraft.jsch.JSchException: Auth <*> [preauth]",
+      "size": 177
+    },
+    {
+      "template_id": 29,
+      "template": "Received disconnect from <IP>: 11: [preauth]",
+      "size": 108
+    },
+    {
+      "template_id": 44,
+      "template": "Received disconnect from <IP>: 11: Normal Shutdown, Thank you for playing [preauth]",
+      "size": 92
+    },
+    {
+      "template_id": 38,
+      "template": "Received disconnect from <IP>: 11: <*> <*> <*> [preauth]",
+      "size": 87
+    },
+    {
+      "template_id": 42,
+      "template": "Received disconnect from <IP>: 11: disconnect [preauth]",
+      "size": 60
+    },
+    {
+      "template_id": 31,
+      "template": "Bad protocol version identification <*> from <IP> port <PORT>",
+      "size": 14
+    },
+    {
+      "template_id": 33,
+      "template": "Invalid user from <IP>",
+      "size": 13
+    },
+    {
+      "template_id": 34,
+      "template": "input_userauth_request: invalid user [preauth]",
+      "size": 13
+    },
+    {
+      "template_id": 35,
+      "template": "Failed <*> for invalid user from <IP> port <PORT> ssh2",
+      "size": 13
+    },
+    {
+      "template_id": 32,
+      "template": "Bad protocol version identification <*> <*> <*> from <IP> port <PORT>",
+      "size": 8
+    },
+    {
+      "template_id": 30,
+      "template": "fatal: no hostkey alg [preauth]",
+      "size": 6
+    },
+    {
+      "template_id": 36,
+      "template": "error: Received disconnect from <IP>: <*> <*> <*> <*> <*> [preauth]",
+      "size": 6
+    },
+    {
+      "template_id": 40,
+      "template": "error: connect_to <IP> port <PORT>: failed.",
+      "size": 6
+    },
+    {
+      "template_id": 43,
+      "template": "Server listening on <*> port <PORT>.",
+      "size": 6
+    },
+    {
+      "template_id": 23,
+      "template": "fatal: Write failed: Connection reset by peer [preauth]",
+      "size": 3
+    },
+    {
+      "template_id": 39,
+      "template": "error: Received disconnect from <IP>: 3: com.jcraft.jsch.JSchException: timeout in waiting for rekeying process. [preauth]",
+      "size": 3
+    },
+    {
+      "template_id": 25,
+      "template": "error: Received disconnect from <IP>: 13: User request [preauth]",
+      "size": 2
+    },
+    {
+      "template_id": 26,
+      "template": "Bad packet length 1819045217. [preauth]",
+      "size": 1
+    },
+    {
+      "template_id": 27,
+      "template": "Disconnecting: Packet corrupt [preauth]",
+      "size": 1
+    },
+    {
+      "template_id": 37,
+      "template": "Received disconnect from <IP>: 11:",
+      "size": 1
+    },
+    {
+      "template_id": 41,
+      "template": "Corrupted MAC on input. [preauth]",
+      "size": 1
+    },
+    {
+      "template_id": 45,
+      "template": "syslogin_perform_logout: logout() returned an error",
+      "size": 1
+    }
+  ],
+  "splits": 0,
+  "merges": 25,
+  "semantic_merges": [
+    {
+      "template_id": 8,
+      "lines": 46642,
+      "mined_template": "Received disconnect from <IP>: 11: <*> <*> <*>",
+      "positions": [
+        {
+          "position": 5,
+          "values": [
+            "Bye",
+            "Normal",
+            "Session",
+            "disconnected"
+          ],
+          "cardinality": 4
+        },
+        {
+          "position": 6,
+          "values": [
+            "Bye",
+            "Shutdown",
+            "by",
+            "closed"
+          ],
+          "cardinality": 4
+        },
+        {
+          "position": 7,
+          "values": [
+            "[preauth]",
+            "user"
+          ],
+          "cardinality": 2
+        }
+      ]
+    },
+    {
+      "template_id": 13,
+      "lines": 37029,
+      "mined_template": "PAM <*> more authentication <*> logname= uid=0 euid=0 tty=ssh ruser= <*> <*>",
+      "positions": [
+        {
+          "position": 4,
+          "values": [
+            "failure;",
+            "failures;"
+          ],
+          "cardinality": 2
+        },
+        {
+          "position": 11,
+          "values": [
+            "user=curi",
+            "user=root"
+          ],
+          "cardinality": 2
+        }
+      ]
+    },
+    {
+      "template_id": 11,
+      "lines": 36967,
+      "mined_template": "message repeated <*> times: [ Failed password for <*> from <IP> port <PORT> ssh2]",
+      "positions": [
+        {
+          "position": 8,
+          "values": [
+            "curi",
+            "root"
+          ],
+          "cardinality": 2
+        }
+      ]
+    },
+    {
+      "template_id": 6,
+      "lines": 20271,
+      "mined_template": "Failed <*> for invalid user <*> from <IP> port <PORT> ssh2",
+      "positions": [
+        {
+          "position": 1,
+          "values": [
+            "none",
+            "password"
+          ],
+          "cardinality": 2
+        }
+      ]
+    },
+    {
+      "template_id": 18,
+      "lines": 1289,
+      "mined_template": "PAM <*> more authentication <*> logname= uid=0 euid=0 tty=ssh ruser= <*>",
+      "positions": [
+        {
+          "position": 4,
+          "values": [
+            "failure;",
+            "failures;"
+          ],
+          "cardinality": 2
+        }
+      ]
+    },
+    {
+      "template_id": 19,
+      "lines": 932,
+      "mined_template": "error: Received disconnect from <IP>: <*> <*> <*> <*> <*> <*> <*> [preauth]",
+      "positions": [
+        {
+          "position": 6,
+          "values": [
+            "No",
+            "org.vngx.jsch.userauth.AuthCancelException:"
+          ],
+          "cardinality": 2
+        },
+        {
+          "position": 7,
+          "values": [
+            "User",
+            "more"
+          ],
+          "cardinality": 2
+        },
+        {
+          "position": 8,
+          "values": [
+            "authentication",
+            "user"
+          ],
+          "cardinality": 2
+        },
+        {
+          "position": 9,
+          "values": [
+            "authentication",
+            "canceled"
+          ],
+          "cardinality": 2
+        },
+        {
+          "position": 10,
+          "values": [
+            "by",
+            "methods"
+          ],
+          "cardinality": 2
+        },
+        {
+          "position": 11,
+          "values": [
+            "available.",
+            "user"
+          ],
+          "cardinality": 2
+        }
+      ]
+    },
+    {
+      "template_id": 17,
+      "lines": 595,
+      "mined_template": "Received disconnect from <IP>: 11: <*> <*> <*> <*> <*> <*>",
+      "positions": [
+        {
+          "position": 5,
+          "values": [
+            "Closed",
+            "Disconnect"
+          ],
+          "cardinality": 2
+        },
+        {
+          "position": 6,
+          "values": [
+            "due",
+            "requested"
+          ],
+          "cardinality": 2
+        },
+        {
+          "position": 7,
+          "values": [
+            "by",
+            "to"
+          ],
+          "cardinality": 2
+        },
+        {
+          "position": 8,
+          "values": [
+            "Windows",
+            "user"
+          ],
+          "cardinality": 2
+        },
+        {
+          "position": 9,
+          "values": [
+            "SSH",
+            "request."
+          ],
+          "cardinality": 2
+        },
+        {
+          "position": 10,
+          "values": [
+            "Client.",
+            "[preauth]"
+          ],
+          "cardinality": 2
+        }
+      ]
+    },
+    {
+      "template_id": 16,
+      "lines": 177,
+      "mined_template": "error: Received disconnect from <IP>: 3: com.jcraft.jsch.JSchException: Auth <*> [preauth]",
+      "positions": [
+        {
+          "position": 8,
+          "values": [
+            "cancel",
+            "fail"
+          ],
+          "cardinality": 2
+        }
+      ]
+    },
+    {
+      "template_id": 38,
+      "lines": 87,
+      "mined_template": "Received disconnect from <IP>: 11: <*> <*> <*> [preauth]",
+      "positions": [
+        {
+          "position": 5,
+          "values": [
+            "Client",
+            "disconnected"
+          ],
+          "cardinality": 2
+        },
+        {
+          "position": 6,
+          "values": [
+            "by",
+            "disconnecting"
+          ],
+          "cardinality": 2
+        },
+        {
+          "position": 7,
+          "values": [
+            "normally",
+            "user"
+          ],
+          "cardinality": 2
+        }
+      ]
+    },
+    {
+      "template_id": 31,
+      "lines": 14,
+      "mined_template": "Bad protocol version identification <*> from <IP> port <PORT>",
+      "positions": [
+        {
+          "position": 4,
+          "values": [
+            "''",
+            "'SSH-<NUM>.0_CoreLab-<NUM>.<NUM>'",
+            "'SSH-<NUM>.<NUM>'",
+            "'\\<NUM>\\<NUM>\\001SSH-<NUM>.<NUM>-OpenSSH_6.<NUM>'",
+            "'\\<NUM>\\<NUM>\\<NUM>\\<NUM>\"\\<NUM>'"
+          ],
+          "cardinality": 5
+        }
+      ]
+    },
+    {
+      "template_id": 35,
+      "lines": 13,
+      "mined_template": "Failed <*> for invalid user from <IP> port <PORT> ssh2",
+      "positions": [
+        {
+          "position": 1,
+          "values": [
+            "none",
+            "password"
+          ],
+          "cardinality": 2
+        }
+      ]
+    },
+    {
+      "template_id": 32,
+      "lines": 8,
+      "mined_template": "Bad protocol version identification <*> <*> <*> from <IP> port <PORT>",
+      "positions": [
+        {
+          "position": 4,
+          "values": [
+            "'CONNECT",
+            "'GET"
+          ],
+          "cardinality": 2
+        },
+        {
+          "position": 5,
+          "values": [
+            "/",
+            "/manager/html",
+            "xui.ptlogin2.qq.com:<NUM>"
+          ],
+          "cardinality": 3
+        }
+      ]
+    },
+    {
+      "template_id": 36,
+      "lines": 6,
+      "mined_template": "error: Received disconnect from <IP>: <*> <*> <*> <*> <*> [preauth]",
+      "positions": [
+        {
+          "position": 6,
+          "values": [
+            "Authentication",
+            "com.jcraft.jsch.JSchException:",
+            "java.net.SocketTimeoutException:"
+          ],
+          "cardinality": 3
+        },
+        {
+          "position": 7,
+          "values": [
+            "Read",
+            "cancelled",
+            "reject"
+          ],
+          "cardinality": 3
+        },
+        {
+          "position": 8,
+          "values": [
+            "HostKey:",
+            "by",
+            "timed"
+          ],
+          "cardinality": 3
+        },
+        {
+          "position": 9,
+          "values": [
+            "<IP>",
+            "out",
+            "user."
+          ],
+          "cardinality": 3
+        }
+      ]
+    },
+    {
+      "template_id": 43,
+      "lines": 6,
+      "mined_template": "Server listening on <*> port <PORT>.",
+      "positions": [
+        {
+          "position": 3,
+          "values": [
+            "::",
+            "<IP>"
+          ],
+          "cardinality": 2
+        }
+      ]
+    }
+  ]
+}

@@ -12,6 +12,25 @@ from pathlib import Path
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 EMBEDDING_BATCH_SIZE = 64
 
+# --- Template mining (Stage 3, Drain3) ---
+# Drain3 mines log templates instead of being handed a regex, which is what
+# makes the parser source-agnostic. Nothing in detection reads the mined ids
+# yet -- CLAUDE.md section 4 -- so these knobs currently only affect the
+# `template_id` column and the template inventory report.
+DRAIN_SIM_TH = 0.4            # token-similarity needed to join an existing cluster.
+                              # Drain's own default. Higher splits near-identical
+                              # lines into separate templates, lower merges
+                              # distinct events into one -- both cost signal, in
+                              # opposite directions. Measure before moving it.
+DRAIN_DEPTH = 4               # parse-tree depth, i.e. how many leading tokens are
+                              # treated as fixed structure. Drain's default.
+DRAIN_MAX_CHILDREN = 100      # branching factor per tree node
+DRAIN_MAX_CLUSTERS = None     # None = unbounded. A bound turns the cluster table
+                              # into an LRU, so a rare template can be evicted and
+                              # come back with a *new* id -- which would silently
+                              # break any model keyed on the id.
+DRAIN_PARAMETRIZE_NUMERIC = True   # treat a bare numeric token as a parameter
+
 # --- Anomaly detection ---
 CONTAMINATION = 0.20          # tuned in Phase 3 against synthetic ground truth --
                                # see Decision Log: 0.05 gave P=0.62/R=0.36, 0.20 gave
@@ -88,6 +107,12 @@ MODELS_DIR = str(PROJECT_ROOT / "models")
 # scores against a model fit on history; it never fits on the traffic it is
 # judging, which would let an attacker's own volume define "normal".
 DEFAULT_DETECTOR_PATH = str(PROJECT_ROOT / "models" / "detector.joblib")
+
+# Where a mined Drain3 template set is persisted. Cluster ids are only
+# meaningful relative to the state that produced them, so a model keyed on
+# template ids and the miner that numbered those templates have to travel
+# together or the model scores against a silently renumbered vocabulary.
+DEFAULT_TEMPLATE_STATE_PATH = str(PROJECT_ROOT / "models" / "drain3_state.json")
 
 # --- Streaming ingestion (Stage 2) ---
 # A micro-batch closes on whichever limit is reached first: enough lines, or
