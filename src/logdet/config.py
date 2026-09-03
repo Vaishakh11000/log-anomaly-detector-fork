@@ -245,6 +245,26 @@ LLM_TEMPERATURE = 0.2         # low: narratives should be reproducible for the d
 NARRATIVE_SENTENCE_RANGE = "4-6"
 NARRATIVE_MAX_EVENTS = 25     # cap events pasted into one prompt; the rest are summarised
 
+# Structured (JSON) narrative output. The prose prompt asks the model not to
+# invent MITRE technique IDs and it does anyway -- 33% of technique mentions on
+# the synthetic corpus, 60% on OpenSSH. With this on, the technique claim moves
+# into a named JSON field that code validates against the grounded list, and a
+# rejected ID is dropped rather than printed.
+#
+# On by default since 2026-09-04, measured on both corpora
+# (results/faithfulness/arms/), never chosen on the clean corpus alone:
+#
+#   arm                invented IDs, synthetic   OpenSSH   fabricated summaries
+#   prose (baseline)   47 of 142                 119/197   7
+#   prose (reworded)   12 of 101                 6/79      2
+#   structured JSON    0 of 65                   0/58      0
+#
+# The cost is brevity: a rendered narrative is ~546 characters against prose's
+# ~1287, because a model answering in JSON writes one or two sentences where it
+# wrote four. Flip this off to get v1's prose back; a test pins the default so
+# the flip is deliberate.
+LLM_STRUCTURED_OUTPUT = True
+
 # Which incidents get an LLM narrative. phi3 costs ~40-60s per incident on this
 # CPU, so narrating all 94 would run about an hour -- unusable for a demo or an
 # iteration loop. Narrating only high-severity or multi-event incidents covers

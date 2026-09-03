@@ -15,12 +15,18 @@ What this measures
 
 Every narrative is checked against **the exact prompt that produced it**. A
 claim is *grounded* when the thing it names appears in that prompt, and
-*ungrounded* otherwise. Five classes of claim are extractable deterministically,
+*ungrounded* otherwise. Six classes of claim are extractable deterministically,
 so no LLM judge is involved and the checker cannot drift:
 
   ``technique``   a MITRE ID (T1110, T1021.004). Grounded only if it is in the
                   incident's own matched-technique list -- the strictest check
                   here, because it is the constraint being tested.
+  ``technique_name``
+                  a name cited beside a *handed* ID ("T1110 - Brute Force").
+                  Grounded when it is what ATT&CK calls that technique, one
+                  half of a sub-technique name, or one of its tactics. A right
+                  ID with a wrong name ("T1567 - Failed Authentication") is a
+                  hallucination the ID check alone passes.
   ``ip``          an IPv4 address.
   ``user``        a name in a username-claim position ("user alice",
                   "account 'root'") that is either quoted or is a username the
@@ -79,7 +85,8 @@ from logdet.anomaly_detection import run_anomaly_detection
 from logdet.config import LLM_MODEL, PROCESSED_DATA_DIR, RESULTS_DIR
 from logdet.embedding import add_embeddings_to_df
 from logdet.entity_graph import normalise_identity
-from logdet.llm_narrative import build_prompt, generate_narrative
+from logdet.llm_narrative import (build_prompt, build_structured_prompt,
+                                  generate_narrative, generate_structured)
 from logdet.pipeline import build_incident_entry, should_narrate
 from logdet.sequence_grouping import group_anomalies
 
@@ -96,6 +103,35 @@ CLOCK_RE = re.compile(
     r"(?<![\w.:])(?P<h>\d{1,2}):(?P<m>\d{2})(?::(?P<s>\d{2}))?"
     r"(?:\s*(?P<mer>[AaPp]\.[Mm]\.|[AaPp][Mm]))?(?![\d:])")
 NAN_RE = re.compile(r"(?<![\w.])nan(?![\w.])", re.IGNORECASE)
+
+# A technique ID cited *with a name attached* makes a second claim: that the ID
+# means that. phi3 gets this wrong beside a correct ID -- "T1567 - Failed
+# Authentication" (T1567 is Exfiltration Over Web Service), "T1055: Initial
+# Access" (T1055 is Process Injection) -- and a reader who checks the ID against
+# ATT&CK finds a real page saying something else.
+#
+# Only *delimited* names are extracted: parenthesised, quoted, or after a
+# colon/dash. Bare adjacency ("T1110 brute forcing attempts") is skipped
+# deliberately, because "T1110: The attacker then..." would otherwise read as a
+# claim that T1110 is called "The". Same precision-over-recall trade as the user
+# check, and for the same reason -- a name check with false positives pollutes
+# every other figure in the report.
+#
+# A bare capitalised phrase needs two words (or one all-caps token, so the
+# `SSH` in `Remote Services: SSH` still counts); a bracketed or quoted one does
+# not, since the brackets are themselves the assertion.
+# `+` not `*`: a single capital letter is never a name word, and without
+# that "T1567 - Failed Authentication and T1110" swallowed the "T".
+_NAME_WORD = r"(?!T\d{4})[A-Z][A-Za-z&/.\-]+"
+_NAME_JOINER = r"(?:of|the|and|over|via|to|for|on|in)"
+TECHNIQUE_NAME_RE = re.compile(
+    r"(?P<id>\bT\d{4}(?:\.\d{3})?\b)\s*"
+    r"(?:"
+    r"[(\[]\s*(?P<bracketed>[^)\]\n]{1,60}?)\s*[)\]]"
+    r"|['\"\u2018\u201c]\s*(?P<quoted>[^'\"\u2019\u201d\n]{1,60}?)\s*['\"\u2019\u201d]"
+    r"|\s*[:\-\u2013\u2014]\s*(?P<delimited>" + _NAME_WORD +
+    r"(?:\s+(?:" + _NAME_JOINER + r"\s+)?" + _NAME_WORD + r"){1,3}|[A-Z]{2,10})"
+    r")")
 
 # A name only counts as a username *claim* when it sits in a position that
 # asserts one. "the user attempted" is not a claim about a user called
@@ -163,6 +199,10 @@ class Check:
     ungrounded: list[Claim] = field(default_factory=list)
     narrative: str = ""
     seconds: float = 0.0
+    # Structured arm only: technique IDs the model claimed and validation threw
+    # away before rendering, and whether its reply parsed as JSON at all.
+    dropped: list[str] = field(default_factory=list)
+    parse_failed: bool = False
 
     @property
     def faithful(self) -> bool:
@@ -184,6 +224,15 @@ def extract_claims(narrative: str,
 
     for match in TECHNIQUE_RE.finditer(narrative):
         add("technique", match.group(0), match)
+    for match in TECHNIQUE_NAME_RE.finditer(narrative):
+        phrase = (match.group("bracketed") or match.group("quoted")
+                  or match.group("delimited") or "").strip(" .,;:-")
+        # A bracket can hold anything ("T1110 (see above)"); a name starts
+        # capitalised and is short. Longer or lowercase content is prose about
+        # the technique, not a claim about what it is called.
+        if not phrase or not phrase[0].isupper() or len(phrase.split()) > 5:
+            continue
+        add("technique_name", f"{match.group('id')}: {phrase}", match)
     for match in IPV4_RE.finditer(narrative):
         add("ip", match.group(0), match)
 
@@ -262,17 +311,52 @@ def derivable_counts(entry: dict) -> set[str]:
     }
 
 
+def _normalise_name(value: str) -> str:
+    """Lowercased, punctuation-flattened form, so "Remote Services: SSH",
+    "remote services - ssh" and "Remote Services SSH" compare equal."""
+    return " ".join(re.sub(r"[^a-z0-9]+", " ", value.lower()).split())
+
+
+def acceptable_names(technique: dict) -> set[str]:
+    """Every string that is a correct thing to call this technique.
+
+    ATT&CK's own name, its halves for a sub-technique (`Remote Services: SSH`
+    is legitimately cited as `SSH`), and its tactics -- because the prompt
+    hands the model `- T1110 (Brute Force) - Credential Access`, so writing
+    "T1110: Credential Access" is restating the prompt rather than inventing.
+    """
+    names = {technique.get("technique_name", "")}
+    names |= {part for part in technique.get("technique_name", "").split(":")}
+    names |= set(technique.get("tactics") or [])
+    names.add(technique.get("tactic", ""))
+    names |= {part for part in str(technique.get("tactic", "")).split("/")}
+    return {n for n in map(_normalise_name, names) if n}
+
+
 def check_narrative(narrative: str, prompt: str, entry: dict,
                     user_vocabulary: set[str] | None = None) -> Check:
     """Which claims in this narrative are not in the prompt that produced it."""
-    grounded_ids = {t["technique_id"] for t in entry.get("mitre_techniques", [])}
+    by_id = {t["technique_id"]: t for t in entry.get("mitre_techniques", [])}
+    grounded_ids = set(by_id)
     counts = derivable_counts(entry)
     check = Check(incident_id=entry["incident_id"],
                   grounded_arm=bool(grounded_ids),
                   narrative=narrative)
 
     for claim in extract_claims(narrative, user_vocabulary):
-        if claim.kind == "technique":
+        if claim.kind == "technique_name":
+            # Only names attached to an ID the incident was actually handed
+            # are checked. A name beside an *invented* ID is not a second
+            # finding -- the ID claim already fires -- and the committed index
+            # carries only the techniques this system can emit, so there is
+            # nothing to check a foreign ID's name against.
+            technique_id, _, phrase = claim.value.partition(": ")
+            if technique_id not in grounded_ids:
+                continue
+            correct = acceptable_names(by_id[technique_id])
+            wanted = _normalise_name(phrase)
+            ok = any(wanted in name or name in wanted for name in correct)
+        elif claim.kind == "technique":
             # The strict one: not "was it anywhere in the prompt" but "was it
             # in the list this incident was actually handed".
             ok = claim.value in grounded_ids
@@ -318,31 +402,53 @@ def score_and_group(input_csv: str
 
 
 def run(input_csv: str, model: str = LLM_MODEL, limit: int | None = None,
-        narrate_all: bool = True) -> list[Check]:
-    """Narrate, then check each narrative against the prompt that produced it."""
+        narrate_all: bool = True, structured: bool = False) -> list[Check]:
+    """Narrate, then check each narrative against the prompt that produced it.
+
+    `structured` swaps in the JSON arm: the model's technique claim goes into a
+    field that `validate_structured` checks against the grounded list, and what
+    is checked here is the *rendered* narrative -- what an analyst would read
+    after the rejected IDs were dropped.
+    """
     incidents, entries, vocabulary = score_and_group(input_csv)
     targets = [e for e in entries
                if narrate_all or should_narrate(e["severity"], e["event_count"])]
     if limit is not None:
         targets = targets[:limit]
 
-    print(f"{len(entries)} incidents, narrating {len(targets)} with {model}")
+    print(f"{len(entries)} incidents, narrating {len(targets)} with {model}"
+          f"{' (structured JSON output)' if structured else ''}")
     checks: list[Check] = []
     for n, entry in enumerate(targets, start=1):
         incident = incidents[entry["incident_id"]]
-        prompt = build_prompt(incident, context_events=entry["context_events"])
+        build = build_structured_prompt if structured else build_prompt
+        prompt = build(incident, context_events=entry["context_events"])
         started = time.time()
+        dropped: list[str] = []
+        parse_failed = False
         try:
-            narrative = generate_narrative(incident, model=model,
-                                           context_events=entry["context_events"])
+            if structured:
+                result = generate_structured(incident, model=model,
+                                             context_events=entry["context_events"])
+                narrative = result.render(entry["mitre_techniques"])
+                dropped, parse_failed = result.dropped, result.parse_failed
+            else:
+                narrative = generate_narrative(incident, model=model,
+                                               context_events=entry["context_events"],
+                                               structured=False)
         except Exception as error:                      # noqa: BLE001
             print(f"  [{n}/{len(targets)}] incident {entry['incident_id']}: "
                   f"generation failed: {error}")
             continue
         check = check_narrative(narrative, prompt, entry, vocabulary)
+        check.dropped, check.parse_failed = dropped, parse_failed
         check.seconds = time.time() - started
         checks.append(check)
         flag = "" if check.faithful else f"  <- {len(check.ungrounded)} ungrounded"
+        if dropped:
+            flag += f"  [dropped {', '.join(dropped)}]"
+        if parse_failed:
+            flag += "  [JSON parse failed]"
         print(f"  [{n}/{len(targets)}] incident {entry['incident_id']} "
               f"({'grounded' if check.grounded_arm else 'no-technique'}, "
               f"{len(check.claims)} claims, {check.seconds:.1f}s){flag}", flush=True)
@@ -360,17 +466,24 @@ def rescore(input_csv: str, saved_json: str) -> list[Check]:
     payload = json.loads(Path(saved_json).read_text())
     narratives = {c["incident_id"]: c["narrative"] for c in payload["checks"]}
     incidents, entries, vocabulary = score_and_group(input_csv)
+    # Rebuild the prompt of the arm that produced these narratives, not the
+    # current default -- checking a prose narrative against a JSON prompt would
+    # report ungrounded claims that were grounded when they were made.
+    build = build_structured_prompt if payload.get("structured") else build_prompt
 
     checks = []
     for entry in entries:
         narrative = narratives.get(entry["incident_id"])
         if narrative is None:
             continue
-        prompt = build_prompt(incidents[entry["incident_id"]],
-                              context_events=entry["context_events"])
+        prompt = build(incidents[entry["incident_id"]],
+                       context_events=entry["context_events"])
         check = check_narrative(narrative, prompt, entry, vocabulary)
-        check.seconds = next((c["seconds"] for c in payload["checks"]
-                              if c["incident_id"] == entry["incident_id"]), 0.0)
+        saved = next((c for c in payload["checks"]
+                      if c["incident_id"] == entry["incident_id"]), {})
+        check.seconds = saved.get("seconds", 0.0)
+        check.dropped = list(saved.get("dropped", []))
+        check.parse_failed = bool(saved.get("parse_failed", False))
         checks.append(check)
     print(f"Re-scored {len(checks)} saved narratives from {saved_json}")
     return checks
@@ -378,7 +491,8 @@ def rescore(input_csv: str, saved_json: str) -> list[Check]:
 
 # --- reporting -------------------------------------------------------------
 
-CLAIM_KINDS = ("technique", "ip", "user", "time", "quantity", "placeholder")
+CLAIM_KINDS = ("technique", "technique_name", "ip", "user", "time",
+               "quantity", "placeholder")
 
 
 def tally(checks: list[Check]) -> dict:
@@ -407,6 +521,9 @@ def tally(checks: list[Check]) -> dict:
         },
         "median_seconds": (sorted(c.seconds for c in checks)[len(checks) // 2]
                            if checks else 0.0),
+        "dropped_techniques": sum(len(c.dropped) for c in checks),
+        "narratives_with_a_drop": sum(1 for c in checks if c.dropped),
+        "parse_failures": sum(1 for c in checks if c.parse_failed),
     }
 
 
@@ -414,10 +531,13 @@ def _rate(bad: int, total: int) -> str:
     return "n/a" if total == 0 else f"{bad / total:.1%} ({bad}/{total})"
 
 
-def render(checks: list[Check], model: str, corpus: str) -> str:
+def render(checks: list[Check], model: str, corpus: str,
+           structured: bool = False) -> str:
     counts = tally(checks)
     lines = [
         "# Narrative faithfulness",
+        "",
+        f"Output mode: **{'structured JSON' if structured else 'free prose'}**",
         "",
         f"Corpus: `{corpus}` | model: `{model}` | "
         f"{counts['narratives']} narratives | "
@@ -435,6 +555,25 @@ def render(checks: list[Check], model: str, corpus: str) -> str:
         f"- **Invented technique IDs: "
         f"{counts['by_kind']['technique']['ungrounded']}** of "
         f"{counts['by_kind']['technique']['claims']} technique mentions",
+        f"- Wrong names beside a correctly-cited ID: "
+        f"**{counts['by_kind']['technique_name']['ungrounded']}** of "
+        f"{counts['by_kind']['technique_name']['claims']} names checked",
+    ]
+    if structured:
+        lines += [
+            f"- Technique IDs the model claimed and validation **dropped**: "
+            f"**{counts['dropped_techniques']}**, in "
+            f"{counts['narratives_with_a_drop']} narratives",
+            f"- Replies that would not parse as JSON: "
+            f"{counts['parse_failures']}",
+            "",
+            "A dropped ID never reaches a reader, so it cannot appear as an",
+            "ungrounded claim above. The two numbers answer different questions:",
+            "the drop count is how often the enforcement fired, the invented",
+            "count is what got past it -- through the prose fields, which are",
+            "still prose.",
+        ]
+    lines += [
         "",
         "## By claim kind",
         "",
@@ -502,17 +641,20 @@ def render(checks: list[Check], model: str, corpus: str) -> str:
 
 
 def write_report(checks: list[Check], output_dir: str, model: str,
-                 corpus: str) -> None:
+                 corpus: str, structured: bool = False) -> None:
     directory = Path(output_dir)
     directory.mkdir(parents=True, exist_ok=True)
-    (directory / "faithfulness.md").write_text(render(checks, model, corpus))
+    (directory / "faithfulness.md").write_text(
+        render(checks, model, corpus, structured))
     payload = {
         "corpus": corpus,
         "model": model,
+        "structured": structured,
         "summary": tally(checks),
         "checks": [
             {"incident_id": c.incident_id, "grounded_arm": c.grounded_arm,
              "seconds": round(c.seconds, 2), "faithful": c.faithful,
+             "dropped": c.dropped, "parse_failed": c.parse_failed,
              "claims": [claim.__dict__ for claim in c.claims],
              "ungrounded": [claim.__dict__ for claim in c.ungrounded],
              "narrative": c.narrative}
@@ -534,6 +676,10 @@ def cli() -> None:
     parser.add_argument("--rescore", metavar="FAITHFULNESS_JSON",
                         help="re-check narratives already saved by an earlier "
                              "run instead of generating new ones")
+    parser.add_argument("--structured", action="store_true",
+                        help="narrate as validated JSON instead of free prose: "
+                             "technique IDs the grounded lookup did not hand "
+                             "over are dropped before rendering")
     parser.add_argument("--narrate-policy", action="store_true",
                         help="narrate only what the pipeline would narrate "
                              "(default: every incident, for a wider sample)")
@@ -543,8 +689,10 @@ def cli() -> None:
         checks = rescore(args.input, args.rescore)
     else:
         checks = run(args.input, model=args.model, limit=args.limit,
-                     narrate_all=not args.narrate_policy)
-    write_report(checks, args.output, args.model, args.input)
+                     narrate_all=not args.narrate_policy,
+                     structured=args.structured)
+    write_report(checks, args.output, args.model, args.input,
+                 structured=args.structured)
 
 
 if __name__ == "__main__":

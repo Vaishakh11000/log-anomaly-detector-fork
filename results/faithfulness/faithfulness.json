@@ -9,6 +9,10 @@
         "claims": 142,
         "ungrounded": 47
       },
+      "technique_name": {
+        "claims": 43,
+        "ungrounded": 0
+      },
       "ip": {
         "claims": 61,
         "ungrounded": 1
@@ -39,6 +43,10 @@
             "claims": 118,
             "ungrounded": 23
           },
+          "technique_name": {
+            "claims": 43,
+            "ungrounded": 0
+          },
           "ip": {
             "claims": 60,
             "ungrounded": 0
@@ -68,6 +76,10 @@
           "technique": {
             "claims": 24,
             "ungrounded": 24
+          },
+          "technique_name": {
+            "claims": 0,
+            "ungrounded": 0
           },
           "ip": {
             "claims": 1,
@@ -127,6 +139,16 @@
           "quote": "potentially moving onto stage T1087 (Account Discovery), although"
         },
         {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "ent progresses through stages T1110 (Brute Force) - Credential Access as the at"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1087: Account Discovery",
+          "quote": "potentially moving onto stage T1087 (Account Discovery), although this isn't explicit"
+        },
+        {
           "kind": "ip",
           "value": "203.0.113.212",
           "quote": "ols from a single IP address (203.0.113.212). The failed attempts were ma"
@@ -155,6 +177,16 @@
           "kind": "technique",
           "value": "T1136",
           "quote": "ilege escalation, followed by T1136 (Create Account) indicating t"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1548: Abuse Elevation Control Mechanism",
+          "quote": "e incident progresses through T1548 (Abuse Elevation Control Mechanism) as it involves privilege esca"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1136: Create Account",
+          "quote": "ilege escalation, followed by T1136 (Create Account) indicating the creation of ne"
         },
         {
           "kind": "ip",
@@ -381,6 +413,11 @@
           "quote": "gaining unauthorized access (T1110).  4. Recommended next action"
         },
         {
+          "kind": "technique_name",
+          "value": "T1110: Credential Access",
+          "quote": "dge of Bob's account details (T1110 - Credential Access).  2. The incident progresses"
+        },
+        {
           "kind": "ip",
           "value": "10.0.1.126",
           "quote": "SSH2 protocol from IP address 10.0.1.126 at exactly 9:26 AM; the attem"
@@ -522,6 +559,11 @@
           "quote": "es through MITRE ATT&CK stage T1110 (Brute Force) - Credential Ac"
         },
         {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "es through MITRE ATT&CK stage T1110 (Brute Force) - Credential Access, as it in"
+        },
+        {
           "kind": "user",
           "value": "dave",
           "quote": "the time of login failure for user 'dave'. This suggests that someone w"
@@ -612,6 +654,11 @@
           "quote": "calation from initial access (T1206 - Lateral Movement)."
         },
         {
+          "kind": "technique_name",
+          "value": "T1110: Credential Access",
+          "quote": "gaining unauthorized access (T1110 - Credential Access).  2. The incident progresses"
+        },
+        {
           "kind": "ip",
           "value": "10.0.2.171",
           "quote": "log in from source IP address 10.0.2.171 using SSH on port 63893 but f"
@@ -688,6 +735,11 @@
           "quote": "against brute force attacks (T1058 - Account Discovery), while a"
         },
         {
+          "kind": "technique_name",
+          "value": "T1110: Credential Access",
+          "quote": "thods against Dave's account (T1110 - Credential Access).  2. The incident progresses"
+        },
+        {
           "kind": "ip",
           "value": "10.0.3.141",
           "quote": "PM from the source IP address 10.0.3.141 via SSH2 protocol; this faile"
@@ -737,6 +789,11 @@
           "kind": "technique",
           "value": "T1110",
           "quote": "to a system protected by SSH (T1110).  4. The recommended next ac"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Credential Access",
+          "quote": "due to incorrect credentials (T1110 - Credential Access).  2. This incident progresse"
         },
         {
           "kind": "ip",
@@ -963,6 +1020,11 @@
           "quote": "ounts are targeted similarly (T1059 - Account Discovery)."
         },
         {
+          "kind": "technique_name",
+          "value": "T1110: Credential Access",
+          "quote": "dentials for Carol's account (T1110 - Credential Access).  2. The incident progresses"
+        },
+        {
           "kind": "ip",
           "value": "10.0.2.78",
           "quote": "e from a source IP address of 10.0.2.78 on port 59305 via SSH and was"
@@ -1002,6 +1064,16 @@
           "kind": "technique",
           "value": "T1110",
           "quote": "ons taken within our network (T1110 - Credential Access suggests"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Credential Access",
+          "quote": "due to incorrect credentials (T1110 - Credential Access).  2. This event progresses t"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Credential Access",
+          "quote": "ons taken within our network (T1110 - Credential Access suggests intent but no direct"
         },
         {
           "kind": "ip",
@@ -1129,6 +1201,11 @@
           "quote": "s incident progresses through T1110 (Brute Force) - Credential Ac"
         },
         {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "s incident progresses through T1110 (Brute Force) - Credential Access stage, as"
+        },
+        {
           "kind": "ip",
           "value": "10.0.3.88",
           "quote": "their machine with IP address 10.0.3.88 around the time of July 15th"
@@ -1200,6 +1277,11 @@
           "quote": "r malicious intentions (e.g., T1563 - Failed Logins)."
         },
         {
+          "kind": "technique_name",
+          "value": "T1110: Credential Access",
+          "quote": "tried until access is gained (T1110 - Credential Access).  2. The incident progresses"
+        },
+        {
           "kind": "ip",
           "value": "10.0.0.167",
           "quote": "log in from source IP address 10.0.0.167 using SSH on port 63633 but f"
@@ -1254,6 +1336,11 @@
           "kind": "technique",
           "value": "T1110",
           "quote": "l with MITRE ATT&CK technique T1110.  4. Recommended next action:"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "ent progresses through stages T1110 (Brute Force) - Credential Access and poten"
         },
         {
           "kind": "ip",
@@ -1311,6 +1398,11 @@
           "quote": "es are made followed by stage T1110 (Brute Force - Credential Acc"
         },
         {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force - Credential Access",
+          "quote": "es are made followed by stage T1110 (Brute Force - Credential Access), where the attacker gains acc"
+        },
+        {
           "kind": "ip",
           "value": "10.0.1.143",
           "quote": "'bob's account at IP address 10.0.1.143 for SSH2 service around July"
@@ -1360,6 +1452,11 @@
           "kind": "technique",
           "value": "T1110",
           "quote": "specifically using technique T1110 for a brute force attack agai"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Credential Access",
+          "quote": "account or system resources (T1110 - Credential Access).  2. This incident progresse"
         },
         {
           "kind": "ip",
@@ -1415,6 +1512,11 @@
           "kind": "technique",
           "value": "T1021.004",
           "quote": "ilege Escalation/Stealth; and T1021.004 (Remote Services: SSH) indica"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1021.004: Remote Services: SSH",
+          "quote": "ilege Escalation/Stealth; and T1021.004 (Remote Services: SSH) indicating Lateral Movement ["
         }
       ],
       "ungrounded": [],
@@ -1501,6 +1603,16 @@
           "kind": "technique",
           "value": "T1548",
           "quote": "ers have elevated privileges (T1548 - Abuse"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Credential Access",
+          "quote": "h time before gaining access (T1110 - Credential Access). Once the attempt was unsucc"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1548: Abuse Elevation Control Mechanism",
+          "quote": "r future unauthorized access (T1548 - Abuse Elevation Control Mechanism).  2. The incident progresses"
         },
         {
           "kind": "ip",
@@ -1695,6 +1807,11 @@
           "quote": "d or compromised in the past (T1206 - Account Evasion)."
         },
         {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "es through MITRE ATT&CK stage T1110 (Brute Force) - Credential Access, as it in"
+        },
+        {
           "kind": "ip",
           "value": "10.0.1.153",
           "quote": "\"bob\" from source IP address 10.0.1.153 attempted to log in via SSH u"
@@ -1754,6 +1871,11 @@
           "kind": "technique",
           "value": "T1207",
           "quote": "have allowed such an attack (T1207 - Account Lock)."
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Credential Access",
+          "quote": "within minutes of each other (T1110 - Credential Access).  2. The incident progresses"
         },
         {
           "kind": "ip",
@@ -1827,6 +1949,11 @@
           "quote": "TCHA challenges (MITRE ATT&CK T1563 - Account Manipulation)."
         },
         {
+          "kind": "technique_name",
+          "value": "T1110: Credential Access",
+          "quote": "ventually guessing correctly (T1110 - Credential Access).  2. The incident progresses"
+        },
+        {
           "kind": "ip",
           "value": "10.0.2.70",
           "quote": "log in from source IP address 10.0.2.70 using SSH and failed due to i"
@@ -1876,6 +2003,11 @@
           "kind": "technique",
           "value": "T1110",
           "quote": "g with MITRE ATT&CK technique T1110 - Credential Access as it inv"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Credential Access",
+          "quote": "g with MITRE ATT&CK technique T1110 - Credential Access as it involves trying multipl"
         },
         {
           "kind": "ip",
@@ -1970,6 +2102,11 @@
           "quote": "ent progresses through stages T1110 (Brute Force) - Credential Ac"
         },
         {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "ent progresses through stages T1110 (Brute Force) - Credential Access and poten"
+        },
+        {
           "kind": "ip",
           "value": "10.0.3.186",
           "quote": "om their source IP address of 10.0.3.186 using the SSH protocol around"
@@ -2031,6 +2168,11 @@
           "quote": "s, which aligns well with the T1110 technique ID provided by MITR"
         },
         {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "s incident progresses through T1110 (Brute Force) - Credential Access stage of"
+        },
+        {
           "kind": "time",
           "value": "6:53 PM",
           "quote": "n port 55345 via SSH2 between 6:53 PM and 6:53 PM on July 16th, ind"
@@ -2059,6 +2201,16 @@
           "kind": "technique",
           "value": "T1110",
           "quote": "K techniques involved include T1110 (Brute Force); confidence lev"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Credential Access",
+          "quote": "gged as a brute force attack (T1110 - Credential Access). This incident represents a"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "K techniques involved include T1110 (Brute Force); confidence level is Medium,"
         },
         {
           "kind": "ip",
@@ -2299,6 +2451,11 @@
           "quote": "ol for failed login attempts (T1110 - Credential Access).  2. The"
         },
         {
+          "kind": "technique_name",
+          "value": "T1110: Credential Access",
+          "quote": "ol for failed login attempts (T1110 - Credential Access).  2. The incident progresses"
+        },
+        {
           "kind": "ip",
           "value": "10.0.1.101",
           "quote": "Bob's account from IP address 10.0.1.101 using SSH2 around noon on Jul"
@@ -2322,6 +2479,11 @@
           "kind": "technique",
           "value": "T1110",
           "quote": "th administrative privileges (T1110 - Credential Access). The att"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Credential Access",
+          "quote": "th administrative privileges (T1110 - Credential Access). The attempt was unsuccessfu"
         }
       ],
       "ungrounded": [],
@@ -2415,6 +2577,11 @@
           "quote": "es through MITRE ATT&CK stage T1110 (Brute Force), which falls un"
         },
         {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "es through MITRE ATT&CK stage T1110 (Brute Force), which falls under Credential"
+        },
+        {
           "kind": "ip",
           "value": "10.0.2.71",
           "quote": "log in from source IP address 10.0.2.71 using the SSH protocol but fa"
@@ -2450,6 +2617,11 @@
           "quote": "es through MITRE ATT&CK stage T1110 (Brute Force) - Credential Ac"
         },
         {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "es through MITRE ATT&CK stage T1110 (Brute Force) - Credential Access as the at"
+        },
+        {
           "kind": "ip",
           "value": "10.0.10.84",
           "quote": "from the source IP address of 10.0.10.84 on port 59912 via SSH protoco"
@@ -2478,6 +2650,11 @@
           "kind": "technique",
           "value": "T1110",
           "quote": "e incident progresses through T1110 - Credential Access stage of"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Credential Access",
+          "quote": "e incident progresses through T1110 - Credential Access stage of MITRE ATT&CK framewo"
         },
         {
           "kind": "ip",
@@ -2641,6 +2818,11 @@
           "quote": "vior patterns associated with T1110 techniques.  4. Recommended n"
         },
         {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force - Credential Access",
+          "quote": "ent progresses through stages T1110 (Brute Force - Credential Access), which involves attackers try"
+        },
+        {
           "kind": "ip",
           "value": "10.0.2.71",
           "quote": "ing two different source IPs (10.0.2.71 and 10.0.2.72) over a short p"
@@ -2679,6 +2861,11 @@
           "kind": "technique",
           "value": "T1110",
           "quote": "e incident progresses through T1110 (Brute Force) - Credential Ac"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "e incident progresses through T1110 (Brute Force) - Credential Access stage, as"
         },
         {
           "kind": "ip",
@@ -2724,6 +2911,11 @@
           "kind": "technique",
           "value": "T1110",
           "quote": "ed brute force attacks as per T1110 technique ID.  4. Recommended"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Credential Access",
+          "quote": "e the password was incorrect (T1110 - Credential Access).  2. This incident progresse"
         },
         {
           "kind": "ip",
@@ -2837,6 +3029,11 @@
           "quote": "linked back to this incident (T1209 - Lateral Movement)."
         },
         {
+          "kind": "technique_name",
+          "value": "T1110: Credential Access",
+          "quote": "due to incorrect credentials (T1110 - Credential Access).  2. This incident progresse"
+        },
+        {
           "kind": "ip",
           "value": "10.0.0.149",
           "quote": "ia SSH from source IP address 10.0.0.149 using the username 'alice'. T"
@@ -2917,6 +3114,16 @@
           "kind": "technique",
           "value": "T1110",
           "quote": "s brute force attack attempt (T1110)."
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Credential Access",
+          "quote": "to incorrect password entry (T1110 - Credential Access). This suggests that an unaut"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "TT&CK framework, specifically T1110 (Brute Force), as it involves direct attemp"
         }
       ],
       "ungrounded": [],
@@ -2969,6 +3176,11 @@
           "quote": "r MITRE ATT&CK guidelines for T1110.  4. The recommended next act"
         },
         {
+          "kind": "technique_name",
+          "value": "T1110: Credential Access",
+          "quote": "s incident progresses through T1110 - Credential Access stage of MITRE ATT&CK framewo"
+        },
+        {
           "kind": "time",
           "value": "3:52 PM",
           "quote": "ttack on July 18th at exactly 3:52 PM; the attempt was immediately"
@@ -3002,6 +3214,11 @@
           "kind": "technique",
           "value": "T1110",
           "quote": "s incident progresses through T1110 (Brute Force) - Credential Ac"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "s incident progresses through T1110 (Brute Force) - Credential Access stage of"
         },
         {
           "kind": "ip",
@@ -3058,6 +3275,11 @@
           "kind": "technique",
           "value": "T1110",
           "quote": "s incident progresses through T1110 - Credential Access via Brute"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Credential Access via Brute Force",
+          "quote": "s incident progresses through T1110 - Credential Access via Brute Force attack as the primary ATT&CK"
         },
         {
           "kind": "ip",
@@ -3128,6 +3350,11 @@
           "kind": "technique",
           "value": "T1110",
           "quote": "edential brute force attacks (T1110), which typically occurs duri"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "s with MITRE ATT&CK technique T1110 (Brute Force) - Credential Access, indicati"
         },
         {
           "kind": "ip",

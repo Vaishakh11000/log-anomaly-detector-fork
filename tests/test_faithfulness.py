@@ -258,3 +258,59 @@ def test_a_genuinely_invented_meridiem_time_is_still_caught():
 def test_bare_hour_with_a_meridiem_is_not_a_quantity():
     claims = extract_claims("at precisely 2 PM involving user activity")
     assert [c for c in claims if c.kind == "quantity"] == []
+
+
+# --- technique names (added 2026-09-05) ------------------------------------
+
+NAMED_ENTRY = dict(ENTRY, mitre_techniques=[
+    {"technique_id": "T1110", "technique_name": "Brute Force",
+     "tactic": "Credential Access", "tactics": ["Credential Access"]},
+    {"technique_id": "T1021.004", "technique_name": "Remote Services: SSH",
+     "tactic": "Lateral Movement", "tactics": ["Lateral Movement"]},
+])
+
+
+def test_correct_name_beside_a_handed_id_is_grounded():
+    check = check_narrative("Consistent with T1110 (Brute Force).", PROMPT, NAMED_ENTRY)
+    assert check.faithful
+
+
+def test_wrong_name_beside_a_correctly_cited_id_is_caught():
+    """The hallucination the ID check alone passes: a real, handed technique
+    ID labelled with something it is not."""
+    check = check_narrative("Consistent with T1110 - Failed Authentication.",
+                            PROMPT, NAMED_ENTRY)
+    assert not check.faithful
+    assert [c.kind for c in check.ungrounded] == ["technique_name"]
+
+
+def test_tactic_in_place_of_the_name_is_grounded():
+    """The prompt hands the model `- T1110 (Brute Force) - Credential Access`,
+    so citing the tactic restates the prompt rather than inventing."""
+    assert check_narrative("This is T1110: Credential Access.",
+                           PROMPT, NAMED_ENTRY).faithful
+
+
+def test_half_of_a_sub_technique_name_is_grounded():
+    assert check_narrative("T1021.004 (SSH) was used.", PROMPT, NAMED_ENTRY).faithful
+
+
+def test_name_beside_an_invented_id_is_not_a_second_finding():
+    """The ID claim already fires, and the committed index carries nothing to
+    check a foreign ID's name against."""
+    check = check_narrative("Also T1567 - Failed Authentication.", PROMPT, NAMED_ENTRY)
+    assert [c.kind for c in check.ungrounded] == ["technique"]
+
+
+def test_bare_adjacency_is_not_a_name_claim():
+    """"T1110: The attacker then..." must not read as a claim that T1110 is
+    called "The" -- only delimited, capitalised phrases count."""
+    claims = extract_claims("T1110: The attacker retried. T1110 brute forcing seen.")
+    assert [c for c in claims if c.kind == "technique_name"] == []
+
+
+def test_a_following_technique_id_does_not_get_swallowed_into_a_name():
+    claims = [c.value for c in
+              extract_claims("T1567 - Failed Authentication and T1110 (Brute Force).")
+              if c.kind == "technique_name"]
+    assert claims == ["T1567: Failed Authentication", "T1110: Brute Force"]

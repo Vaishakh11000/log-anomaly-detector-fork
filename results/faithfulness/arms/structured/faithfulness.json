@@ -1,0 +1,3086 @@
+{
+  "corpus": "/home/shiva/log-anomaly-detector-fork/data/processed/parsed.csv",
+  "model": "phi3",
+  "structured": true,
+  "summary": {
+    "narratives": 94,
+    "faithful": 88,
+    "by_kind": {
+      "technique": {
+        "claims": 65,
+        "ungrounded": 0
+      },
+      "technique_name": {
+        "claims": 61,
+        "ungrounded": 0
+      },
+      "ip": {
+        "claims": 50,
+        "ungrounded": 0
+      },
+      "user": {
+        "claims": 81,
+        "ungrounded": 0
+      },
+      "time": {
+        "claims": 60,
+        "ungrounded": 4
+      },
+      "quantity": {
+        "claims": 44,
+        "ungrounded": 2
+      },
+      "placeholder": {
+        "claims": 0,
+        "ungrounded": 0
+      }
+    },
+    "arms": {
+      "grounded": {
+        "narratives": 53,
+        "faithful": 49,
+        "by_kind": {
+          "technique": {
+            "claims": 65,
+            "ungrounded": 0
+          },
+          "technique_name": {
+            "claims": 61,
+            "ungrounded": 0
+          },
+          "ip": {
+            "claims": 50,
+            "ungrounded": 0
+          },
+          "user": {
+            "claims": 55,
+            "ungrounded": 0
+          },
+          "time": {
+            "claims": 38,
+            "ungrounded": 2
+          },
+          "quantity": {
+            "claims": 22,
+            "ungrounded": 2
+          },
+          "placeholder": {
+            "claims": 0,
+            "ungrounded": 0
+          }
+        }
+      },
+      "no_technique": {
+        "narratives": 41,
+        "faithful": 39,
+        "by_kind": {
+          "technique": {
+            "claims": 0,
+            "ungrounded": 0
+          },
+          "technique_name": {
+            "claims": 0,
+            "ungrounded": 0
+          },
+          "ip": {
+            "claims": 0,
+            "ungrounded": 0
+          },
+          "user": {
+            "claims": 26,
+            "ungrounded": 0
+          },
+          "time": {
+            "claims": 22,
+            "ungrounded": 2
+          },
+          "quantity": {
+            "claims": 22,
+            "ungrounded": 0
+          },
+          "placeholder": {
+            "claims": 0,
+            "ungrounded": 0
+          }
+        }
+      }
+    },
+    "median_seconds": 2.0367023944854736,
+    "dropped_techniques": 1,
+    "narratives_with_a_drop": 1,
+    "parse_failures": 0
+  },
+  "checks": [
+    {
+      "incident_id": 0,
+      "grounded_arm": false,
+      "seconds": 1.72,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "quantity",
+          "value": "1",
+          "quote": "At precisely one minute past midnight on July 14, an"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At precisely one minute past midnight on July 14, an anomaly was detected within our system logs indicating that there had been a reload of the manager configuration.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The incident's limited information and lack of matching ATT&CK techniques reduce confidence in its significance without further context or evidence.\n\nRecommended action: Investigate the cause for configuration reload, check system changes made during that time frame, and monitor network traffic closely."
+    },
+    {
+      "incident_id": 1,
+      "grounded_arm": true,
+      "seconds": 2.18,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "ry activities.  MITRE ATT&CK: T1110 (Brute Force), T1087 (Account"
+        },
+        {
+          "kind": "technique",
+          "value": "T1087",
+          "quote": "ATT&CK: T1110 (Brute Force), T1087 (Account Discovery).  Confide"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "ry activities.  MITRE ATT&CK: T1110 (Brute Force), T1087 (Account Discovery)."
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1087: Account Discovery",
+          "quote": "ATT&CK: T1110 (Brute Force), T1087 (Account Discovery).  Confidence: Medium -- The i"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "A series of failed password attempts for multiple usernames were detected on a single source IP address, indicating potential credential brute-forcing and account discovery activities.\n\nMITRE ATT&CK: T1110 (Brute Force), T1087 (Account Discovery).\n\nConfidence: Medium -- The incident involved multiple usernames from a single IP address, suggesting an automated attack rather than targeted individual accounts; however, the limited time frame and lack of additional context reduce confidence.\n\nRecommended action: Investigate further by correlating these events with other security logs for patterns or related incidents."
+    },
+    {
+      "incident_id": 2,
+      "grounded_arm": true,
+      "seconds": 3.44,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1548",
+          "quote": "ation tactics.  MITRE ATT&CK: T1548 (Abuse Elevation Control Mech"
+        },
+        {
+          "kind": "technique",
+          "value": "T1136",
+          "quote": "Elevation Control Mechanism), T1136 (Create Account), T1110 (Brut"
+        },
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "ism), T1136 (Create Account), T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1548: Abuse Elevation Control Mechanism",
+          "quote": "ation tactics.  MITRE ATT&CK: T1548 (Abuse Elevation Control Mechanism), T1136 (Create Account), T111"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1136: Create Account",
+          "quote": "Elevation Control Mechanism), T1136 (Create Account), T1110 (Brute Force).  Confid"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "ism), T1136 (Create Account), T1110 (Brute Force).  Confidence: Medium -- The s"
+        },
+        {
+          "kind": "ip",
+          "value": "172.16.5.191",
+          "quote": "or user alice from source IPs 172.16.5.191 and later failed again at a d"
+        },
+        {
+          "kind": "user",
+          "value": "alice",
+          "quote": "User 'alice' attempted to log in with inco"
+        },
+        {
+          "kind": "user",
+          "value": "alice",
+          "quote": "ith incorrect credentials for user alice from source IPs 172.16.5.191"
+        },
+        {
+          "kind": "user",
+          "value": "alice",
+          "quote": "ul password entries using SSH User 'alice' created new user accounts wit"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "User 'alice' attempted to log in with incorrect credentials for user alice from source IPs 172.16.5.191 and later failed again at a different location, indicating potential credential access attempts. 'Alice' successfully escalated privileges by switching to the root account after multiple unsuccessful password entries using SSH User 'alice' created new user accounts with elevated permissions on the system as part of persistence and privilege escalation tactics.\n\nMITRE ATT&CK: T1548 (Abuse Elevation Control Mechanism), T1136 (Create Account), T1110 (Brute Force).\n\nConfidence: Medium -- The sequence shows clear signs of credential access and privilege escalation attempts, but without more context or evidence it's not certain if these actions are part of a broader attack.\n\nRecommended action: Investigate the creation of new user accounts for backdoor functionality and review all recent login activities by 'alice'."
+    },
+    {
+      "incident_id": 3,
+      "grounded_arm": false,
+      "seconds": 1.82,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "4:53 AM",
+          "quote": "At precisely 4:53 AM on July 14, 2026, user Alice"
+        },
+        {
+          "kind": "user",
+          "value": "Alice",
+          "quote": "ely 4:53 AM on July 14, 2026, user Alice initiated Session 91 of her a"
+        },
+        {
+          "kind": "quantity",
+          "value": "91",
+          "quote": "user Alice initiated Session 91 of her account without prior activity or con"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At precisely 4:53 AM on July 14, 2026, user Alice initiated Session 91 of her account without prior activity or context provided in preceding logs.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The lack of additional indicators and the absence of matching ATT&CK techniques from a grounded lookup table result in low confidence regarding this incident's significance or intent.\n\nRecommended action: Begin with user behavior analysis for Alice to identify any patterns that could suggest malicious activity."
+    },
+    {
+      "incident_id": 4,
+      "grounded_arm": false,
+      "seconds": 1.78,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "06:33 AM",
+          "quote": "At precisely 06:33 AM on July 14, 2026, user 'dave'"
+        },
+        {
+          "kind": "user",
+          "value": "dave",
+          "quote": "ly 06:33 AM on July 14, 2026, user 'dave' initiated Session 38 of his a"
+        },
+        {
+          "kind": "user",
+          "value": "dave",
+          "quote": "n: Conduct a manual review of user 'dave''s account activity for any un"
+        },
+        {
+          "kind": "quantity",
+          "value": "38",
+          "quote": "user 'dave' initiated Session 38 of his account without any preceding or subs"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At precisely 06:33 AM on July 14, 2026, user 'dave' initiated Session 38 of his account without any preceding or subsequent events to indicate a pattern.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The grounded lookup table did not match the incident with known ATT&CK techniques, leaving uncertainty about Dave's actions and intentions.\n\nRecommended action: Conduct a manual review of user 'dave''s account activity for any unusual patterns or behaviors."
+    },
+    {
+      "incident_id": 5,
+      "grounded_arm": false,
+      "seconds": 1.91,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "07:44 AM",
+          "quote": "At precisely 07:44 AM on July 14, 2026, user 'dave'"
+        },
+        {
+          "kind": "user",
+          "value": "dave",
+          "quote": "ly 07:44 AM on July 14, 2026, user 'dave' initiated Session 31 without"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At precisely 07:44 AM on July 14, 2026, user 'dave' initiated Session 31 without prior activity or known behavior patterns.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The grounded lookup table did not match any MITRE ATT&CK techniques for this incident, indicating a lack of clear tactics and procedures used by the threat actor or an unrecognized behavior pattern.\n\nRecommended action: Conduct manual analysis to identify potential indicators of compromise (IoCs) associated with Dave's session initiation."
+    },
+    {
+      "incident_id": 6,
+      "grounded_arm": true,
+      "seconds": 1.8,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "t credentials.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "t credentials.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The e"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.0.142",
+          "quote": "alice' from source IP address 10.0.0.142 attempted to log in using SSH"
+        },
+        {
+          "kind": "user",
+          "value": "alice",
+          "quote": "At some point on July 14th, user 'alice' from source IP address 10.0.0"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At some point on July 14th, user 'alice' from source IP address 10.0.0.142 attempted to log in using SSH and failed due to incorrect credentials.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The event is indicative of a brute force attack, but without more context or additional events it's not possible to rule out other possibilities with certainty.\n\nRecommended action: Investigate the failed login attempts and consider implementing account lockout policies."
+    },
+    {
+      "incident_id": 7,
+      "grounded_arm": false,
+      "seconds": 2.27,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "08:21 AM",
+          "quote": "At exactly 08:21 AM on July 14, 2026, an anomalou"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At exactly 08:21 AM on July 14, 2026, an anomalous event was detected wherein a system manager configuration had to be reloaded without any specific user or source IP being identified. This singular incident stands out as it deviates from the normal pattern of operations and raises concerns about potential unautstatic activities.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The lack of distinct usernames, source IPs, or any other identifiable information associated with this event reduces confidence in attributing it to a specific threat actor and limits the ability to match known tactics.\n\nRecommended action: Initiate an immediate investigation into unauthorized access attempts that could have led to such configuration changes."
+    },
+    {
+      "incident_id": 8,
+      "grounded_arm": true,
+      "seconds": 2.04,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "rd and failed.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "rd and failed.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The e"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.1.126",
+          "quote": "'bob' from source IP address 10.0.1.126 attempted to log in via SSH u"
+        },
+        {
+          "kind": "time",
+          "value": "9:26 AM",
+          "quote": "point on July 14th at exactly 9:26 AM, user 'bob' from source IP ad"
+        },
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "July 14th at exactly 9:26 AM, user 'bob' from source IP address 10.0.1"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At some point on July 14th at exactly 9:26 AM, user 'bob' from source IP address 10.0.1.126 attempted to log in via SSH using the username as a password and failed.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The event is consistent with brute force behavior, but without more context or additional events it's not definitive proof of an attacker using automated tools.\n\nRecommended action: Investigate the failed login attempts to determine if they are part of a broader pattern and consider strengthening password policies."
+    },
+    {
+      "incident_id": 9,
+      "grounded_arm": true,
+      "seconds": 2.36,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "t credentials.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "t credentials.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The e"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.0.148",
+          "quote": "alice' from source IP address 10.0.0.148 attempted to log in using SSH"
+        },
+        {
+          "kind": "time",
+          "value": "9:59 AM",
+          "quote": "point on July 14th at exactly 9:59 AM, user 'alice' from source IP"
+        },
+        {
+          "kind": "user",
+          "value": "alice",
+          "quote": "July 14th at exactly 9:59 AM, user 'alice' from source IP address 10.0.0"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At some point on July 14th at exactly 9:59 AM, user 'alice' from source IP address 10.0.0.148 attempted to log in using SSH2 but failed due to incorrect credentials.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The event is indicative of a brute force attack, as it involves multiple login attempts with different usernames and source IPs within the same timeframe; however, without further evidence or patterns in failed logins from other accounts or sources, confidence cannot be rated high.\n\nRecommended action: Monitor for additional suspicious activities related to 'alice' and investigate if there are any common factors among different usernames attempting similar login methods."
+    },
+    {
+      "incident_id": 10,
+      "grounded_arm": true,
+      "seconds": 2.06,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "iled attempts.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "iled attempts.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The e"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.1.229",
+          "quote": "'bob' from source IP address 10.0.1.229 attempted to log in via SSH u"
+        },
+        {
+          "kind": "time",
+          "value": "11:07 AM",
+          "quote": "At around 11:07 AM on July 14, user 'bob' from s"
+        },
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "t around 11:07 AM on July 14, user 'bob' from source IP address 10.0.1"
+        },
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "immediate password reset for user 'bob', review and potentially enhan"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At around 11:07 AM on July 14, user 'bob' from source IP address 10.0.1.229 attempted to log in via SSH using the username and password combination that was previously recorded as failed attempts.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The event is a clear brute force attempt, but without more context or additional events it's not possible to determine the full scope of this incident with high certainty.\n\nRecommended action: Initiate an immediate password reset for user 'bob', review and potentially enhance account lockout policies."
+    },
+    {
+      "incident_id": 11,
+      "grounded_arm": true,
+      "seconds": 1.96,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "assword entry.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "assword entry.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The s"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.3.71",
+          "quote": "'dave' from source IP address 10.0.3.71 attempted to access a system"
+        },
+        {
+          "kind": "user",
+          "value": "dave",
+          "quote": "At around noon on July 14th, user 'dave' from source IP address 10.0.3"
+        },
+        {
+          "kind": "user",
+          "value": "dave",
+          "quote": "The single log event with the username 'dave' attempting an unauthorized lo"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At around noon on July 14th, user 'dave' from source IP address 10.0.3.71 attempted to access a system using SSH2 protocol and failed due to incorrect password entry.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The single log event with the username 'dave' attempting an unauthorized login via brute force technique indicates a possible but not definitive attack, as more evidence is needed to confirm.\n\nRecommended action: Monitor for further failed attempts and investigate if multiple usernames or IPs are involved."
+    },
+    {
+      "incident_id": 12,
+      "grounded_arm": false,
+      "seconds": 2.33,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "1:38 PM",
+          "quote": "At precisely 1:38 PM on July 14, 2026, an anomalou"
+        },
+        {
+          "kind": "quantity",
+          "value": "38",
+          "quote": "named 'admin' started Session 38 of their account without any preceding or subs"
+        },
+        {
+          "kind": "quantity",
+          "value": "1",
+          "quote": "associated and involved only one unique username.  MITRE ATT&CK: none matched"
+        },
+        {
+          "kind": "quantity",
+          "value": "38",
+          "quote": "ic associated with Session ID 38 and reviewing user account activity for any unau"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At precisely 1:38 PM on July 14, 2026, an anomalous event was logged indicating that a user named 'admin' started Session 38 of their account without any preceding or subsequent events. This session began with no distinct source IPs associated and involved only one unique username.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The grounded lookup table did not match the incident to a known MITRE ATT&CK technique, leaving it difficult to ascertain with certainty what occurred during this session based solely on these logs.\n\nRecommended action: Investigate further by examining network traffic associated with Session ID 38 and reviewing user account activity for any unauthorized access or privilege escalation."
+    },
+    {
+      "incident_id": 13,
+      "grounded_arm": true,
+      "seconds": 1.94,
+      "faithful": false,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "ted using SSH.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "ted using SSH.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The i"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.2.26",
+          "quote": "carol' from source IP address 10.0.2.26, a brute force attack was det"
+        },
+        {
+          "kind": "user",
+          "value": "carol",
+          "quote": "d 2 failed login attempts for user 'carol' from source IP address 10.0.2"
+        },
+        {
+          "kind": "quantity",
+          "value": "2",
+          "quote": "At around 2 failed login attempts for user 'caro"
+        },
+        {
+          "kind": "quantity",
+          "value": "1",
+          "quote": "-- The incident involved only one username and source IP address with fa"
+        }
+      ],
+      "ungrounded": [
+        {
+          "kind": "quantity",
+          "value": "2",
+          "quote": "At around 2 failed login attempts for user 'caro"
+        }
+      ],
+      "narrative": "At around 2 failed login attempts for user 'carol' from source IP address 10.0.2.26, a brute force attack was detected using SSH.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The incident involved only one username and source IP address with failed login attempts for the same user, which is consistent but not conclusive evidence of a brute force attack.\n\nRecommended action: Initiate an investigation into 'carol's account activity to determine if any unauthorized access has occurred."
+    },
+    {
+      "incident_id": 14,
+      "grounded_arm": true,
+      "seconds": 2.04,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "by the system.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: L"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "by the system.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Low -- The inci"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.2.171",
+          "quote": "carol' from source IP address 10.0.2.171 attempted to log in via SSH u"
+        },
+        {
+          "kind": "time",
+          "value": "4:20 PM",
+          "quote": "At around 4:20 PM on July 14th, user 'carol' fr"
+        },
+        {
+          "kind": "user",
+          "value": "carol",
+          "quote": "around 4:20 PM on July 14th, user 'carol' from source IP address 10.0.2"
+        },
+        {
+          "kind": "quantity",
+          "value": "1",
+          "quote": "-- The incident involves only one user, source IP address with no pr"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At around 4:20 PM on July 14th, user 'carol' from source IP address 10.0.2.171 attempted to log in via SSH using a username and password combination that was not recognized by the system.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Low -- The incident involves only one user, source IP address with no prior history of compromise or brute force attempts, and a single failed login event without additional suspicious activities.\n\nRecommended action: Monitor carol's account for further unauthorized access attempts while reinforcing password policies."
+    },
+    {
+      "incident_id": 15,
+      "grounded_arm": false,
+      "seconds": 1.87,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "user",
+          "value": "Carol",
+          "quote": "On July 14, 2026, user Carol initiated Session 56 of her a"
+        },
+        {
+          "kind": "quantity",
+          "value": "56",
+          "quote": "user Carol initiated Session 56 of her account without triggering an alert o"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "On July 14, 2026, user Carol initiated Session 56 of her account without triggering an alert or involving multiple source IPs.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The grounded lookup table did not match any known MITRE ATT&CK techniques for this incident, indicating a potential gap in the analyst's knowledge or an unusual event that does not fit typical patterns.\n\nRecommended action: Investigate further by examining Carol'in account activity history and checking if there are similarities with past incidents."
+    },
+    {
+      "incident_id": 16,
+      "grounded_arm": true,
+      "seconds": 1.99,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "iled attempts.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "iled attempts.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The a"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.3.141",
+          "quote": "'dave' from source IP address 10.0.3.141 attempted to log in via SSH u"
+        },
+        {
+          "kind": "time",
+          "value": "5:46 PM",
+          "quote": "At around 5:46 PM on July 14th, user 'dave' fro"
+        },
+        {
+          "kind": "user",
+          "value": "dave",
+          "quote": "around 5:46 PM on July 14th, user 'dave' from source IP address 10.0.3"
+        },
+        {
+          "kind": "user",
+          "value": "dave",
+          "quote": "immediate password reset for user 'dave' and review the security of SS"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At around 5:46 PM on July 14th, user 'dave' from source IP address 10.0.3.141 attempted to log in via SSH using the username and password combination that was previously recorded as failed attempts.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The attempt occurred within a short timeframe, suggesting persistence but without additional context or patterns to suggest sophistication beyond brute force tactics.\n\nRecommended action: Initiate an immediate password reset for user 'dave' and review the security of SSH credentials."
+    },
+    {
+      "incident_id": 17,
+      "grounded_arm": true,
+      "seconds": 2.25,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "ot successful.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "ot successful.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The e"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.0.58",
+          "quote": "alice' from source IP address 10.0.0.58 attempted to log in via SSH u"
+        },
+        {
+          "kind": "time",
+          "value": "7:27 PM",
+          "quote": "At around 7:27 PM on July 14th, user 'alice' fr"
+        },
+        {
+          "kind": "user",
+          "value": "alice",
+          "quote": "around 7:27 PM on July 14th, user 'alice' from source IP address 10.0.0"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At around 7:27 PM on July 14th, user 'alice' from source IP address 10.0.0.58 attempted to log in via SSH using a username and password combination that was not successful.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The event is consistent with the MITRE ATT&CK technique for credential access via brute force, but without additional context or evidence of multiple failed attempts prior to this single attempt.\n\nRecommended action: Investigate further by checking if there are more login failures from 'alice' and reviewing security measures such as account lockout policies."
+    },
+    {
+      "incident_id": 18,
+      "grounded_arm": false,
+      "seconds": 1.72,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "user",
+          "value": "dave",
+          "quote": "On July 14, 2026, user 'dave' initiated Session 58 without"
+        },
+        {
+          "kind": "user",
+          "value": "dave",
+          "quote": "Recommended action: Monitor user 'dave's activity closely while condu"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "On July 14, 2026, user 'dave' initiated Session 58 without prior activity or indicators of suspicious behavior.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The grounded lookup did not match any known ATT&CK techniques for this incident, indicating a lack of clear tactics and procedures used by the threat actor.\n\nRecommended action: Monitor user 'dave's activity closely while conducting further investigation to identify potential malicious intent or actions."
+    },
+    {
+      "incident_id": 19,
+      "grounded_arm": false,
+      "seconds": 2.07,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "quantity",
+          "value": "1",
+          "quote": "At exactly one minute past midnight on July 14, 202"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At exactly one minute past midnight on July 14, 2026, an anomalous event was logged indicating that a system manager configuration was being reloaded without any additional context or user interaction.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The lack of distinct usernames and source IPs involved in the incident, along with no matching MITRE ATT&CK techniques from a grounded lookup table, suggests that this event may not be indicative of an attack or malicious activity.\n\nRecommended action: Investigate further by examining system logs for any unautsoft activities and reviewing the configuration changes made during the reloading process."
+    },
+    {
+      "incident_id": 20,
+      "grounded_arm": false,
+      "seconds": 1.71,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "user",
+          "value": "Carol",
+          "quote": "On July 15, 2026, user Carol initiated Session 51 of her a"
+        },
+        {
+          "kind": "quantity",
+          "value": "51",
+          "quote": "user Carol initiated Session 51 of her account without prior activity.  MITR"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "On July 15, 2026, user Carol initiated Session 51 of her account without prior activity.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The grounded lookup table did not match any known MITRE ATT&CK techniques for this incident due to the lack of specific actions or behaviors that align with a technique's description.\n\nRecommended action: Investigate Carol'thistoryofaccountactivity and cross-reference itwithknownsessionpatternsinvolvingher."
+    },
+    {
+      "incident_id": 21,
+      "grounded_arm": false,
+      "seconds": 2.19,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "04:32 AM",
+          "quote": "At precisely 04:32 AM on July 15, 2026, an anomalou"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At precisely 04:32 AM on July 15, 2026, an anomalous event was logged wherein a system manager configuration had to be reloaded unexpectedly without any user interaction or indication of the usual triggers. This unusual activity occurred within seconds and did not involve multiple users nor distinct source IPs.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The incident's brief duration, lack of diverse usernames or source IPs involved, and absence of a clear attack vector suggest that the event might not be indicative of an advanced persistent threat.\n\nRecommended action: Investigate system logs for any signs of automated scripts or unautnerized processes initiating this reload."
+    },
+    {
+      "incident_id": 22,
+      "grounded_arm": false,
+      "seconds": 2.05,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "05:47 AM",
+          "quote": "At precisely 05:47 AM on July 15, 2026, an anomalou"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At precisely 05:47 AM on July 15, 2026, an anomalous event was logged indicating that a system manager configuration had been reloaded without any accompanying user or source IP information. This isolated incident occurred with no additional context provided.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The lack of distinct usernames, source IPs, and matching MITRE ATT&CK techniques makes it difficult to ascertain the nature or intent behind this event with high confidence.\n\nRecommended action: Investigate further by examining system logs for any unauthorized access attempts prior to the configuration reload."
+    },
+    {
+      "incident_id": 23,
+      "grounded_arm": false,
+      "seconds": 2.31,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "5:55 AM",
+          "quote": "At precisely 5:55 AM on July 15, an anomalous even"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At precisely 5:55 AM on July 15, an anomalous event was detected wherein system manager configuration files were reloaded without a clear indication of who initiated this action or from which source IPs. This unusual activity occurred in isolation with no distinct usernames involved and zero separate source IP addresses identified.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The incident lacks sufficient details such as user-specific actions or network traffic patterns that could be linked to a known ATT&CK technique, leading to low confidence in attributing this event to any specific method.\n\nRecommended action: Investigate the system manager configuration files for unautnerous changes and assess if these reloads correlate with other anomalous activities within the network."
+    },
+    {
+      "incident_id": 24,
+      "grounded_arm": true,
+      "seconds": 2.06,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "unsuccessful.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "unsuccessful.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The a"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.2.78",
+          "quote": "carol' from source IP address 10.0.2.78 attempted to log in via SSH u"
+        },
+        {
+          "kind": "time",
+          "value": "7:00 AM",
+          "quote": "At precisely 7:00 AM on July 15th, user 'carol' fr"
+        },
+        {
+          "kind": "user",
+          "value": "carol",
+          "quote": "ecisely 7:00 AM on July 15th, user 'carol' from source IP address 10.0.2"
+        },
+        {
+          "kind": "quantity",
+          "value": "1",
+          "quote": "but the limited timeframe of one event suggests it could be a false"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At precisely 7:00 AM on July 15th, user 'carol' from source IP address 10.0.2.78 attempted to log in via SSH using a username and password combination that was unsuccessful.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The attempt involved multiple usernames or source IPs, but the limited timeframe of one event suggests it could be a false positive rather than an actual brute force attack.\n\nRecommended action: Investigate further by correlating this incident with other logs and checking for additional failed login attempts from 'carol'."
+    },
+    {
+      "incident_id": 25,
+      "grounded_arm": true,
+      "seconds": 2.07,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "assword entry.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: L"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "assword entry.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Low -- The inci"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.1.44",
+          "quote": "'bob' from source IP address 10.0.1.44 attempted to log in using SSH"
+        },
+        {
+          "kind": "time",
+          "value": "8:03 AM",
+          "quote": "At some point on July 15th at 8:03 AM, user 'bob' from source IP ad"
+        },
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "oint on July 15th at 8:03 AM, user 'bob' from source IP address 10.0.1"
+        },
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "failed attempts and reviewing user 'bob''s account security settings."
+        },
+        {
+          "kind": "quantity",
+          "value": "1",
+          "quote": "le username/IP pair with only one event type recorded; however, the a"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At some point on July 15th at 8:03 AM, user 'bob' from source IP address 10.0.1.44 attempted to log in using SSH and failed due to incorrect password entry.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Low -- The incident is brief, involves a single username/IP pair with only one event type recorded; however, the attempt could be random or part of broader activity not captured in this log.\n\nRecommended action: Investigate further by examining additional logs for similar failed attempts and reviewing user 'bob''s account security settings."
+    },
+    {
+      "incident_id": 26,
+      "grounded_arm": true,
+      "seconds": 3.24,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1078",
+          "quote": "ort 62536 ssh2  MITRE ATT&CK: T1078 (Valid Accounts), T1110 (Brut"
+        },
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "T&CK: T1078 (Valid Accounts), T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1078: Valid Accounts",
+          "quote": "ort 62536 ssh2  MITRE ATT&CK: T1078 (Valid Accounts), T1110 (Brute Force).  Confid"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "T&CK: T1078 (Valid Accounts), T1110 (Brute Force).  Confidence: Medium -- The e"
+        },
+        {
+          "kind": "ip",
+          "value": "198.51.100.238",
+          "quote": "7-15 09:44:00] user=admin src=198.51.100.238 : Accepted password for admin"
+        },
+        {
+          "kind": "ip",
+          "value": "198.51.100.238",
+          "quote": "epted password for admin from 198.51.100.238 port 53598 ssh2 [2026-0704:04"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.10.214",
+          "quote": "[2026-0704:04] user=admin src=10.0.10.214 : Failed password for admin f"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.10.214",
+          "quote": "ailed password for admin from 10.0.10.214 port 62536 ssh2  MITRE ATT&CK"
+        },
+        {
+          "kind": "time",
+          "value": "2026-07-15 09:44:00",
+          "quote": "[2026-07-15 09:44:00] user=admin src=198.51.100.23"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "[2026-07-15 09:44:00] user=admin src=198.51.100.238 : Accepted password for admin from 198.51.100.238 port 53598 ssh2 [2026-0704:04] user=admin src=10.0.10.214 : Failed password for admin from 10.0.10.214 port 62536 ssh2\n\nMITRE ATT&CK: T1078 (Valid Accounts), T1110 (Brute Force).\n\nConfidence: Medium -- The events show a failed login attempt from an implausible source IP, which could indicate credential theft and brute force attempts.\n\nRecommended action: Investigate both user accounts for signs of compromise and review security measures to prevent future unauthorized access."
+    },
+    {
+      "incident_id": 27,
+      "grounded_arm": true,
+      "seconds": 3.14,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "and www-data.  MITRE ATT&CK: T1110 (Brute Force), T1087 (Account"
+        },
+        {
+          "kind": "technique",
+          "value": "T1087",
+          "quote": "ATT&CK: T1110 (Brute Force), T1087 (Account Discovery).  Confide"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "and www-data.  MITRE ATT&CK: T1110 (Brute Force), T1087 (Account Discovery)."
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1087: Account Discovery",
+          "quote": "ATT&CK: T1110 (Brute Force), T1087 (Account Discovery).  Confidence: High -- The rap"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "The SOC team detected multiple failed password attempts for various user accounts on a single host. These events occurred within seconds of each other, indicating rapid and simultaneous access attempts by an unauthorized entity using different usernames from the same source IP address. This activity aligns with credential stuffing or brute force attacks aimed at gaining unaut01ceful access. The distinct user accounts involved in these events include ftpuser, oracle, root, support, test, and www-data.\n\nMITRE ATT&CK: T1110 (Brute Force), T1087 (Account Discovery).\n\nConfidence: High -- The rapid succession of failed login attempts from a single source IP address to multiple accounts using distinct usernames is indicative of automated credential stuffing or brute force attacks.\n\nRecommended action: Immediate investigation into the account credentials and associated user activity, followed by strengthening password policies."
+    },
+    {
+      "incident_id": 28,
+      "grounded_arm": false,
+      "seconds": 2.42,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "10:36 AM",
+          "quote": "At precisely 10:36 AM on July 15, 2026, an anomalou"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At precisely 10:36 AM on July 15, 2026, an anomalous event was detected wherein a system manager configuration had to be reloaded without any accompanying user activity or source IPs being identified. This isolated incident stands out as it does not align with typical behavior patterns and lacks the usual indicators of compromise.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The lack of distinct usernames or source IPs involved, along with no matching ATT&CK techniques from a grounded lookup table for this incident, results in low confidence that the event is indicative of an attack.\n\nRecommended action: Conduct further investigation into system manager configuration changes and review related logs to identify potential unauthorized access or misconfigurations."
+    },
+    {
+      "incident_id": 29,
+      "grounded_arm": true,
+      "seconds": 2.07,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "number 59139.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "number 59139.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The a"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.3.88",
+          "quote": "'dave' from source IP address 10.0.3.88 attempted to access an accoun"
+        },
+        {
+          "kind": "user",
+          "value": "dave",
+          "quote": "precisely noon on July 15th, user 'dave' from source IP address 10.0.3"
+        },
+        {
+          "kind": "quantity",
+          "value": "1",
+          "quote": "as made by the same user from one IP address, which is consistent"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At precisely noon on July 15th, user 'dave' from source IP address 10.0.3.88 attempted to access an account using a failed password via SSH2 port number 59139.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The attempt was made by the same user from one IP address, which is consistent with brute force behavior but not definitive without further evidence of multiple attempts or patterns.\n\nRecommended action: Investigate 'dave's account for any signs of credential misuse and review SSH2 access logs for additional failed login attempts."
+    },
+    {
+      "incident_id": 30,
+      "grounded_arm": false,
+      "seconds": 1.77,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "1:21 PM",
+          "quote": "At exactly 1:21 PM on July 15, 2026, an anomalou"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At exactly 1:21 PM on July 15, 2026, an anomalous event was detected where a system manager configuration was reloaded without any user interaction or distinct source IPs being involved.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The incident lacks sufficient details and no ATT&CK techniques were matched, making it difficult to assess the severity accurately.\n\nRecommended action: Investigate further by examining system logs for unautnerous activities around the time of configuration reload."
+    },
+    {
+      "incident_id": 31,
+      "grounded_arm": true,
+      "seconds": 2.03,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "uthentication.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "uthentication.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The e"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.0.167",
+          "quote": "alice' from source IP address 10.0.0.167 attempted to log in via SSH u"
+        },
+        {
+          "kind": "time",
+          "value": "2:07 PM",
+          "quote": "At around 2:07 PM on July 15th, user 'alice' fr"
+        },
+        {
+          "kind": "user",
+          "value": "alice",
+          "quote": "around 2:07 PM on July 15th, user 'alice' from source IP address 10.0.0"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At around 2:07 PM on July 15th, user 'alice' from source IP address 10.0.0.167 attempted to log in via SSH using the username and password combination that resulted in a failed authentication.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The event is indicative of credential access attempts, but without additional context or evidence of multiple such events over time it's not definitive.\n\nRecommended action: Investigate further by checking for more failed login attempts from the same user and IP address."
+    },
+    {
+      "incident_id": 32,
+      "grounded_arm": true,
+      "seconds": 2.06,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "number 53648.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "number 53648.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The s"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.3.188",
+          "quote": "'dave' from source IP address 10.0.3.188 experienced a failed login at"
+        },
+        {
+          "kind": "user",
+          "value": "dave",
+          "quote": "e afternoon on July 15, 2026, user 'dave' from source IP address 10.0.3"
+        },
+        {
+          "kind": "quantity",
+          "value": "1",
+          "quote": "At precisely one minute past three in the afternoon o"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At precisely one minute past three in the afternoon on July 15, 2026, user 'dave' from source IP address 10.0.3.188 experienced a failed login attempt via SSH using port number 53648.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The single event and the distinct username involved suggest an attempted brute force attack, but without more evidence of repetition or patterns in failed attempts from different sources/IPs.\n\nRecommended action: Monitor for additional login failures while investigating potential credential reuse by 'dave'."
+    },
+    {
+      "incident_id": 33,
+      "grounded_arm": false,
+      "seconds": 2.07,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "3:09 PM",
+          "quote": "At precisely 3:09 PM on July 15, 2026, an anomalou"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At precisely 3:09 PM on July 15, 2026, an anomalous event was detected wherein a system manager configuration had to be reloaded without any specific user or source IP being identified. This singular incident stands out due to the lack of accompanying log entries that could provide additional context.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The confidence level is low because no MITRE ATT&CK techniques were matched, and there are insufficient details to establish a clear linkage or intent behind the event.\n\nRecommended action: Gather more information about system configurations and user activities around this time frame for further analysis."
+    },
+    {
+      "incident_id": 34,
+      "grounded_arm": true,
+      "seconds": 2.06,
+      "faithful": false,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "f the attempt.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "f the attempt.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The s"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.1.143",
+          "quote": "'bob' from source IP address 10.0.1.143 attempted to access a system"
+        },
+        {
+          "kind": "time",
+          "value": "3:11 PM",
+          "quote": "On July 15th at around 3:11 PM, user 'bob' from source IP ad"
+        },
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "July 15th at around 3:11 PM, user 'bob' from source IP address 10.0.1"
+        },
+        {
+          "kind": "quantity",
+          "value": "52623",
+          "quote": "s a system using SSH2 on port 52623 with failed credentials within five minut"
+        },
+        {
+          "kind": "quantity",
+          "value": "5",
+          "quote": "ith failed credentials within five minutes of the attempt.  MITRE ATT&CK"
+        }
+      ],
+      "ungrounded": [
+        {
+          "kind": "quantity",
+          "value": "5",
+          "quote": "ith failed credentials within five minutes of the attempt.  MITRE ATT&CK"
+        }
+      ],
+      "narrative": "On July 15th at around 3:11 PM, user 'bob' from source IP address 10.0.1.143 attempted to access a system using SSH2 on port 52623 with failed credentials within five minutes of the attempt.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The sequence and timing suggest an intentional brute force attack, but without more evidence or additional events it's not definitive.\n\nRecommended action: Investigate the failed login attempts to determine if they are part of a larger credential stuffing campaign."
+    },
+    {
+      "incident_id": 35,
+      "grounded_arm": true,
+      "seconds": 1.94,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "by the system.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "by the system.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The e"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.2.171",
+          "quote": "carol' from source IP address 10.0.2.171 attempted to log in via SSH u"
+        },
+        {
+          "kind": "time",
+          "value": "5:44 PM",
+          "quote": "At 5:44 PM on July 15th, user 'carol' fr"
+        },
+        {
+          "kind": "user",
+          "value": "carol",
+          "quote": "At 5:44 PM on July 15th, user 'carol' from source IP address 10.0.2"
+        },
+        {
+          "kind": "user",
+          "value": "carol",
+          "quote": "iate a password reset for the user 'carol', and review recent failed log"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At 5:44 PM on July 15th, user 'carol' from source IP address 10.0.2.171 attempted to log in via SSH using a username and password combination that was not recognized by the system.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The event is consistent with known brute force attack patterns, but without more context or additional events it's difficult to ascertain full intent.\n\nRecommended action: Initiate a password reset for the user 'carol', and review recent failed login attempts."
+    },
+    {
+      "incident_id": 36,
+      "grounded_arm": false,
+      "seconds": 1.66,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "user",
+          "value": "dave",
+          "quote": "On July 15, 2026, user 'dave' initiated Session 53 without"
+        },
+        {
+          "kind": "user",
+          "value": "dave",
+          "quote": "Recommended action: Monitor user 'dave's future sessions and review a"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "On July 15, 2026, user 'dave' initiated Session 53 without prior suspicious activity or distinct source IPs being identified.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The grounded lookup matched no ATT&CK technique for this incident, indicating a lack of clear malicious intent based on the available data.\n\nRecommended action: Monitor user 'dave's future sessions and review any changes in behavior or access patterns."
+    },
+    {
+      "incident_id": 37,
+      "grounded_arm": true,
+      "seconds": 2.87,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1078",
+          "quote": "twork segment.  MITRE ATT&CK: T1078 (Valid Accounts), T1021.004 ("
+        },
+        {
+          "kind": "technique",
+          "value": "T1021.004",
+          "quote": "T&CK: T1078 (Valid Accounts), T1021.004 (Remote Services: SSH).  Conf"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1078: Valid Accounts",
+          "quote": "twork segment.  MITRE ATT&CK: T1078 (Valid Accounts), T1021.004 (Remote Services:"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1021.004: Remote Services: SSH",
+          "quote": "T&CK: T1078 (Valid Accounts), T1021.004 (Remote Services: SSH).  Confidence: Medium -- The a"
+        },
+        {
+          "kind": "ip",
+          "value": "203.0.113.116",
+          "quote": "rative access from IP address 203.0.113.116 via SSH port 63261 within the"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.10.109",
+          "quote": "PM to a different source IP (10.0.10.109) on an unrelated network segm"
+        },
+        {
+          "kind": "time",
+          "value": "6:49 PM",
+          "quote": "At around 6:49 PM on July 15th, an admin user a"
+        },
+        {
+          "kind": "time",
+          "value": "6:34 PM",
+          "quote": "inute as their prior login at 6:34 PM to a different source IP (10."
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At around 6:49 PM on July 15th, an admin user accepted a password for administrative access from IP address 203.0.113.116 via SSH port 63261 within the same minute as their prior login at 6:34 PM to a different source IP (10.0.10.109) on an unrelated network segment.\n\nMITRE ATT&CK: T1078 (Valid Accounts), T1021.004 (Remote Services: SSH).\n\nConfidence: Medium -- The anomalous event and the use of a geographically implausible source IP for SSH within such a short time frame suggest potential unauthorized access, but without additional context or evidence it's not definitive.\n\nRecommended action: Investigate further by examining network logs to trace back any other suspicious activities and verify the legitimacy of this login attempt."
+    },
+    {
+      "incident_id": 38,
+      "grounded_arm": false,
+      "seconds": 2.17,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "On July 15, 2026, user 'bob' initiated Session 9 at exactl"
+        },
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "ct further investigation into user 'bob''s activities and review syste"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "On July 15, 2026, user 'bob' initiated Session 9 at exactly 22:30:0de in a single anomalous event without any distinct source IPs involved. This incident stands out due to the lack of additional log entries and no apparent pattern or behavior that aligns with known MITRE ATT&CK techniques.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The grounded lookup matched no technique, indicating a potential unknown threat vector or an unrecognized anomaly in the log events provided.\n\nRecommended action: Conduct further investigation into user 'bob''s activities and review system logs for any additional suspicious behavior."
+    },
+    {
+      "incident_id": 39,
+      "grounded_arm": true,
+      "seconds": 3.97,
+      "faithful": true,
+      "dropped": [
+        "T1148"
+      ],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1136",
+          "quote": "ommand prompt.  MITRE ATT&CK: T1136 (Create Account).  Confidence"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1136: Create Account",
+          "quote": "ommand prompt.  MITRE ATT&CK: T1136 (Create Account).  Confidence: Medium -- The r"
+        },
+        {
+          "kind": "ip",
+          "value": "172.16.5.22",
+          "quote": "or user 'bob' from IP address 172.16.5.22 using SSH. [2026-0707-16 02:5"
+        },
+        {
+          "kind": "time",
+          "value": "2026-07-16 02:55:00",
+          "quote": "[2026-07-16 02:55:00] A failed password attempt fo"
+        },
+        {
+          "kind": "time",
+          "value": "2026-07-16 02:55:06",
+          "quote": "rname and source IP via SSH. [2026-07-16 02:55:06] A third consecutive failed p"
+        },
+        {
+          "kind": "time",
+          "value": "2026-07-16 02:55:30",
+          "quote": "SSH as the method of access. [2026-07-16 02:55:30] User 'bob' attempts to switc"
+        },
+        {
+          "kind": "time",
+          "value": "02:55:03",
+          "quote": "5.22 using SSH. [2026-0707-16 02:55:03] Another unsuccessful login e"
+        },
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "A failed password attempt for user 'bob' from IP address 172.16.5.22 u"
+        },
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "access. [2026-07-16 02:55:30] User 'bob' attempts to switch user conte"
+        },
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "activity patterns and review user 'bob''s account permissions."
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "[2026-07-16 02:55:00] A failed password attempt for user 'bob' from IP address 172.16.5.22 using SSH. [2026-0707-16 02:55:03] Another unsuccessful login effort by the same username and source IP via SSH. [2026-07-16 02:55:06] A third consecutive failed password attempt for 'bob' from the identified host, continuing to use SSH as the method of access. [2026-07-16 02:55:30] User 'bob' attempts to switch user contexts by trying to become root using a command prompt.\n\nMITRE ATT&CK: T1136 (Create Account).\n\nConfidence: Medium -- The repeated failed login attempts followed by an attempt at privilege escalation suggest credential access and elevation of privileges, but without more context or evidence it's not certain.\n\nRecommended action: Investigate the source IP for any known malicious activity patterns and review user 'bob''s account permissions."
+    },
+    {
+      "incident_id": 40,
+      "grounded_arm": false,
+      "seconds": 2.08,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "04:34 AM",
+          "quote": "At exactly 04:34 AM on July 16, an anomalous even"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At exactly 04:34 AM on July 16, an anomalous event was detected where system manager configuration had to be reloaded without specific user involvement or source IPs being identified.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The lack of distinct usernames and source IPs, along with no matching ATT&CK techniques from the grounded lookup table, suggests an unclassified or novel incident pattern that does not fit known tactics.\n\nRecommended action: Conduct a broader investigation to identify potential indicators of compromise (IoC) and consider consulting with external threat intelligence sources for additional insights."
+    },
+    {
+      "incident_id": 41,
+      "grounded_arm": false,
+      "seconds": 1.89,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "end of day on July 16, 2026, user 'bob' initiated Session 35 without"
+        },
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "us activities associated with user 'bob's session."
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At precisely 05:06:0 end of day on July 16, 2026, user 'bob' initiated Session 35 without any preceding or subsequent events to provide context.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The grounded lookup table did not match the incident with known ATT&CK techniques, indicating a lack of clear indicators for specific tactics and procedures used in this event.\n\nRecommended action: Conduct manual analysis to identify potential anomalies or suspicious activities associated with user 'bob's session."
+    },
+    {
+      "incident_id": 42,
+      "grounded_arm": false,
+      "seconds": 2.39,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "05:52 AM",
+          "quote": "At precisely 05:52 AM on July 16, 2026, an anomalou"
+        },
+        {
+          "kind": "quantity",
+          "value": "1",
+          "quote": "rred within the short span of one minute and did not exhibit further s"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At precisely 05:52 AM on July 16, 2026, an anomalous event was detected wherein a system manager configuration had to be reloaded without any specific user or source IP being identified. This singular incident occurred within the short span of one minute and did not exhibit further suspicious activities.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The lack of distinct usernames, source IPs, and additional anomalous events suggests a limited scope incident that may be due to an isolated system issue rather than malicious activity. The absence of matching ATT&CK techniques further supports this conclusion.\n\nRecommended action: Investigate the cause for the configuration reload by checking recent changes or updates made in-house and consulting with IT personnel responsible for managing configurations."
+    },
+    {
+      "incident_id": 43,
+      "grounded_arm": false,
+      "seconds": 2.25,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "06:39 AM",
+          "quote": "At precisely 06:39 AM on July 16, 2026, an anomalou"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At precisely 06:39 AM on July 16, 2026, an anomalous event was detected wherein a system manager configuration had to be reloaded without any distinct usernames or source IPs being involved. This singular incident stands out as it deviates from the norm of multiple users and sources typically associated with such events.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The lack of additional context, usernames, source IPs, or matching ATT&CK techniques reduces confidence in attributing this event to a specific threat actor methodology.\n\nRecommended action: Investigate the system manager configuration for unautnerous changes and assess if any recent updates could have triggered such an anomaly."
+    },
+    {
+      "incident_id": 44,
+      "grounded_arm": true,
+      "seconds": 2.51,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1078",
+          "quote": "physics check.  MITRE ATT&CK: T1078 (Valid Accounts), T1021.004 ("
+        },
+        {
+          "kind": "technique",
+          "value": "T1021.004",
+          "quote": "T&CK: T1078 (Valid Accounts), T1021.004 (Remote Services: SSH).  Conf"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1078: Valid Accounts",
+          "quote": "physics check.  MITRE ATT&CK: T1078 (Valid Accounts), T1021.004 (Remote Services:"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1021.004: Remote Services: SSH",
+          "quote": "T&CK: T1078 (Valid Accounts), T1021.004 (Remote Services: SSH).  Confidence: Medium -- The a"
+        },
+        {
+          "kind": "ip",
+          "value": "203.0.113.118",
+          "quote": "r account from an IP address (203.0.113.118) that was geographically impl"
+        },
+        {
+          "kind": "time",
+          "value": "08:33 AM",
+          "quote": "At around 08:33 AM on July 16, 2026, user 'carol"
+        },
+        {
+          "kind": "user",
+          "value": "carol",
+          "quote": "nd 08:33 AM on July 16, 2026, user 'carol' accepted a password for her a"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At around 08:33 AM on July 16, 2026, user 'carol' accepted a password for her account from an IP address (203.0.113.118) that was geographically implausible based on the impossible-travel physics check.\n\nMITRE ATT&CK: T1078 (Valid Accounts), T1021.004 (Remote Services: SSH).\n\nConfidence: Medium -- The anomalous event, combined with a single user and source IP involved in the incident along with an impossible-travel physics check result suggests potential unauthorized access.\n\nRecommended action: Investigate further by examining carol's account activity for signs of privilege escalation or data exfiltration."
+    },
+    {
+      "incident_id": 45,
+      "grounded_arm": true,
+      "seconds": 2.05,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "assword entry.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "assword entry.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The s"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.1.153",
+          "quote": "'bob' from source IP address 10.0.1.153 attempted to access a system"
+        },
+        {
+          "kind": "time",
+          "value": "9:15 AM",
+          "quote": "point on July 16th at exactly 9:15 AM, user 'bob' from source IP ad"
+        },
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "July 16th at exactly 9:15 AM, user 'bob' from source IP address 10.0.1"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At some point on July 16th at exactly 9:15 AM, user 'bob' from source IP address 10.0.1.153 attempted to access a system using SSH2 protocol but failed due to incorrect password entry.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The single event and the use of brute force technique suggest a credential access attempt, but without more evidence or additional failed attempts it's not definitive.\n\nRecommended action: Monitor for further suspicious activity from this user/IP pair."
+    },
+    {
+      "incident_id": 46,
+      "grounded_arm": true,
+      "seconds": 2.08,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "t credentials.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "th the MITRE ATT&CK technique T1110; however, without more contex"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "t credentials.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The e"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.2.159",
+          "quote": "tem using SSH from IP address 10.0.2.159 but failed due to incorrect c"
+        },
+        {
+          "kind": "user",
+          "value": "carol",
+          "quote": "At some point on July 16th, user 'carol' attempted to access a system"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At some point on July 16th, user 'carol' attempted to access a system using SSH from IP address 10.0.2.159 but failed due to incorrect credentials.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The event is indicative of brute force activity, which aligns with the MITRE ATT&CK technique T1110; however, without more context or additional events, it's not definitive.\n\nRecommended action: Investigate further by checking for failed login attempts in a short timeframe and reviewing carol's account security settings."
+    },
+    {
+      "incident_id": 47,
+      "grounded_arm": false,
+      "seconds": 1.8,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "user",
+          "value": "Alice",
+          "quote": "On July 16, 2026, user Alice initiated Session 26 of her a"
+        },
+        {
+          "kind": "user",
+          "value": "Alice",
+          "quote": "Recommended action: Monitor user Alice's future sessions for pattern"
+        },
+        {
+          "kind": "quantity",
+          "value": "26",
+          "quote": "user Alice initiated Session 26 of her account without triggering an alert o"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "On July 16, 2026, user Alice initiated Session 26 of her account without triggering an alert or showing anomalous behavior in prior sessions.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The grounded lookup table did not match any known MITRE ATT&CK techniques, indicating a lack of clear malicious intent based on the available data.\n\nRecommended action: Monitor user Alice's future sessions for patterns that could indicate suspicious behavior and consider updating or expanding the grounded lookup table."
+    },
+    {
+      "incident_id": 48,
+      "grounded_arm": true,
+      "seconds": 2.07,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "y an attacker.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "mpts, which matches the known T1110 technique for credential acce"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "y an attacker.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The e"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.2.70",
+          "quote": "carol' from source IP address 10.0.2.70 attempted to log in via SSH u"
+        },
+        {
+          "kind": "time",
+          "value": "11:36 AM",
+          "quote": "At precisely 11:36 AM on July 16, 2026, user 'carol"
+        },
+        {
+          "kind": "user",
+          "value": "carol",
+          "quote": "ly 11:36 AM on July 16, 2026, user 'carol' from source IP address 10.0.2"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At precisely 11:36 AM on July 16, 2026, user 'carol' from source IP address 10.0.2.70 attempted to log in via SSH using the credential brute-forced by an attacker.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The event is a clear instance of failed login attempts, which matches the known T1110 technique for credential access via brute force.\n\nRecommended action: Initiate an immediate password reset and audit Carol's account activity."
+    },
+    {
+      "incident_id": 49,
+      "grounded_arm": true,
+      "seconds": 1.79,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "ce IP address.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "ce IP address.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The i"
+        },
+        {
+          "kind": "quantity",
+          "value": "1",
+          "quote": "-- The incident involved only one distinct username and source IP with failed log"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At around noon on July 16th, an unauthorized attempt to access administrative credentials was detected from a single source IP address.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The incident involved only one distinct username and source IP with failed login attempts, suggesting targeted brute force rather than widespread credential dumping or system compromise.\n\nRecommended action: Initiate a password reset for the 'admin' account and review recent security training to reinforce best practices."
+    },
+    {
+      "incident_id": 50,
+      "grounded_arm": false,
+      "seconds": 1.62,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "quantity",
+          "value": "1",
+          "quote": "At precisely one minute past two on July 16th, an ano"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At precisely one minute past two on July 16th, an anomaly was detected within our system's configuration management logs.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The grounded lookup table did not match any known MITRE ATT&CK techniques for this incident due to the lack of distinct usernames or source IP addresses and minimal event details.\n\nRecommended action: Conduct a manual review of system manager configuration changes during that time frame."
+    },
+    {
+      "incident_id": 51,
+      "grounded_arm": false,
+      "seconds": 2.02,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "16:31",
+          "quote": "At precisely 16:31 on July 16, 2026, user 'carol"
+        },
+        {
+          "kind": "user",
+          "value": "carol",
+          "quote": "isely 16:31 on July 16, 2026, user 'carol' initiated Session 57 of her a"
+        },
+        {
+          "kind": "quantity",
+          "value": "57",
+          "quote": "ser 'carol' initiated Session 57 of her account without any preceding anomalo"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At precisely 16:31 on July 16, 2026, user 'carol' initiated Session 57 of her account without any preceding anomalous events or distinct source IPs being identified. The grounded lookup table did not match this incident with known MITRE ATT&CK techniques.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The lack of matching a technique and the absence of additional context or anomalistic patterns in user behavior reduces confidence levels significantly.\n\nRecommended action: Conduct further investigation into 'carol's account activity, including reviewing her session logs for any irregularities."
+    },
+    {
+      "incident_id": 52,
+      "grounded_arm": true,
+      "seconds": 2.09,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "assword entry.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: L"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "assword entry.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Low -- The evid"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.3.186",
+          "quote": "'dave' from source IP address 10.0.3.186 attempted to log in using SSH"
+        },
+        {
+          "kind": "time",
+          "value": "4:52 PM",
+          "quote": "At around 4:52 PM on July 16th, user 'dave' fro"
+        },
+        {
+          "kind": "user",
+          "value": "dave",
+          "quote": "around 4:52 PM on July 16th, user 'dave' from source IP address 10.0.3"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At around 4:52 PM on July 16th, user 'dave' from source IP address 10.0.3.186 attempted to log in using SSH and failed due to incorrect password entry.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Low -- The evidence is limited, consisting of a single login attempt with failure; however, the association between this event and brute force tactics seems plausible given no other context.\n\nRecommended action: Monitor for additional failed attempts from 'dave' or similar usernames to confirm if it\u2019s indeed a credential-based attack."
+    },
+    {
+      "incident_id": 53,
+      "grounded_arm": false,
+      "seconds": 1.83,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "quantity",
+          "value": "1",
+          "quote": "At precisely one minute past five on July 16th, an an"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At precisely one minute past five on July 16th, an anomaly was detected within our system logs indicating that there had been a reload of the system manager configuration without any accompanying user or source IP activity.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The incident's limited scope and lack of additional indicators reduce confidence in its significance, suggesting it could be a false positive or benign event.\n\nRecommended action: Investigate the system manager configuration reload for unauthorized changes while monitoring network activity to identify potential accompanying actions."
+    },
+    {
+      "incident_id": 54,
+      "grounded_arm": false,
+      "seconds": 1.6,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "user",
+          "value": "Carol",
+          "quote": "On July 16, 2026, user Carol initiated Session 42 of her a"
+        },
+        {
+          "kind": "quantity",
+          "value": "42",
+          "quote": "user Carol initiated Session 42 of her account without apparent malicious in"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "On July 16, 2026, user Carol initiated Session 42 of her account without apparent malicious intent or accompanyin\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The grounded lookup table did not match any known MITRE ATT&CK techniques for this incident, indicating a lack of clear tactics and procedures.\n\nRecommended action: Conduct manual analysis to identify potential indicators of compromise or suspicious behavior."
+    },
+    {
+      "incident_id": 55,
+      "grounded_arm": true,
+      "seconds": 2.1,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "t credentials.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "t credentials.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The e"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.3.190",
+          "quote": "'dave' from source IP address 10.0.3.190 attempted to log into a syste"
+        },
+        {
+          "kind": "user",
+          "value": "dave",
+          "quote": "the evening on July 16, 2026, user 'dave' from source IP address 10.0.3"
+        },
+        {
+          "kind": "quantity",
+          "value": "1",
+          "quote": "At exactly one minute past six in the evening on Ju"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At exactly one minute past six in the evening on July 16, 2026, user 'dave' from source IP address 10.0.3.190 attempted to log into a system using SSH and was unsuccessful due to incorrect credentials.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The event is consistent with the MITRE ATT&CK technique for Brute Force, but without additional context or evidence of multiple failed attempts prior to this one-off incident.\n\nRecommended action: Investigate further by checking Dave's account activity logs and surrounding systems for signs of credential reuse."
+    },
+    {
+      "incident_id": 56,
+      "grounded_arm": true,
+      "seconds": 1.97,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "t credentials.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "t credentials.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The e"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.2.37",
+          "quote": "carol' from source IP address 10.0.2.37 attempted to access an accoun"
+        },
+        {
+          "kind": "user",
+          "value": "carol",
+          "quote": "single incident on July 16th, user 'carol' from source IP address 10.0.2"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At some point during a single incident on July 16th, user 'carol' from source IP address 10.0.2.37 attempted to access an account using SSH and failed due to incorrect credentials.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The event is a clear case of credential brute force, but without more context or additional events it's not possible to determine the full scope and sophistication.\n\nRecommended action: Investigate further by examining carol\u2019s account for signs of unauthorized access attempts."
+    },
+    {
+      "incident_id": 57,
+      "grounded_arm": true,
+      "seconds": 2.19,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "ion number 21.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "ion number 21.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The s"
+        },
+        {
+          "kind": "time",
+          "value": "7:23 PM",
+          "quote": "time frame on July 16th from 7:23 PM to 7:47 PM, user 'bob' attemp"
+        },
+        {
+          "kind": "time",
+          "value": "7:47 PM",
+          "quote": "on July 16th from 7:23 PM to 7:47 PM, user 'bob' attempted and suc"
+        },
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "16th from 7:23 PM to 7:47 PM, user 'bob' attempted and succeeded in lo"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "During a narrow time frame on July 16th from 7:23 PM to 7:47 PM, user 'bob' attempted and succeeded in logging into their account using an SSH brute force attack. The login attempt was unsuccessful initially but followed by the successful start of session number 21.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The sequence and timing suggest a targeted brute force attack, though without more context or additional evidence it's not definitive.\n\nRecommended action: Investigate the failed login attempts prior to session start for patterns that could indicate automated tools used in credential access."
+    },
+    {
+      "incident_id": 58,
+      "grounded_arm": false,
+      "seconds": 1.82,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "05:46 AM",
+          "quote": "At precisely 05:46 AM on July 17, 2026, an anomaly"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At precisely 05:46 AM on July 17, 2026, an anomaly was detected within a single system wherein there were no distinct usernames or source IPs involved.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The lack of specific details and the absence of matched ATT&CK techniques make it difficult to ascertain with certainty what occurred during this incident.\n\nRecommended action: Perform a thorough system audit, review configuration changes made around that time, and monitor for further anomalous activities."
+    },
+    {
+      "incident_id": 59,
+      "grounded_arm": false,
+      "seconds": 1.62,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "user",
+          "value": "dave",
+          "quote": "On July 17, 2026, user 'dave' initiated session number 22 o"
+        },
+        {
+          "kind": "quantity",
+          "value": "22",
+          "quote": "ave' initiated session number 22 of his account without displaying any anomal"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "On July 17, 2026, user 'dave' initiated session number 22 of his account without displaying any anomalous behavior or distinct source IPs.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The grounded lookup table did not match the incident with known ATT&CK techniques, indicating a potential unknown threat vector.\n\nRecommended action: Investigate further by examining session logs and user activity patterns for uncharacteristic behavior."
+    },
+    {
+      "incident_id": 60,
+      "grounded_arm": true,
+      "seconds": 1.97,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "t credentials.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "t credentials.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The e"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.10.115",
+          "quote": "tem using SSH from IP address 10.0.10.115 by user 'admin'. The login fa"
+        },
+        {
+          "kind": "time",
+          "value": "9:04 AM",
+          "quote": "At around 9:04 AM on July 17th, an attempt was"
+        },
+        {
+          "kind": "user",
+          "value": "admin",
+          "quote": "rom IP address 10.0.10.115 by user 'admin'. The login failed due to inco"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At around 9:04 AM on July 17th, an attempt was made to access a system using SSH from IP address 10.0.10.115 by user 'admin'. The login failed due to incorrect credentials.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The event is a clear brute force attempt, but without more context or additional events it's not possible to determine the sophistication of this attacker.\n\nRecommended action: Initiate an investigation into recent failed login attempts and review security measures for credential protection."
+    },
+    {
+      "incident_id": 61,
+      "grounded_arm": false,
+      "seconds": 2.37,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "09:38 AM",
+          "quote": "At precisely 09:38 AM on July 17, 2026, an anomalou"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At precisely 09:38 AM on July 17, 2026, an anomalous event was detected involving a reload of system manager configuration without any distinct usernames or source IPs being involved. This singular incident suggests that the activity may not be directly linked to specific user actions but could still represent unautenerated access attempts.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The lack of distinct usernames or source IPs and no matching ATT&CK techniques reduce the confidence level in attributing this event to a specific threat actor or methodology.\n\nRecommended action: Investigate further by examining system manager configuration changes, reviewing access logs for any unauthorized attempts around that time, and implementing stricter monitoring of such configurations."
+    },
+    {
+      "incident_id": 62,
+      "grounded_arm": true,
+      "seconds": 2.03,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "ot successful.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "ot successful.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The e"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.10.131",
+          "quote": "n user from source IP address 10.0.10.131 attempted to log in via SSH u"
+        },
+        {
+          "kind": "time",
+          "value": "11:29 AM",
+          "quote": "At 11:29 AM on July 17th, an admin user f"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At 11:29 AM on July 17th, an admin user from source IP address 10.0.10.131 attempted to log in via SSH using a username and password combination that was not successful.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The event is consistent with the MITRE ATT&CK technique for Credential Access through Brute Force, but without additional context or patterns of similar events it's not definitive.\n\nRecommended action: Investigate further by checking if there are any more failed login attempts from this IP and username combination."
+    },
+    {
+      "incident_id": 63,
+      "grounded_arm": true,
+      "seconds": 1.87,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "SSH2 protocol.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "SSH2 protocol.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The e"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.3.87",
+          "quote": "'dave' from source IP address 10.0.3.87 attempted to access an accoun"
+        },
+        {
+          "kind": "user",
+          "value": "dave",
+          "quote": "precisely noon on July 17th, user 'dave' from source IP address 10.0.3"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At precisely noon on July 17th, user 'dave' from source IP address 10.0.3.87 attempted to access an account using a failed password via SSH2 protocol.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The event is indicative of brute force attack behavior, but without more context or additional events it's not definitive proof.\n\nRecommended action: Investigate 'dave''s account for signs of credential theft and review firewall logs to identify potential source IP addresses."
+    },
+    {
+      "incident_id": 64,
+      "grounded_arm": true,
+      "seconds": 2.04,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "l brute force.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "is a clear indication of the T1110 technique, but without more c"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "l brute force.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The e"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.1.101",
+          "quote": "'bob' from source IP address 10.0.1.101 attempted and failed to log i"
+        },
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "ly 17th between 1 PM to 2 PM, user 'bob' from source IP address 10.0.1"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At some point on July 17th between 1 PM to 2 PM, user 'bob' from source IP address 10.0.1.101 attempted and failed to log in via SSH using credential brute force.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The event is a clear indication of the T1110 technique, but without more context or additional events it's not possible to rule out other potential methods.\n\nRecommended action: Investigate further by checking for failed login attempts from 'bob', reviewing security group policies and user privileges."
+    },
+    {
+      "incident_id": 65,
+      "grounded_arm": true,
+      "seconds": 2.19,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "ed to use SSH.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "ed to use SSH.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The l"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.10.144",
+          "quote": "ress used in this attempt was 10.0.10.144 and the connection method att"
+        },
+        {
+          "kind": "time",
+          "value": "1:26 PM",
+          "quote": "At around 1:26 PM on July 17th, an anomalous lo"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At around 1:26 PM on July 17th, an anomalous login attempt was detected for a user named 'admin'. The source IP address used in this attempt was 10.0.10.144 and the connection method attempted to use SSH.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The login event is a clear sign of brute force attack, but without more context or additional events it's hard to determine the full scope and intent behind this attempt.\n\nRecommended action: Initiate an immediate password reset for 'admin', review recent failed authentication attempts on all accounts with administrative privileges, and enhance monitoring of SSH access."
+    },
+    {
+      "incident_id": 66,
+      "grounded_arm": false,
+      "seconds": 1.83,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "2:22 PM",
+          "quote": "At precisely 2:22 PM on July 17, 2026, user Carol"
+        },
+        {
+          "kind": "user",
+          "value": "Carol",
+          "quote": "ely 2:22 PM on July 17, 2026, user Carol initiated what appears to be"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At precisely 2:22 PM on July 17, 2026, user Carol initiated what appears to be a suspicious session that deviates from her normal activity pattern.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The grounded lookup table did not match any known ATT&CK techniques for this incident, indicating an unfamiliar or novel attack method may be at play.\n\nRecommended action: Conduct a manual review of Carol's session logs and compare them with her typical behavior patterns to identify anomalistic activities."
+    },
+    {
+      "incident_id": 67,
+      "grounded_arm": false,
+      "seconds": 1.81,
+      "faithful": false,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "22:43",
+          "quote": "At precisely 22:43 on July 17, 2026, an anomalou"
+        }
+      ],
+      "ungrounded": [
+        {
+          "kind": "time",
+          "value": "22:43",
+          "quote": "At precisely 22:43 on July 17, 2026, an anomalou"
+        }
+      ],
+      "narrative": "At precisely 22:43 on July 17, 2026, an anomalous event was logged indicating that system manager configuration was being reloaded without any accompanyin\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The grounded lookup table did not match the incident with a known MITRE ATT&CK technique, which suggests uncertainty in attributing this event to a specific threat actor or method.\n\nRecommended action: Further investigation is required into system manager configuration changes and potential unauthorized access points."
+    },
+    {
+      "incident_id": 68,
+      "grounded_arm": false,
+      "seconds": 1.64,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "user",
+          "value": "dave",
+          "quote": "On July 17, 2026, user 'dave' initiated Session 58 without"
+        },
+        {
+          "kind": "user",
+          "value": "dave",
+          "quote": "Recommended action: Monitor user 'dave's session activity closely and"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "On July 17, 2026, user 'dave' initiated Session 58 without prior suspicious activity or known malicious intent.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The grounded lookup table did not match any MITRE ATT&CK techniques for this incident, indicating a lack of clear indicators of compromise.\n\nRecommended action: Monitor user 'dave's session activity closely and review their recent behavioral patterns."
+    },
+    {
+      "incident_id": 69,
+      "grounded_arm": true,
+      "seconds": 2.08,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "ation process.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "ation process.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The e"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.2.71",
+          "quote": "Carol from source IP address 10.0.2.71 attempted to log in via SSH u"
+        },
+        {
+          "kind": "time",
+          "value": "3:45 PM",
+          "quote": "At precisely 3:45 PM on July 17th, user Carol from"
+        },
+        {
+          "kind": "user",
+          "value": "Carol",
+          "quote": "ecisely 3:45 PM on July 17th, user Carol from source IP address 10.0.2"
+        },
+        {
+          "kind": "quantity",
+          "value": "1",
+          "quote": "oof; however, given that only one username and source IP are involved in"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At precisely 3:45 PM on July 17th, user Carol from source IP address 10.0.2.71 attempted to log in via SSH using a username and password combination that failed the authentication process.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The event is indicative of brute force activity, but without additional context or patterns it's not definitive proof; however, given that only one username and source IP are involved in the anomalous attempt this suggests a targeted attack.\n\nRecommended action: Initiate an immediate password reset for Carol on all systems where she has access."
+    },
+    {
+      "incident_id": 70,
+      "grounded_arm": true,
+      "seconds": 2.11,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "col version 2.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "unt, which is consistent with T1110 technique ID but lacks additi"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "col version 2.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The l"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.10.84",
+          "quote": "admin' from source IP address 10.0.10.84 to port number 59912 using SS"
+        },
+        {
+          "kind": "user",
+          "value": "admin",
+          "quote": "ogin attempt was detected for user 'admin' from source IP address 10.0.1"
+        },
+        {
+          "kind": "quantity",
+          "value": "1",
+          "quote": "At exactly one minute past seven in the afternoon o"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At exactly one minute past seven in the afternoon on July 17, 2026, an anomalous login attempt was detected for user 'admin' from source IP address 10.0.10.84 to port number 59912 using SSH protocol version 2.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The login attempt was a brute force attack against the admin account, which is consistent with T1110 technique ID but lacks additional corroborating evidence.\n\nRecommended action: Initiate an immediate password reset for 'admin' and review recent failed authentication attempts."
+    },
+    {
+      "incident_id": 71,
+      "grounded_arm": true,
+      "seconds": 1.95,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "col version 2.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "col version 2.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The f"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.2.93",
+          "quote": "account from an IP address of 10.0.2.93 using SSH protocol version 2."
+        },
+        {
+          "kind": "quantity",
+          "value": "1",
+          "quote": "At exactly one minute past eight in the evening on"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At exactly one minute past eight in the evening on July 17, 2026, a user named Carol attempted to log into her account from an IP address of 10.0.2.93 using SSH protocol version 2.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The failed login attempt suggests a potential brute force attack, but without more evidence of multiple attempts or other indicators, the confidence level is not high.\n\nRecommended action: Monitor Carol's account for further suspicious activity and consider implementing multi-factor authentication."
+    },
+    {
+      "incident_id": 72,
+      "grounded_arm": false,
+      "seconds": 1.57,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "user",
+          "value": "Carol",
+          "quote": "On July 17, 2026, user Carol initiated Session 85 of her a"
+        },
+        {
+          "kind": "quantity",
+          "value": "85",
+          "quote": "user Carol initiated Session 85 of her account without prior activity.  MITR"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "On July 17, 2026, user Carol initiated Session 85 of her account without prior activity.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The grounded lookup did not match any known ATT&CK techniques for this incident due to the lack of specific indicators or patterns that align with a recognized methodology.\n\nRecommended action: Investigate Carol's account activity history and monitor her current session behavior."
+    },
+    {
+      "incident_id": 73,
+      "grounded_arm": false,
+      "seconds": 2.01,
+      "faithful": false,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "20:08",
+          "quote": "At precisely 20:08 on July 17, 2026, an anomalou"
+        },
+        {
+          "kind": "user",
+          "value": "admin",
+          "quote": "nt was logged indicating that user 'admin' started session number 42 of"
+        },
+        {
+          "kind": "quantity",
+          "value": "42",
+          "quote": "admin' started session number 42 of their account without any preceding or foll"
+        }
+      ],
+      "ungrounded": [
+        {
+          "kind": "time",
+          "value": "20:08",
+          "quote": "At precisely 20:08 on July 17, 2026, an anomalou"
+        }
+      ],
+      "narrative": "At precisely 20:08 on July 17, 2026, an anomalous event was logged indicating that user 'admin' started session number 42 of their account without any preceding or following events. The source IP and additional details are not provided.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The grounded lookup table did not match the incident with a known MITRE ATT&CK technique, suggesting that this could be an isolated anomaly or unrecognized behavior.\n\nRecommended action: Investigate further by examining session logs and user activity patterns for signs of unautcurated access."
+    },
+    {
+      "incident_id": 74,
+      "grounded_arm": false,
+      "seconds": 2.27,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "quantity",
+          "value": "1",
+          "quote": "At precisely one minute past midnight on July 18, an"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At precisely one minute past midnight on July 18, an anomalous event was detected wherein system manager configuration files were reloaded without a clear indication of who initiated this action or from which source IPs the request originated. This isolated incident suggests unautcurate activity that could potentially be benign but warrants further investigation due to its unusual nature.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The lack of distinct usernames or source IPs involved, along with the absence of matching ATT&CK techniques from a grounded lookup table, suggests that this incident may not be indicative of an advanced persistent threat.\n\nRecommended action: Monitor network traffic and system logs for additional suspicious activities related to configuration changes."
+    },
+    {
+      "incident_id": 75,
+      "grounded_arm": false,
+      "seconds": 1.85,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "On July 18, 2026, user 'bob' initiated Session 7 of his ac"
+        },
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "commended action: Investigate user 'bob''s account activity for any un"
+        },
+        {
+          "kind": "quantity",
+          "value": "7",
+          "quote": "user 'bob' initiated Session 7 of his account without triggering an alert o"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "On July 18, 2026, user 'bob' initiated Session 7 of his account without triggering an alert or involving multiple source IPs.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The lack of distinct usernames and source IPs involved in the incident, along with no matched ATT&CK techniques from a grounded lookup table, suggests an isolated event without clear indicators.\n\nRecommended action: Investigate user 'bob''s account activity for any unusual patterns or behaviors that could indicate compromise."
+    },
+    {
+      "incident_id": 76,
+      "grounded_arm": false,
+      "seconds": 1.6,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "03:44 AM",
+          "quote": "At precisely 03:44 AM on July 18, an anomaly was de"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At precisely 03:44 AM on July 18, an anomaly was detected within our system's configuration management logs.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The incident involved no distinct usernames or source IPs and the grounded lookup matched no ATT&CK technique, making it difficult to assess with certainty without further context.\n\nRecommended action: Perform a manual review of system manager configuration changes during this time frame."
+    },
+    {
+      "incident_id": 77,
+      "grounded_arm": true,
+      "seconds": 2.03,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "IP addresses.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "IP addresses.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The r"
+        },
+        {
+          "kind": "user",
+          "value": "carol",
+          "quote": "morning until late afternoon, user 'carol' experienced two failed login"
+        },
+        {
+          "kind": "user",
+          "value": "carol",
+          "quote": "immediate password reset for user 'carol' and review SSH2 access contro"
+        },
+        {
+          "kind": "quantity",
+          "value": "2",
+          "quote": "oon, user 'carol' experienced two failed login attempts via SSH2 proto"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "During a time window on July 18th from morning until late afternoon, user 'carol' experienced two failed login attempts via SSH2 protocols using distinct source IP addresses.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The repeated and timed nature of the events suggests a brute force attack, but without more context or additional failed attempts from different usernames/IPs it's not definitive.\n\nRecommended action: Initiate an immediate password reset for user 'carol' and review SSH2 access controls."
+    },
+    {
+      "incident_id": 78,
+      "grounded_arm": true,
+      "seconds": 1.88,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "SSH protocol.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "SSH protocol.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The e"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.10.247",
+          "quote": "min' was made from IP address 10.0.10.247 using SSH protocol.  MITRE AT"
+        },
+        {
+          "kind": "time",
+          "value": "9:03 AM",
+          "quote": "At some point on July 18th at 9:03 AM, an attempt to brute force th"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At some point on July 18th at 9:03 AM, an attempt to brute force the password for 'admin' was made from IP address 10.0.10.247 using SSH protocol.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The event is clearly a brute force attempt, but without more context or additional events it's hard to rule out other possibilities with certainty.\n\nRecommended action: Investigate the source IP and user account for further signs of compromise."
+    },
+    {
+      "incident_id": 79,
+      "grounded_arm": true,
+      "seconds": 2.14,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "er and failed.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "er and failed.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The i"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.3.113",
+          "quote": "'dave' from source IP address 10.0.3.113 attempted to log in via SSH u"
+        },
+        {
+          "kind": "time",
+          "value": "10:17 AM",
+          "quote": "At around 10:17 AM on July 18, 2026, user 'dave'"
+        },
+        {
+          "kind": "user",
+          "value": "dave",
+          "quote": "nd 10:17 AM on July 18, 2026, user 'dave' from source IP address 10.0.3"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At around 10:17 AM on July 18, 2026, user 'dave' from source IP address 10.0.3.113 attempted to log in via SSH using the credential brute-forced earlier and failed.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The incident involved a single username, source IP address with no prior suspicious activity recorded for this account or host; however, the brute-force attempt is indicative of an attack.\n\nRecommended action: Initiate further investigation into 'dave's' activities and review SSH logs to identify potential patterns."
+    },
+    {
+      "incident_id": 80,
+      "grounded_arm": true,
+      "seconds": 2.25,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "ed in failure.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "ed in failure.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The f"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.1.224",
+          "quote": "'bob' from source IP address 10.0.1.224 attempted to log in via SSH u"
+        },
+        {
+          "kind": "time",
+          "value": "10:57 AM",
+          "quote": "At around 10:57 AM on July 18, 2026, user 'bob'"
+        },
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "nd 10:57 AM on July 18, 2026, user 'bob' from source IP address 10.0.1"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At around 10:57 AM on July 18, 2026, user 'bob' from source IP address 10.0.1.224 attempted to log in via SSH using a username and password combination that resulted in failure.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The failed login attempt, along with the distinct source IP address for 'bob', suggests an intentional brute force attack against a single user account using credential access tactics.\n\nRecommended action: Initiate further investigation into bob's activities and credentials to determine if additional unauthorized attempts are being made, potentially indicating compromised login information."
+    },
+    {
+      "incident_id": 81,
+      "grounded_arm": true,
+      "seconds": 1.97,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "assword entry.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "assword entry.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The e"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.1.241",
+          "quote": "'bob' from source IP address 10.0.1.241 attempted to log in using SSH"
+        },
+        {
+          "kind": "time",
+          "value": "13:41",
+          "quote": "point on July 18th at exactly 13:41, user 'bob' from source IP ad"
+        },
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "n July 18th at exactly 13:41, user 'bob' from source IP address 10.0.1"
+        },
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "gin history and patterns from user 'bob's account."
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At some point on July 18th at exactly 13:41, user 'bob' from source IP address 10.0.1.241 attempted to log in using SSH and failed due to incorrect password entry.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The event is consistent with a brute force attack, but without more information on the number of attempts or duration it took for this single failed attempt to occur.\n\nRecommended action: Investigate further by examining login history and patterns from user 'bob's account."
+    },
+    {
+      "incident_id": 82,
+      "grounded_arm": true,
+      "seconds": 2.04,
+      "faithful": false,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "by the system.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "by the system.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The e"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.0.149",
+          "quote": "alice' from source IP address 10.0.0.149 attempted to log in via SSH u"
+        },
+        {
+          "kind": "time",
+          "value": "1:00 PM",
+          "quote": "At around 1:00 PM on July 18th, user 'alice' fr"
+        },
+        {
+          "kind": "user",
+          "value": "alice",
+          "quote": "around 1:00 PM on July 18th, user 'alice' from source IP address 10.0.0"
+        }
+      ],
+      "ungrounded": [
+        {
+          "kind": "time",
+          "value": "1:00 PM",
+          "quote": "At around 1:00 PM on July 18th, user 'alice' fr"
+        }
+      ],
+      "narrative": "At around 1:00 PM on July 18th, user 'alice' from source IP address 10.0.0.149 attempted to log in via SSH using a username and password combination that was not recognized by the system.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The event is indicative of credential access attempts, but without additional context or patterns it's difficult to determine if this is part of a broader attack campaign.\n\nRecommended action: Investigate further by checking for subsequent failed login attempts and reviewing security logs around the same timeframe."
+    },
+    {
+      "incident_id": 83,
+      "grounded_arm": false,
+      "seconds": 1.7,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "quantity",
+          "value": "1",
+          "quote": "n anomaly was detected within one minute.  MITRE ATT&CK: none matched"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At exactly 2 reloading of system manager configuration, an anomaly was detected within one minute.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The grounded lookup table did not match any known ATT&CK techniques for this incident due to lack of distinct usernames or source IPs and the singular nature of the event.\n\nRecommended action: Investigate further by examining system manager configuration changes, checking logs around the time frame for additional anomalies, and reviewing user activity if possible."
+    },
+    {
+      "incident_id": 84,
+      "grounded_arm": true,
+      "seconds": 2.01,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "iled attempts.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "iled attempts.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The e"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.0.216",
+          "quote": "alice' from source IP address 10.0.0.216 attempted to log in via SSH u"
+        },
+        {
+          "kind": "time",
+          "value": "3:02 PM",
+          "quote": "At precisely 3:02 PM on July 18th, user 'alice' fr"
+        },
+        {
+          "kind": "user",
+          "value": "alice",
+          "quote": "ecisely 3:02 PM on July 18th, user 'alice' from source IP address 10.0.0"
+        },
+        {
+          "kind": "user",
+          "value": "alice",
+          "quote": "immediate password reset for user 'alice', and review account lockout p"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At precisely 3:02 PM on July 18th, user 'alice' from source IP address 10.0.0.216 attempted to log in via SSH using the username and password combination that was previously recorded as failed attempts.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The event is a clear brute force attempt, but without additional context or evidence of system compromise it's not possible to determine the full scope of access gained.\n\nRecommended action: Initiate an immediate password reset for user 'alice', and review account lockout policies."
+    },
+    {
+      "incident_id": 85,
+      "grounded_arm": true,
+      "seconds": 2.07,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "rce technique.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "rce technique.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The a"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.1.102",
+          "quote": "'bob' from source IP address 10.0.1.102 attempted to log in via SSH u"
+        },
+        {
+          "kind": "time",
+          "value": "15:20",
+          "quote": "At precisely 15:20 on July 18th, user 'bob' from"
+        },
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "precisely 15:20 on July 18th, user 'bob' from source IP address 10.0.1"
+        },
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "ended action: Investigate the account 'bob' for any signs of unauthorized"
+        },
+        {
+          "kind": "quantity",
+          "value": "1",
+          "quote": "as made by a single user from one source IP, which is suspicious but n"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At precisely 15:20 on July 18th, user 'bob' from source IP address 10.0.1.102 attempted to log in via SSH using the credential brute force technique.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The attempt was made by a single user from one source IP, which is suspicious but not definitive without further evidence of multiple failed attempts or other anomalies.\n\nRecommended action: Investigate the account 'bob' for any signs of unauthorized access and review SSH logs for additional brute force activities."
+    },
+    {
+      "incident_id": 86,
+      "grounded_arm": true,
+      "seconds": 2.29,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "t credentials.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "t credentials.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The e"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.0.180",
+          "quote": "account from an IP address of 10.0.0.180 using SSH but was unsuccessfu"
+        },
+        {
+          "kind": "quantity",
+          "value": "1",
+          "quote": "At precisely one minute past five in the afternoon on"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At precisely one minute past five in the afternoon on July 18, 2026, a user named Alice attempted to log into her account from an IP address of 10.0.0.180 using SSH but was unsuccessful due to incorrect credentials.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The event is a clear brute force attempt, and the use of an anomalous username suggests potential credential misuse or compromise; however, without more context on frequency and success rate beyond this single failed login, confidence cannot be rated as high.\n\nRecommended action: Initiate further investigation into Alice's account activity for signs of unauthorized access attempts."
+    },
+    {
+      "incident_id": 87,
+      "grounded_arm": false,
+      "seconds": 2.27,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "16:28",
+          "quote": "At precisely 16:28 on July 18, 2026, an anomalou"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At precisely 16:28 on July 18, 2026, an anomalous event was detected wherein a system manager configuration had to be reloaded without any distinct usernames or source IPs being involved. This singular incident did not align with known MITRE ATT&CK techniques based on the grounded lookup table.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The absence of a matched technique and lack of distinct usernames or source IPs suggest an uncommon event that does not fit well-known attack patterns, resulting in low confidence without further context.\n\nRecommended action: Investigate the system manager configuration changes to determine if they were legitimate updates or potential indicators of a security issue."
+    },
+    {
+      "incident_id": 88,
+      "grounded_arm": true,
+      "seconds": 1.97,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "t credentials.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "t credentials.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The e"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.10.166",
+          "quote": "tem using SSH from IP address 10.0.10.166 by user 'admin'. The login fa"
+        },
+        {
+          "kind": "user",
+          "value": "admin",
+          "quote": "rom IP address 10.0.10.166 by user 'admin'. The login failed due to inco"
+        },
+        {
+          "kind": "quantity",
+          "value": "1",
+          "quote": "At precisely one minute past two in the afternoon on"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At precisely one minute past two in the afternoon on July 18, an attempt was made to access a system using SSH from IP address 10.0.10.166 by user 'admin'. The login failed due to incorrect credentials.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The event is a clear brute force attempt, but without more context or additional events it's not possible to rule out other potential threats with certainty.\n\nRecommended action: Investigate the source IP for any related activity and review authentication logs for further suspicious login attempts."
+    },
+    {
+      "incident_id": 89,
+      "grounded_arm": true,
+      "seconds": 1.99,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "ithin minutes.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "ithin minutes.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The r"
+        },
+        {
+          "kind": "user",
+          "value": "dave",
+          "quote": "window of time on July 18th, user 'dave' experienced two failed passwo"
+        },
+        {
+          "kind": "user",
+          "value": "dave",
+          "quote": "tiate credential rotation for user 'dave', increase monitoring on SSH2"
+        },
+        {
+          "kind": "quantity",
+          "value": "2",
+          "quote": "18th, user 'dave' experienced two failed password attempts for his acc"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "During a short window of time on July 18th, user 'dave' experienced two failed password attempts for his account via SSH2 protocol from different source IPs within minutes.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The repeated login failures and the use of a known brute force technique suggest an attempt to breach credentials, but without more context or additional failed attempts it's not definitive.\n\nRecommended action: Initiate credential rotation for user 'dave', increase monitoring on SSH2 access points, and review firewall rules."
+    },
+    {
+      "incident_id": 90,
+      "grounded_arm": true,
+      "seconds": 2.18,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "t credentials.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: M"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "t credentials.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Medium -- The e"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.10.213",
+          "quote": "admin' from source IP address 10.0.10.213 attempted to access an SSH se"
+        },
+        {
+          "kind": "quantity",
+          "value": "1",
+          "quote": "At precisely one minute past seven in the evening of"
+        },
+        {
+          "kind": "quantity",
+          "value": "53578",
+          "quote": "access an SSH service on port 53578 but failed due to incorrect credentials."
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At precisely one minute past seven in the evening of July 18, 2026, a user named 'admin' from source IP address 10.0.10.213 attempted to access an SSH service on port 53578 but failed due to incorrect credentials.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Medium -- The event shows a clear attempt at unautsofted login, which is indicative of credential access attempts; however, without further evidence or additional failed attempts, it's not definitive.\n\nRecommended action: Monitor for subsequent brute force attempts and consider implementing account lockout policies after multiple failures."
+    },
+    {
+      "incident_id": 91,
+      "grounded_arm": true,
+      "seconds": 3.32,
+      "faithful": false,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "for each user.  MITRE ATT&CK: T1110 (Brute Force), T1087 (Account"
+        },
+        {
+          "kind": "technique",
+          "value": "T1087",
+          "quote": "ATT&CK: T1110 (Brute Force), T1087 (Account Discovery).  Confide"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "for each user.  MITRE ATT&CK: T1110 (Brute Force), T1087 (Account Discovery)."
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1087: Account Discovery",
+          "quote": "ATT&CK: T1110 (Brute Force), T1087 (Account Discovery).  Confidence: High -- The seq"
+        },
+        {
+          "kind": "time",
+          "value": "20:19",
+          "quote": "en July 18th at approximately 20:19 and 20:22, an attacker attemp"
+        },
+        {
+          "kind": "time",
+          "value": "20:22",
+          "quote": "th at approximately 20:19 and 20:22, an attacker attempted to gai"
+        },
+        {
+          "kind": "quantity",
+          "value": "1",
+          "quote": "d attempts for each user from one source IP address strongly suggest c"
+        }
+      ],
+      "ungrounded": [
+        {
+          "kind": "time",
+          "value": "20:22",
+          "quote": "th at approximately 20:19 and 20:22, an attacker attempted to gai"
+        }
+      ],
+      "narrative": "Between July 18th at approximately 20:19 and 20:22, an attacker attempted to gain unaut0sec by trying different usernames on a single host from the same IP address. The attempts included 'deploy', 'oracle', 'guest', 'backup', 'test', 'postgres', 'root', and finally 'ftpuser'. All these actions were part of credential access efforts, as indicated by failed password entries for each user.\n\nMITRE ATT&CK: T1110 (Brute Force), T1087 (Account Discovery).\n\nConfidence: High -- The sequence and variety of usernames attempted to log in within a short timeframe, along with the failed password attempts for each user from one source IP address strongly suggest credential access activities.\n\nRecommended action: Initiate an immediate investigation into all accounts involved by alerting their respective owners or system administrators and consider implementing account lockout policies to mitigate further brute force attacks."
+    },
+    {
+      "incident_id": 92,
+      "grounded_arm": true,
+      "seconds": 2.02,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "technique",
+          "value": "T1110",
+          "quote": "uthentication.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: L"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "uthentication.  MITRE ATT&CK: T1110 (Brute Force).  Confidence: Low -- The even"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.0.197",
+          "quote": "alice' from source IP address 10.0.0.197 attempted to log in using SSH"
+        },
+        {
+          "kind": "time",
+          "value": "20:56",
+          "quote": "At some point on July 18th at 20:56, user 'alice' from source IP"
+        },
+        {
+          "kind": "user",
+          "value": "alice",
+          "quote": "point on July 18th at 20:56, user 'alice' from source IP address 10.0.0"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At some point on July 18th at 20:56, user 'alice' from source IP address 10.0.0.197 attempted to log in using SSH with the username and password combination that resulted in a failed authentication.\n\nMITRE ATT&CK: T1110 (Brute Force).\n\nConfidence: Low -- The event is isolated, lacks context or additional malicious activities associated with it for higher confidence assessment.\n\nRecommended action: Investigate the failed login attempt further by examining alice's account activity and reviewing security measures around password complexity requirements."
+    },
+    {
+      "incident_id": 93,
+      "grounded_arm": false,
+      "seconds": 1.75,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "quantity",
+          "value": "1",
+          "quote": "At exactly one minute past eleven PM on July 18, 20"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At exactly one minute past eleven PM on July 18, 2026, an anomalous event was logged indicating that system manager configuration was being reloaded.\n\nMITRE ATT&CK: none matched by the grounded lookup.\n\nConfidence: Low -- The incident lacks distinct usernames or source IPs and the grounded lookup table did not match any known MITRE ATT&CK techniques, making it difficult to ascertain a confident analysis.\n\nRecommended action: Investigate further by correlating this event with other system logs for additional context."
+    }
+  ]
+}

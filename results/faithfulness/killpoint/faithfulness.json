@@ -9,6 +9,10 @@
         "claims": 197,
         "ungrounded": 119
       },
+      "technique_name": {
+        "claims": 33,
+        "ungrounded": 0
+      },
       "ip": {
         "claims": 193,
         "ungrounded": 5
@@ -38,6 +42,10 @@
           "technique": {
             "claims": 90,
             "ungrounded": 12
+          },
+          "technique_name": {
+            "claims": 33,
+            "ungrounded": 0
           },
           "ip": {
             "claims": 38,
@@ -69,6 +77,10 @@
             "claims": 107,
             "ungrounded": 107
           },
+          "technique_name": {
+            "claims": 0,
+            "ungrounded": 0
+          },
           "ip": {
             "claims": 155,
             "ungrounded": 5
@@ -92,7 +104,7 @@
         }
       }
     },
-    "median_seconds": 3.6007184982299805
+    "median_seconds": 3.6
   },
   "checks": [
     {
@@ -262,6 +274,16 @@
           "quote": "targeted brute force attempt (T1110).  Recommended Next Action: T"
         },
         {
+          "kind": "technique_name",
+          "value": "T1110: Credential Access",
+          "quote": "CK Stages Progressed Through: T1110 - Credential Access followed closely by T1087 - A"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1087: Account Discovery. The",
+          "quote": "al Access followed closely by T1087 - Account Discovery. The attacker seems to have been s"
+        },
+        {
           "kind": "ip",
           "value": "198.51.100.67",
           "quote": "ntials from source IP address 198.51.100.67 between December 10th and 2:3"
@@ -356,6 +378,11 @@
           "kind": "technique",
           "value": "T1021.004",
           "quote": "ivilege Escalation as well as T1021.004 (Remote Services: SSH) for La"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1021.004: Remote Services: SSH",
+          "quote": "ivilege Escalation as well as T1021.004 (Remote Services: SSH) for Lateral Movement [Success"
         }
       ],
       "ungrounded": [],
@@ -657,6 +684,11 @@
           "quote": "e incident progresses through T1110: Brute Force - Credential Acc"
         },
         {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "e incident progresses through T1110: Brute Force - Credential Access, as it in"
+        },
+        {
           "kind": "ip",
           "value": "5.188.10.156",
           "quote": "ted to log in from IP address 5.188.10.156; this was the only anomalous"
@@ -897,6 +929,11 @@
           "quote": "thin our network environment (T1110 - Credential Access).  2. The"
         },
         {
+          "kind": "technique_name",
+          "value": "T1110: Credential Access",
+          "quote": "thin our network environment (T1110 - Credential Access).  2. The incident progresses"
+        },
+        {
           "kind": "time",
           "value": "5:21 PM",
           "quote": "1. At precisely 5:21 PM on December 13, 2015, an unau"
@@ -1044,6 +1081,11 @@
           "kind": "technique",
           "value": "T1110",
           "quote": "dent progresses through stage T1110, as it involves unautenerated"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Credential Access",
+          "quote": "tried until access is gained (T1110 - Credential Access).  2. The incident progresses"
         },
         {
           "kind": "ip",
@@ -1697,6 +1739,11 @@
           "quote": "s with MITRE ATT&CK technique T1110 (Brute Force) - Credential Ac"
         },
         {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "s with MITRE ATT&CK technique T1110 (Brute Force) - Credential Access and indic"
+        },
+        {
           "kind": "time",
           "value": "00:19:36",
           "quote": "December 17, 2015, at exactly 00:19:36, a user with username '123' a"
@@ -1771,6 +1818,16 @@
           "kind": "technique",
           "value": "T1110",
           "quote": "likely transitions into stage T1110 (Brute Force). This is eviden"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1087: Account Discovery",
+          "quote": "ent progresses through stages T1087 (Account Discovery) and then likely transitions i"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "likely transitions into stage T1110 (Brute Force). This is evident from multipl"
         },
         {
           "kind": "ip",
@@ -2541,6 +2598,11 @@
           "quote": "hrough MITRE ATT&CK technique T1110 (Brute Force), which falls un"
         },
         {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "hrough MITRE ATT&CK technique T1110 (Brute Force), which falls under Credential"
+        },
+        {
           "kind": "ip",
           "value": "202.92.128.175",
           "quote": "log in from an IP address of 202.92.128.175 and was immediately rejected"
@@ -2919,6 +2981,11 @@
           "quote": "ent progresses through stages T1078 (Valid Accounts) of MITRE ATT"
         },
         {
+          "kind": "technique_name",
+          "value": "T1078: Valid Accounts",
+          "quote": "ent progresses through stages T1078 (Valid Accounts) of MITRE ATT&CK framework whi"
+        },
+        {
           "kind": "ip",
           "value": "137.189.205.44",
           "quote": "s associated with this event (137.189.205.44). The attacker exploited the"
@@ -2993,6 +3060,11 @@
           "kind": "technique",
           "value": "T1078",
           "quote": "UTC.  MITRE ATT&CK Stage(s): T1078 (Valid Accounts) - Initial Ac"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1078: Valid Accounts",
+          "quote": "UTC.  MITRE ATT&CK Stage(s): T1078 (Valid Accounts) - Initial Access / Persistenc"
         },
         {
           "kind": "ip",
@@ -3756,6 +3828,16 @@
           "quote": "future brute force attempts (T1137 - Account Lockout), and condu"
         },
         {
+          "kind": "technique_name",
+          "value": "T1110: Credential Access",
+          "quote": "gaining unautenerated access (T1110 - Credential Access).  2. The incident progresses"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Credential Access",
+          "quote": "ials for unauthorized access (T1110 - Credential Access).  4. Recommended Next Action"
+        },
+        {
           "kind": "ip",
           "value": "185.222.209.151",
           "quote": "ia SSH from source IP address 185.222.209.151 but failed due to an incorrec"
@@ -3999,6 +4081,11 @@
           "quote": "ial lateral movement tactics (T1568 - Lateral Movement)."
         },
         {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "es through MITRE ATT&CK stage T1110 (Brute Force) - Credential Access, as it in"
+        },
+        {
           "kind": "ip",
           "value": "218.65.30.30",
           "quote": "og in as root from IP address 218.65.30.30 using the SSH protocol but fa"
@@ -4054,6 +4141,11 @@
           "kind": "technique",
           "value": "T1110",
           "quote": "ent progresses through stages T1110 (Brute Force) - Credential Ac"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "ent progresses through stages T1110 (Brute Force) - Credential Access, as it in"
         },
         {
           "kind": "ip",
@@ -4153,6 +4245,11 @@
           "quote": "e incident progresses through T1110 (Brute Force) - Credential Ac"
         },
         {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "e incident progresses through T1110 (Brute Force) - Credential Access stage of"
+        },
+        {
           "kind": "ip",
           "value": "117.52.87.214",
           "quote": "block all traffic coming from 117.52.87.214 at this source IP until furth"
@@ -4176,6 +4273,11 @@
           "kind": "technique",
           "value": "T1110",
           "quote": "ut success. (MITRE ATT&CK ID: T1110 - Credential Access)     2. T"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Credential Access",
+          "quote": "ut success. (MITRE ATT&CK ID: T1110 - Credential Access)     2. The incident progress"
         },
         {
           "kind": "ip",
@@ -4257,6 +4359,11 @@
           "kind": "technique",
           "value": "T1110",
           "quote": "ess and then transitions into T1110 (Brute Force) as it escalates"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "ess and then transitions into T1110 (Brute Force) as it escalates in intensity"
         },
         {
           "kind": "ip",
@@ -4940,6 +5047,11 @@
           "quote": "e incident progresses through T1110 - Credential Access via Brute"
         },
         {
+          "kind": "technique_name",
+          "value": "T1110: Credential Access via Brute Force",
+          "quote": "e incident progresses through T1110 - Credential Access via Brute Force technique where an attacker t"
+        },
+        {
           "kind": "ip",
           "value": "59.63.188.30",
           "quote": "sible via SSH from IP address 59.63.188.30; the attempt was unsuccessful"
@@ -5203,6 +5315,11 @@
           "quote": "nts unauthorized access where T1078 (Valid Accounts) was exploite"
         },
         {
+          "kind": "technique_name",
+          "value": "T1078: Valid Accounts",
+          "quote": "nts unauthorized access where T1078 (Valid Accounts) was exploited for Initial Acc"
+        },
+        {
           "kind": "ip",
           "value": "137.189.204.253",
           "quote": "ser named hxu from IP address 137.189.204.253 successfully logged into an S"
@@ -5236,6 +5353,11 @@
           "kind": "technique",
           "value": "T1206",
           "quote": "credential stuffing attacks (T1206 - Account Discovery). Additio"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Credential Access",
+          "quote": "entication measures in place (T1110 - Credential Access). The attacker's attempt is l"
         }
       ],
       "ungrounded": [
@@ -5303,6 +5425,16 @@
           "kind": "technique",
           "value": "T1110",
           "quote": "es through MITRE ATT&CK stage T1110 (Brute Force) - Credential Ac"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Credential Access",
+          "quote": "entication measures in place (T1110 - Credential Access). The failed attempts were ma"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1110: Brute Force",
+          "quote": "es through MITRE ATT&CK stage T1110 (Brute Force) - Credential Access as the pr"
         },
         {
           "kind": "ip",
@@ -5384,6 +5516,11 @@
           "kind": "technique",
           "value": "T1078",
           "quote": "ent progresses through stages T1078 (Valid Accounts) which covers"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1078: Valid Accounts",
+          "quote": "ent progresses through stages T1078 (Valid Accounts) which covers Initial Access a"
         },
         {
           "kind": "ip",
@@ -5529,6 +5666,11 @@
           "quote": "time.  MITRE ATT&CK Stage(s): T1078 (Valid Accounts) - Initial Ac"
         },
         {
+          "kind": "technique_name",
+          "value": "T1078: Valid Accounts",
+          "quote": "time.  MITRE ATT&CK Stage(s): T1078 (Valid Accounts) - Initial Access / Persistenc"
+        },
+        {
           "kind": "ip",
           "value": "137.189.207.18",
           "quote": "ed hxu from source IP address 137.189.207.18 successfully logged into the"
@@ -5552,6 +5694,11 @@
           "kind": "technique",
           "value": "T1078",
           "quote": "ent progresses through stages T1078 (Valid Accounts) which encomp"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1078: Valid Accounts",
+          "quote": "ent progresses through stages T1078 (Valid Accounts) which encompass Initial Acces"
         },
         {
           "kind": "ip",
@@ -5751,6 +5898,16 @@
           "quote": "for signs of compromise using T1029 (Account Discovery), review f"
         },
         {
+          "kind": "technique_name",
+          "value": "T1078: Valid Accounts",
+          "quote": "d likely malicious in nature (T1078 - Valid Accounts).     2. The incident progres"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1021.004: Remote Services",
+          "quote": "ous activities were detected (T1021.004 - Remote Services: SSH).     3. Confidence Leve"
+        },
+        {
           "kind": "ip",
           "value": "137.189.241.248",
           "quote": "sing the source IP address of 137.189.241.248 at exactly 1:43 PM; this even"
@@ -5815,6 +5972,16 @@
           "kind": "technique",
           "value": "T1078",
           "quote": "ciated with the techniques in T1078 (Valid Accounts). 4. Recommen"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1078: Valid Accounts",
+          "quote": "ent progresses through stages T1078 (Valid Accounts) which includes Initial Access"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1078: Valid Accounts",
+          "quote": "ciated with the techniques in T1078 (Valid Accounts). 4. Recommended next action f"
         },
         {
           "kind": "quantity",
@@ -5898,6 +6065,11 @@
           "quote": "ent progresses through stages T1078 (Valid Accounts) for Initial"
         },
         {
+          "kind": "technique_name",
+          "value": "T1078: Valid Accounts",
+          "quote": "ent progresses through stages T1078 (Valid Accounts) for Initial Access and Persis"
+        },
+        {
           "kind": "user",
           "value": "hxu",
           "quote": "m by using valid credentials (username 'hxu') from their own IP address an"
@@ -5926,6 +6098,11 @@
           "kind": "technique",
           "value": "T1078",
           "quote": "s per MITRE ATT&CK techniques T1078: Valid Accounts was matched t"
+        },
+        {
+          "kind": "technique_name",
+          "value": "T1078: Valid Accounts",
+          "quote": "s per MITRE ATT&CK techniques T1078: Valid Accounts was matched to the event wher"
         },
         {
           "kind": "ip",

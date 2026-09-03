@@ -118,7 +118,10 @@ def test_prompt_is_byte_identical_when_there_is_no_evidence(scored):
     from logdet.config import NARRATIVE_SENTENCE_RANGE
     from logdet.llm_narrative import summarise_incident
 
+    from logdet.llm_narrative import GROUNDED_RULE, GROUNDED_TASK
     expected = PROMPT_TEMPLATE.format(summary=summarise_incident(incident),
+                                      technique_task=GROUNDED_TASK,
+                                      technique_rule=GROUNDED_RULE,
                                       events=events_str, mitre_matches=mitre_str,
                                       sentences=NARRATIVE_SENTENCE_RANGE)
     assert build_prompt(incident) == expected

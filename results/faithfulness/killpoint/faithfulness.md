@@ -11,12 +11,14 @@ is the constraint under test.
 
 - Narratives with no ungrounded claim: **94/193**
 - **Invented technique IDs: 119** of 197 technique mentions
+- Wrong names beside a correctly-cited ID: **0** of 33 names checked
 
 ## By claim kind
 
 | kind | claims made | ungrounded | rate |
 |---|---|---|---|
 | `technique` | 197 | 119 | 60.4% (119/197) |
+| `technique_name` | 33 | 0 | 0.0% (0/33) |
 | `ip` | 193 | 5 | 2.6% (5/193) |
 | `user` | 22 | 1 | 4.5% (1/22) |
 | `time` | 142 | 34 | 23.9% (34/142) |
