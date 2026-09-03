@@ -42,6 +42,7 @@ logdet-sequence-report = "logdet_eval.sequence_report:cli"
 logdet-suppression-report = "logdet_eval.suppression_report:cli"
 logdet-bakeoff     = "logdet_eval.bakeoff:cli"
 logdet-coverage    = "logdet_eval.coverage_report:cli"
+logdet-faithfulness = "logdet_eval.faithfulness:cli"
 
 [dependency-groups]
 dev = [

@@ -188,10 +188,22 @@ positions, not timeline excuses.
 - **No auto-response / SOAR / blocking actions.** This is a deliberate product
   stance, not a scope cut: the system is decision support for an analyst. It may
   *recommend* actions. It must never take them.
-- **The LLM never invents MITRE technique IDs.** Techniques come from data
-  (lookup table, ATT&CK STIX, Sigma tags); the LLM only writes prose about matches
-  it is handed. This is the design decision that stops the headline feature from
-  being a hallucination generator. See the v1 `"nan"` incident in `docs/CLAUDE.v1.md`.
+- **Every MITRE technique the system *reports* comes from data**, never from the
+  LLM — the keyword table joined to the pinned ATT&CK STIX index, and Sigma tags.
+  `mitre_techniques`, the kill chain, the dashboard and the coverage matrix are
+  all retrieval output. This is the design decision that stops the headline
+  feature from being a hallucination generator. See the v1 `"nan"` incident in
+  `docs/CLAUDE.v1.md`.
+
+  ⚠️ **This constraint used to be written as "the LLM never invents MITRE
+  technique IDs", and that sentence was measured false on 2026-09-04.** The
+  prompt instructs the model not to, and phi3 does it anyway: **47 invented IDs
+  on the synthetic corpus and 119 on OpenSSH** (`results/faithfulness/`). The
+  architecture protects the *structured* output; the *narrative prose* was never
+  protected, because until Stage 5 nothing read it back. An instruction in a
+  prompt is not an enforcement mechanism. The constraint as restated above is
+  the part that is true and load-bearing; making it true of the prose as well is
+  what Stage 5's structured output is for.
 - **`uv` only.** Never bare `pip` or `python -m venv`.
   `uv` lives at `~/.local/bin/uv` and is not on `PATH` in non-interactive shells —
   `export PATH="$HOME/.local/bin:$PATH"` if you get `uv: command not found`.
@@ -441,7 +453,7 @@ justified building that far.
 
 > **Agent: update this section at the end of every session.**
 
-**Current stage:** Stage 4 — correlation & MITRE (Stage 2b left open, see below)
+**Current stage:** Stage 5 — LLM layer maturity (Stage 2b left open, see below; Stage 4 closed 2026-09-04)
 **Stage 1 started:** 2026-08-18 → **kill-point deadline 2026-09-15** (4 weeks, §1b)
 **Last session:** 2026-09-04 (Stage 4: **ATT&CK STIX ingest pinned at 19.2**, kill-chain mapping on every incident, and the **detection coverage matrix** — 11 techniques mapped, 1 of 86 inside ATT&CK's own syslog-visible universe, 5 never observed. Enrichment only; 751 → 130 → 94 unchanged)
 **Last commit:** _(see `git log`)_
@@ -1195,10 +1207,48 @@ justified building that far.
       evidence. The snapshot now uses the frame the batch was actually scored
       against, and evidence found once is kept when the incident grows.
 
-      **Still to do.** *Temporal decay* — components are currently window-based
-      (an edge exists or it does not), not decayed by age. *Multi-source
-      correlation* — the graph is the structure that makes it possible and
-      nothing yet feeds it a second source.
+      ⛔ **Both remaining structural items examined and declined, 2026-09-04**
+      (`results/correlation/notes.md`). Neither passes §1's test.
+
+      **Temporal decay on edges is a reparametrisation of the window, not a
+      feature.** Grouping needs a hard partition, so a decayed weight has to be
+      thresholded — and for any monotone decay `w(gap)` and threshold `t`,
+      "edge exists iff `w(gap) >= t`" is exactly "edge exists iff
+      `gap <= w⁻¹(t)`", i.e. a plain window of that size. Identical partition
+      to `INCIDENT_WINDOW_MINUTES`, at the cost of the full §4 suite. It would
+      only be real if something consumed a *continuous* weight, and the one
+      candidate consumer — suppression's loneness guard — was measured and
+      rejected in both variants the day before, for a reason decay cannot
+      touch: the attack lines suppression costs have no benign traffic around
+      them at all, recent or old.
+
+      **Multi-source correlation has almost nothing to correlate.**
+      `data/external/Linux.log` is the only real corpus here with multi-service
+      auth on one host — 9,666 auth events across sshd (5,009), ftpd (3,453),
+      su (944), telnetd (179), klogind (50), login (31). Cross-service links
+      inside the 30-minute window, using exactly the condition
+      `EntityGraph.edges` tests:
+
+      | join key | links | on what |
+      |---|---|---|
+      | `source_ip` | **2** | one IP, ftpd ↔ klogind |
+      | `user` | 70 | **all 70 on `root`** |
+
+      Corpus-wide and ignoring the window: **1 source IP of 331** and 2 users
+      of 14 appear in more than one service. `ftpd` and `telnetd` carry no
+      username the parser can lift at all. And the user column is worse than it
+      looks — every one of the 70 links is `root`, the account every service
+      names, which is the same "an entity every event shares carries no
+      information" failure the graph already refuses for host and process.
+      Fed a second source, the graph would find **one** genuine cross-service
+      link in 9,666 events; anything measurable would have to be an attack we
+      authored and planted across two logs.
+
+      The structure to support it already exists (`ENTITY_COLUMNS` carries host
+      and process as nodes). What is missing is a corpus, not code — so this
+      belongs at **Stage 6** (§2d's Kali runner produces real cross-source
+      traffic with ground truth captured at generation time) and **Stage 7**
+      (ECS normalisation). **Stage 4 is closed.**
 
       ✅ **ATT&CK STIX ingest, tactic/kill-chain mapping and the detection
       coverage matrix — done 2026-09-04.** `logdet/attack.py` fetches the
@@ -1333,11 +1383,83 @@ justified building that far.
       neighbourhood counts stay as an instrument. `SUPPRESSION_LONENESS` stays
       `"incident"`, pinned by a test. 573 tests pass (`-m "not slow"`), and both
       pinned regression locks — batch and streamed 751 → 130 → 94 — stay green.
-- [ ] **Stage 5 — LLM layer maturity.** Structured JSON output instead of free prose;
-      model routing (small/fast for triage lines, larger for full narratives); retrieval
-      over ATT&CK text; and **automated faithfulness evaluation** — does every claim in a
-      narrative trace to a logged event? The anti-hallucination architecture is currently
-      asserted and untested.
+- [ ] **Stage 5 — LLM layer maturity.** ▶ *in progress, started 2026-09-04.*
+
+      ✅ **Automated faithfulness evaluation — `logdet-faithfulness`,
+      `results/faithfulness/`.** The first measurement of the claim §2 makes.
+      Every narrative is checked against **the exact prompt that produced it**;
+      a claim is grounded when the thing it names is in that prompt. Five claim
+      kinds are extractable deterministically — `technique`, `ip`, `user`,
+      `time`, `quantity` — plus a hard regression on the literal token `nan`.
+      **No LLM judge**, deliberately: one would put an unmeasured model inside
+      the measurement.
+
+      **The control arm is free and it is the deployed system.** 41 of 94
+      synthetic incidents and **150 of 193** OpenSSH incidents match no
+      technique, so their prompt carries the *"No known technique matched"*
+      fallback and **any** technique ID in their narrative is invented by
+      definition. Without that split, a low invention rate could not be told
+      apart from a model that simply copies what it is handed.
+
+      ⛔ **The headline is a failed constraint.** §2 said *"the LLM never
+      invents MITRE technique IDs"*. phi3 does:
+
+      | | synthetic (94) | kill-point OpenSSH (193) |
+      |---|---|---|
+      | Fully faithful narratives | 57/94 | 94/193 |
+      | Technique mentions | 142 | 197 |
+      | **...invented** | **47 (33.1%)** | **119 (60.4%)** |
+      | invented, handed ≥1 technique | 23/118 (19%) | 12/90 (13%) |
+      | invented, handed none (control) | **24/24 (100%)** | **107/107 (100%)** |
+      | `nan` leaks | **0** | **0** |
+
+      **Grounding helps and does not suffice**, and the failure concentrates
+      where the detector has least to say: handed a technique list phi3 mostly
+      stays inside it, handed none it fills the hole every time. All 24 distinct
+      invented IDs on the synthetic corpus are **real ATT&CK identifiers**
+      (checked against the pinned 19.2 bundle), **6 of them revoked or
+      deprecated** — exactly what `attack.py` refuses to carry — and several
+      impossible on an sshd log (T1047 WMI, T1207 Rogue Domain Controller). The
+      names are often wrong too: *"T1567 - Failed Authentication"* (it is
+      Exfiltration Over Web Service).
+
+      **The worst failures are not technique IDs.** Seven narratives across the
+      two corpora fabricate an entire **incident summary block in the voice of
+      the system** — incident 7 was one event at 08:21:00 with no user and no
+      IP, and its narrative opens *"Incident summary: - 10 anomalous events from
+      2026-07-14 08:59:30 ... Distinct source IPs (2): [192.168.1.10, ...]"*.
+      That is the failure that would survive a demo unchallenged.
+
+      **What held**: `nan` never appeared on either corpus (first evidence, not
+      assertion, that `_field` works); IPs invented 1/61 and 5/193; no
+      misattribution to a real account.
+
+      **The checker's own precision was measured before its output was quoted.**
+      phi3 rewrites 13:38 as "1:38 PM", which is a correct restatement — before
+      that was handled the `time` column read **57.3%** ungrounded on synthetic
+      and it now reads 10.8%. The user check trades recall for precision (a name
+      counts only when quoted or when the corpus contains it, because prose puts
+      English words in username position constantly); a stopword list was tried
+      first and measured failing on the first three real narratives. Both limits
+      are stated in `results/faithfulness/notes.md`.
+
+      **`--rescore` re-checks saved narratives without calling the model**, so
+      fixing an extraction rule costs nothing and cannot change the narratives
+      under itself. 28 new tests, most asserting a *planted* hallucination is
+      caught; 634 pass (`-m "not slow"`), plus both pinned regression locks. §4 did not apply — nothing here
+      touches detection, grouping or scoring.
+
+      Next: **structured JSON output**, with the technique field validated
+      against the grounded list and a rejected value dropped rather than
+      printed — the only fix the data supports, since an instruction in a prompt
+      is not an enforcement. Two cheaper follow-ons worth measuring with this
+      harness first: reword the empty-match prompt so "no technique applies" is
+      stated as the correct answer, and check the technique *name* against the
+      bundle as well as the ID.
+
+      Still to do: structured JSON output instead of free prose;
+      model routing (small/fast for triage lines, larger for full narratives);
+      retrieval over ATT&CK text.
 - [ ] **Stage 6 — Adversarial platform.** ⭐ *The differentiator.* More strategies; an
       **adaptive adversary** that queries the detector and optimises against it (far
       stronger than v1's seven fixed transformations); **Kali-generated authentic
@@ -1356,6 +1478,15 @@ justified building that far.
   `realistic-combo` 91%→87%. Contamination is not the lever. Sequence modelling
   (Stage 3) is the real fix. Untried cheap wins: suppress singleton incidents with no
   MITRE match, recalibrate `SEVERITY_THRESHOLDS`.
+- **The narrative prose invents MITRE technique IDs — 33% of technique mentions
+  on the synthetic corpus, 60% on OpenSSH** (`results/faithfulness/`, measured
+  2026-09-04). The *structured* output is grounded and stays grounded; only the
+  free text is affected, and only because nothing read it back until Stage 5.
+  All invented IDs are real ATT&CK identifiers, several revoked or deprecated,
+  which makes them harder to spot than a fabricated string. **Do not quote a
+  narrative's technique IDs in a demo or write-up — quote `mitre_techniques`.**
+  Seven narratives also fabricate an entire incident summary block in the
+  system's own voice. Fix is Stage 5's structured output.
 - **Scenario B (impossible travel) is detected entirely by the hand-written rule** —
   the embeddings contribute nothing, because both login legs are identical vectors after
   IP masking. Never claim "embedding-based detection catches impossible travel."
@@ -1744,6 +1875,15 @@ uv run logdet-attack --refresh                    # rebuild after bumping ATTACK
 # Detection coverage matrix (~30s: parses both corpora, no embeddings)
 uv run logdet-coverage --incidents data/processed/incidents.json
 uv run logdet-coverage --openssh-limit 50000      # quicker pass while iterating
+# Why Stage 4's two remaining structural items were declined (~10s, no models)
+uv run python results/correlation/cross_source_overlap.py
+
+# Stage 5 (narrative faithfulness). Needs Ollama; ~4s per incident on the 4060.
+uv run logdet-faithfulness                        # synthetic corpus, all 94
+uv run logdet-faithfulness --limit 5              # quick pass while iterating
+uv run logdet-faithfulness --narrate-policy       # only what the pipeline narrates
+uv run logdet-faithfulness --input data/processed/killpoint/parsed.csv \
+     --output results/faithfulness/killpoint
 
 # Stage 2b (the bake-off). Wazuh must be up; logdet-api is started by the runner.
 uv run logdet-bakeoff --benign-only --duration 60 --output results/bakeoff/act1_benign
@@ -1830,3 +1970,5 @@ The frozen demo folder deliberately commits it instead — do not copy that choi
 | 2026-09-03 | **Grouping moved onto an entity graph, and the move was made a verified no-op rather than an improvement.** The first thing the retained structure buys is evidence: an impossible-travel incident now carries the benign login it was compared against, kept structurally out of the flagged set | The tempting version of Stage 4 is to build the graph *and* change what it groups, and it would have been unfalsifiable: incident count is one of the four numbers §4 asks for, so a grouping change and a structural change landing together leaves no way to say which moved it. So the link rule is untouched and the partition is asserted to be the old partition — the pre-Stage-4 pairwise scan is kept in the test file as an oracle and compared on 24 randomised frames, a transitive chain, and the two pinned corpora. The equivalence is exact rather than empirical, and the argument is worth recording because it is also why the graph is faster: two events on one entity that are within the window have every intermediate gap within the window too, so chaining an entity's events consecutively connects exactly what the all-pairs scan connected, at O(events) per entity instead of O(events²). Host and process are recorded as nodes but are **not** grouping links, and that is not caution — LogHub OpenSSH is one host running one process, so a host edge merges all 655,147 lines into a single incident; an entity every event shares carries no information about which events belong together. What the structure makes askable is the point of keeping it. Union-find only ever held the *flagged* rows, so "this alert is alone" could not distinguish an IP seen once from a busy known host that also logged one odd line, and `neighbours`/`degree` now answer that over the whole frame — which is the guard doing the safety work in suppression (Decision Log 2026-09-03, first entry) and the honest lever for pushing it harder, in place of the threshold that has already been measured and rejected. The first *consumption* is deliberately the one that moves no number: the travel check compares a login with that user's previous login, the previous login is benign, so it was flagged nowhere, grouped nowhere and shown nowhere, and the incident asserted "impossible travel" while displaying one of the two logins the conclusion is about — the least defensible thing an analyst can be handed, and a Known Issue since v1. It is retrieved by a graph query and carried in `context_events`. **Evidence must not become a detection, and the separation is structural rather than promised**: `context_events` is not `events`, so it cannot reach `event_count`, severity, triage, or the bake-off's `ours_flagged`, which walks `events` — putting a benign line there would have converted a display fix into a false positive nobody would have looked for. The prompt is byte-identical when there is no evidence, so the 592-token narration-latency baseline (§2c) still compares. §4 was satisfied by verification, not by re-running the suite: 751 → 130 → 94 in batch and in the stream, all 94 incident entries identical on every pre-existing field, `is_anomaly` untouched. One defect surfaced only because the live check was run rather than trusted — the stream carried evidence on 1 of 3 travel incidents, because `_remember` prunes history relative to the newest line *after* scoring, so a micro-batch spanning more than the retention window drops the compared-against login in the same call that detects the hit; the snapshot now uses the frame the batch was actually scored against, and evidence found once survives a later update to the same incident. 574 tests pass (1 skipped) |
 | 2026-09-04 | **Graph loneness for suppression: built, measured on the full §4 suite, and rejected. The shipped test stays. The reason it fails is the finding — the attack lines suppression costs are genuinely isolated, so seeing the benign traffic around an alert cannot protect them** | This was the question the entity graph was retained for. The 2026-09-03 measurement had established that loneness is the guard doing the *safety* work in suppression while the surprisal is only selectivity (among flagged rows the surprisal separates attack from benign at AUC 0.278 on the synthetic corpus, i.e. backwards), and that the honest lever for pushing suppression harder is therefore a better loneness test rather than a looser threshold, q0.99 having already been measured and rejected. Union-find could only see the flagged rows, so "this alert is alone" could not distinguish an unknown IP appearing exactly once from a busy known host that also logged one odd line; `EntityGraph.neighbours` answers that over the whole frame. Two tests were built either side of the shipped one and both were run through the entire section 4 suite — both clean corpora plus nine camouflage conditions over five seeds — because this guard clears `is_anomaly`. **`quiet`** (lone only when nothing at all shares the line's user or source IP inside the window) is **strictly dominated**: it removes the *same* attack lines as the shipped test, 8 on `slow` and 6 on `realistic-combo`, while suppressing fewer benign ones, so alert volume goes back up (626 → 632 incidents on `slow`, 497 → 503 on `baseline`) and nothing is bought. That is the result worth recording, because it refutes the reasoning the work was started on: the lines suppression costs are lone in the strongest sense already — on the timing-spread conditions there is no benign traffic around the alert either — so a stricter isolation test has nothing to grip. **`share@0.50`** (lone when the flagged share of the neighbourhood is at or below 0.5, i.e. a line grouping corroborates is still called lone when its entity is overwhelmingly benign) fails the other way and fails in the shape this project has now seen three times. On clean data it is the best-looking arm — kill-point OpenSSH 147 → 142 incidents and precision 0.248 → 0.260 with recall untouched at 0.570 — and under camouflage it has **identical incident counts to the shipped test on all nine conditions** while removing one attack line on `temporal` and one on `volume`, two conditions that previously cost zero (line rates 0.858 → 0.854 and 0.847 → 0.841). The clean corpora also show the mechanism directly: raising the share triples the attack lines admitted into the eligible pool, 3 → 9, leaving only the weak guard holding them back. That is the 2026-08-16 contamination lesson and the 2026-09-03 q0.99 lesson a third time, now on the guard rather than the threshold, and it is why both arms were run rather than only the one expected to win. Instance detection, the registered metric, is unchanged on every arm and every condition (100% except `slow` 80.0%, `ip_rotate` 84.4%, `realistic-combo` 91.1%), so nothing moved it in either direction and the rejection rests on evidence retained and alert volume — the two columns a `+0.0pt` row hides. What the graph did earn is an equivalence check rather than a gain: `share@0.00` reproduces `incident` exactly on both real corpora (84 of 84 lone rows and 4 suppressed on synthetic, 158 of 158 and 47 on the kill-point corpus), so the graph query and the grouper's own components agree outside the unit test that asserts it, and the neighbourhood counts stay in the module as a measurement instrument. Three smaller decisions are recorded in code. The loneness sweep runs at the *adopted* threshold only, because crossing it with the quantile sweep would move two knobs at once and the threshold is already settled. `share` above 0 is applied in **one pass against the pre-suppression grouping**, deliberately: it can withdraw a row from a multi-row incident, which can leave another row alone, and iterating would let suppression eat a whole incident one line at a time — precisely the failure the loneness guard exists to prevent (under `incident` and `quiet` one pass is exact rather than a choice, since removing a singleton cannot change any other incident's membership). And `SUPPRESSION_LONENESS` is pinned by a test at `"incident"`, so changing it is a deliberate edit with a failing test attached, the same protection the suppression default already had. The interpretation lives in `results/suppression/loneness/notes.md` rather than in a generator, following the bake-off precedent — a generator that writes conclusions is scripting the narrative |
 | 2026-09-04 | **ATT&CK technique metadata comes from the pinned STIX bundle, not from the author; the keyword table survives because STIX has nothing to replace it with. The coverage matrix's denominator is computed from ATT&CK's own detection strategies, and reported twice** | The enrichment layer was the last place in the project where the author was still the authority on a third-party fact: every technique name and tactic in `mitre_mapping.py` was hand-typed, which is exactly the objection §1b removed from the rule baseline. It had already drifted, and the drift is the evidence rather than the worry — ATT&CK 19 renamed T1070's tactic from Defense Evasion to **Stealth**, T1078 carries **four** tactics where two were typed, and T1021.004 is a sub-technique whose STIX name is the bare `SSH`. So names, tactics, kill-chain position, deprecation status and declared log sources now come from Enterprise ATT&CK **19.2**, pinned by version and verified by SHA-256. What STIX cannot supply is the part people assume it can: **there are no keywords for log lines in ATT&CK**, so "ingest the bundle instead of the hand-written table" is not literally possible, and the honest form of the change is a split — *authored*: which message means which technique ID; *ATT&CK*: what that ID is. `MITRE_LOOKUP` now holds keywords and a join key, and a test fails if a name or tactic is typed back into it. Two deployment decisions follow from the local-first constraint. The 54MB bundle is **not** what the pipeline reads: a ~10KB projection of it is **committed** (`src/logdet/data/attack_index.json`), so an incident's technique description is deterministic, works with no network, and a version bump arrives as a reviewable diff rather than as results quietly changing under a `latest` URL. And the index builder **refuses** an ID ATT&CK does not carry, or has revoked or deprecated — an incident citing a withdrawn technique is a wrong answer delivered with a citation, which is worse than no citation. §4 did not apply and that was verified rather than argued: `is_anomaly`, grouping and severity are untouched, 751 → 130 → 94 holds in batch and in the stream, and all 94 incident entries are identical on every pre-existing field with identical technique-ID sets — the only movement is T1078's tactic string widening and the new `kill_chain` field. One measurement note: the prompt for an incident carrying T1078 grows 33 characters (~8 tokens), so §2c's 592-token smoke incident is now ~600. As for the coverage matrix, its whole difficulty is the denominator, because a coverage figure over a denominator the author picked measures nothing. It is computed by walking ATT&CK's own `detects` relationships to detection strategies, then to their analytics, then to the log sources those analytics name — a technique is visible when ATT&CK itself says it is detectable from a log source we read. That produces an **uncomfortable and therefore useful** result: **1 of 86** strictly-visible techniques mapped, and **9 of our 11 outside the universe entirely**, because ATT&CK's Linux analytic for T1110 Brute Force is `auditd:USER_LOGIN` rather than syslog. Both denominators are printed and never merged — strict is ATT&CK's, wider (adding auditd's authentication events) is an authored claim about *events* rather than files, and merging them would be choosing the answer. The third column is the one that bites hardest: **5 of 11 mapped techniques have never fired on either corpus**, their keywords (`scp`, `wget`, `crontab`, `useradd`, `shred`) describing traffic an sshd auth log does not contain, so counting them as coverage counts decoration. The report also states what it does **not** measure — it counts matches, not true positives, and enrichment precision needs technique-level ground truth no corpus here has. Interpretation lives in `results/coverage/notes.md` rather than in the generator, following the bake-off precedent |
+| 2026-09-04 | **Stage 4's two remaining structural items were examined and declined rather than built, and the reason each fails is a measurement rather than a preference. Stage 4 is closed** | Both items were carried in the tracker as "still to do", which reads as work outstanding; neither survives contact with what can actually be measured here, and recording *why* is worth more than the code would have been. **Temporal decay on graph edges is a reparametrisation of the window, not a feature.** Grouping consumes edges through `components()`, which needs a hard partition, so any decayed weight has to be thresholded -- and for any monotone decreasing `w(gap)` and threshold `t`, "edge exists iff `w(gap) >= t`" is exactly "edge exists iff `gap <= w^-1(t)`", i.e. a plain window of that size. The partition is bit-identical to the one `INCIDENT_WINDOW_MINUTES` already produces, and landing it would cost the full section 4 suite because incident count is one of the four numbers section 4 asks for. It becomes a real feature only if something consumes a *continuous* weight, and the codebase has exactly one candidate consumer: suppression's loneness guard. That was measured the previous day in both graph variants and both were rejected, `quiet` being *strictly dominated* -- and the reason it failed is the reason decay cannot rescue it. The attack lines suppression costs (8 on `slow`, 6 on `realistic-combo`) are lone in the strongest sense already: on the timing-spread conditions there is no benign traffic around the alert at all, so a guard that weights neighbours by recency has the same nothing to weigh. **Multi-source correlation has almost nothing to correlate, and that was measured before the plumbing was written.** `data/external/Linux.log` is the only real corpus available here with genuine multi-service auth on one host (`combo`): 9,666 auth events across sshd 5,009, ftpd 3,453, su 944, telnetd 179, klogind 50, login 31, parsed by this project's own `LineParser`. Applying exactly the condition `EntityGraph.edges` tests -- two events from *different* services sharing a user or source IP inside the 30-minute incident window -- yields **2** links on `source_ip` (one IP, ftpd/klogind) and 70 on `user`, of which **all 70 are `root`**. Corpus-wide, ignoring the window entirely, **1 source IP of 331** and 2 users of 14 appear in more than one service, and ftpd and telnetd carry no username the parser can lift at all. The user column is worse than it looks rather than better: `root` is the account every service names, so joining services on it is the same failure `entity_graph` already refuses for host and process -- an entity every event shares carries no information about which events belong together. It is a legitimate join key *within* one service (a root brute force is a real attack), which is why this is a finding about cross-source joining and not a bug in `normalise_identity`. So the graph fed a second source would find **one** genuine cross-service link in 9,666 events, and any measurable cross-source correlation would have to come from an attack we authored and planted across two logs -- a correlation the author planted, found by the author's grouper, scored against the author's ground truth, which is the trap section 1b and section 8 exist to keep out of this project's claims. The structure is already there (`ENTITY_COLUMNS` carries host and process as nodes); what is missing is a corpus, not code, so it belongs at Stage 6 where section 2d's Kali runner produces real cross-source traffic with ground truth captured at generation time, and Stage 7 where ECS gives more than one source a common schema. The measurement is reproducible (`results/correlation/cross_source_overlap.py`, ~10s, no models) and the reading lives in `results/correlation/notes.md` rather than in a generator, following the bake-off precedent. Nothing here touched detection, grouping or scoring, so section 4 did not apply |
+| 2026-09-04 | **Narrative faithfulness measured for the first time, and it failed a hard constraint: phi3 invents MITRE technique IDs in 33% of technique mentions on the synthetic corpus and 60% on OpenSSH. The constraint in section 2 was rewritten to say what is actually true rather than softened, and the checker's own precision was measured before its output was quoted** | Section 2 has said since v1 that *"the LLM never invents MITRE technique IDs"*, and section 8 lists letting it do so as an anti-goal, but the evidence for the claim was that nobody had seen it break since the v1 `"nan"` incident -- which is not a measurement, and is exactly the kind of asserted property this project's benchmark discipline exists to distrust. Measured on both corpora with every narrative checked against the exact prompt that produced it, the claim is false: **47 invented IDs on the synthetic corpus and 119 on OpenSSH**, in 33 of 94 and 87 of 193 narratives. The precise split matters and is now written into section 2 rather than around it: the *retrieval* is grounded and always was -- `mitre_techniques`, the kill chain, the dashboard and the coverage matrix are all `mitre_mapping` output joined to the pinned ATT&CK index, and `attack.py` refuses revoked or deprecated IDs -- while the *prose* was never protected by anything but a sentence in the prompt saying "do not invent new ones". An instruction is not an enforcement mechanism, and a 3.8B model does not treat it as one. The design decision stands; the sentence describing it was wrong and is corrected, with a Known Issue saying plainly that a demo must quote `mitre_techniques` and never a narrative's IDs. **The control arm was free and is the deployed system, which is why the result can be read at all.** 41 of 94 synthetic and 150 of 193 OpenSSH incidents match no technique, so their prompt carries the "No known technique matched" fallback and every technique ID in their narrative is invented by definition -- 24/24 and 107/107. Against 19% and 13% in the arm that was handed a list. So grounding genuinely reduces invention and does not prevent it, and the failure concentrates exactly where the detector has least to say, which is the opposite of what a reader wants. Without that split a low rate would not have distinguished "the grounding works" from "the model copies what it is given", and building an ablation would have cost a second run; the deployed fallback is both cheaper and more honest. Three findings sharpen it. All 24 distinct invented IDs on the synthetic corpus are **real ATT&CK identifiers**, checked against the pinned 19.2 bundle -- **6 revoked or deprecated**, precisely what the index builder refuses to carry -- so they are harder to catch than fabricated strings, and several are impossible on an sshd log (T1047 WMI, T1207 Rogue Domain Controller, T1538 Cloud Service Dashboard). The names are often wrong beside the right ID (*"T1567 - Failed Authentication"*; T1567 is Exfiltration Over Web Service), which a reader checking the ID would find contradicted. And the worst failures are not techniques at all: seven narratives fabricate an **entire incident summary block in the voice of the system** -- incident 7 was one event at 08:21:00 with no user and no source IP, and its narrative opens with "10 anomalous events" and two RFC1918 source IPs. That reads like tool output rather than prose and would survive a demo unchallenged. Two method decisions are recorded because each would otherwise be a silent way to report a nicer number. **No LLM judge**: judging whether a *story* is faithful needs one, and it would put an unmeasured model inside the measurement, so the harness checks only entities that can be extracted deterministically and the report states in its own text that entity groundedness is a floor rather than proof of correctness. **The checker's precision was measured before its output was quoted**, and it was wrong twice: phi3 rewrites 13:38 as "1:38 PM", a correct restatement that read as invention and put the `time` column at 57.3% ungrounded until it was handled (now 10.8%); and a stopword list for username claims was measured failing on the first three real narratives ("the user attempted", "account discovery") and was replaced by a plausibility rule -- a name counts as a claim only when quoted or when the corpus contains it -- which trades recall for precision deliberately, because a user check with false positives pollutes every other figure in the report. `--rescore` re-checks saved narratives without calling the model, so fixing an extraction rule costs nothing and, more importantly, cannot regenerate the narratives under the fix and make before and after uncomparable. Section 4 did not apply -- nothing here touches detection, grouping or scoring -- and the interpretation lives in `results/faithfulness/notes.md` rather than in the generator, following the bake-off precedent. The fix the data supports is Stage 5's structured output with the technique field validated against the grounded list; two cheaper things are worth measuring with this harness first, rewording the empty-match prompt so that "no technique applies" is stated as the correct answer, and checking the technique name against the bundle as well as the ID |
