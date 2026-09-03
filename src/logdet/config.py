@@ -31,6 +31,67 @@ DRAIN_MAX_CLUSTERS = None     # None = unbounded. A bound turns the cluster tabl
                               # break any model keyed on the id.
 DRAIN_PARAMETRIZE_NUMERIC = True   # treat a bare numeric token as a parameter
 
+# --- Sequence model over template IDs (Stage 3) ---
+# Learns how often one template follows another for the same actor, and reports
+# the surprisal of each observed transition. It re-ranks and re-tiers; it never
+# decides `is_anomaly` -- a template ID is a discrete symbol, so keying
+# detection on it would rebuild the signature brittleness that `rephrase`
+# camouflage exploits, and that win is the whole kill-point result.
+SEQUENCE_KEYS = ("user", "source_ip")
+                              # In precedence order: the user key scores a row
+                              # if it can, and source IP only fills rows it
+                              # cannot (enumeration varies the username on every
+                              # line, so there is no user sequence to follow).
+                              # What the measurement supports is the *ranking of
+                              # the keys*, not the combining rule: user alone
+                              # separates attack from benign at AUC 0.851
+                              # (synthetic) and 0.958 (kill-point OpenSSH),
+                              # source IP alone at 0.230 and 0.758. Precedence
+                              # and taking the maximum are a wash -- 0.856 vs
+                              # 0.852 and 0.912 vs 0.923, each winning one
+                              # corpus by about a point -- so precedence is kept
+                              # for being the simpler rule to reason about, not
+                              # because it measured better. Both combine forms
+                              # score more rows (517 and 1175) than the user key
+                              # alone (509 and 660): the fallback buys coverage
+                              # at lower quality, which is why pooled AUC sits
+                              # below user-alone on the kill-point corpus.
+SEQUENCE_SMOOTHING = 0.5      # Laplace alpha. Above 0 so an unseen transition
+                              # scores high but finite; a zero-probability
+                              # transition would make surprisal infinite and
+                              # every comparison between rare events collapse.
+
+# Whether the surprisal is allowed to shift a row's severity tier. **Off, on
+# measurement.** The signal itself is good -- fitted on a clean history slice it
+# separates attack from benign lines at AUC 0.899-0.958 (results/sequence/) --
+# but the severity tier is the wrong place to spend it, because an incident
+# takes the *highest* tier of any line in it (anomaly_detection.highest_severity).
+# Demotion is therefore washed out: an incident keeps its tier as long as one
+# line keeps it, and on the synthetic corpus demote-only is an exact no-op.
+# Promotion is worse than useless: one promoted line lifts a whole incident, so
+# the notable set grew 19 -> 49 on the synthetic corpus and 72 -> 83 on the
+# kill-point corpus, and the rank an analyst must read down to see every attack
+# grew 16 -> 30 and 65 -> 74. Both directions measured, both recorded, neither
+# adopted. The column is still computed so the next consumption point -- one
+# that can remove alerts rather than reorder them -- has it to work with.
+# Where the signal IS spent: as the last tiebreaker in logdet/triage.py, after
+# event count and severity. That leaves precision@5/@10/@20 untouched and
+# brings full coverage of the synthetic corpus's 9 attack instances forward
+# from rank 16 to rank 12.
+SEQUENCE_SEVERITY_SHIFT = False
+
+# Surprisal bands used only to adjust the severity tier, expressed as
+# quantiles of the model's OWN fit data rather than as absolute nats. A nats
+# threshold is a property of one corpus -- measured on the synthetic set the
+# whole defined range is 0.1 to 4.2, so a plausible-sounding "5.0 = rare" never
+# fires and "1.0 = routine" happens to sit on the median. A quantile is a
+# policy ("rarer than 90% of ordinary traffic") and travels between corpora,
+# so the model records the nats values at fit time and carries them.
+SEQUENCE_ROUTINE_QUANTILE = 0.50   # at or below the median transition for this
+                                   # corpus: ordinary, demote a flagged line
+SEQUENCE_RARE_QUANTILE = 0.90      # rarer than 90% of fitted transitions:
+                                   # promote
+
 # --- Anomaly detection ---
 CONTAMINATION = 0.20          # tuned in Phase 3 against synthetic ground truth --
                                # see Decision Log: 0.05 gave P=0.62/R=0.36, 0.20 gave
@@ -113,6 +174,11 @@ DEFAULT_DETECTOR_PATH = str(PROJECT_ROOT / "models" / "detector.joblib")
 # template ids and the miner that numbered those templates have to travel
 # together or the model scores against a silently renumbered vocabulary.
 DEFAULT_TEMPLATE_STATE_PATH = str(PROJECT_ROOT / "models" / "drain3_state.json")
+
+# Transition model over those template ids. Written by `logdet-fit --drain3`
+# and carried alongside the miner state it was numbered against -- loading one
+# without the other scores transitions under the wrong templates.
+DEFAULT_SEQUENCE_MODEL_PATH = str(PROJECT_ROOT / "models" / "sequence_model.json")
 
 # --- Streaming ingestion (Stage 2) ---
 # A micro-batch closes on whichever limit is reached first: enough lines, or

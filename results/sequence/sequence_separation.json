@@ -1,0 +1,167 @@
+{
+  "corpus": {
+    "log": "data/raw/synthetic.log",
+    "rows": 751,
+    "attack_lines": 45,
+    "templates_mined": 14
+  },
+  "fit_source": {
+    "whole_corpus": {
+      "fitted_rows": 751,
+      "vocabulary": 14,
+      "rows": 751,
+      "rows_scored": 523,
+      "unknown_template_rate": 0.0,
+      "attack_lines_scored": 42,
+      "benign_lines_scored": 481,
+      "routine_threshold": 1.015,
+      "rare_threshold": 1.917,
+      "auc": 0.692,
+      "attack_median": 1.34,
+      "benign_median": 0.981,
+      "attack_p90": 2.274,
+      "benign_p90": 1.856
+    },
+    "benign_only": {
+      "fitted_rows": 706,
+      "vocabulary": 10,
+      "rows": 751,
+      "rows_scored": 517,
+      "unknown_template_rate": 0.008,
+      "attack_lines_scored": 36,
+      "benign_lines_scored": 481,
+      "routine_threshold": 0.934,
+      "rare_threshold": 1.766,
+      "auc": 0.856,
+      "attack_median": 1.885,
+      "benign_median": 0.934,
+      "attack_p90": 2.303,
+      "benign_p90": 1.792
+    }
+  },
+  "sequence_keys": {
+    "user": {
+      "fitted_rows": 706,
+      "vocabulary": 10,
+      "rows": 751,
+      "rows_scored": 509,
+      "unknown_template_rate": 0.008,
+      "attack_lines_scored": 28,
+      "benign_lines_scored": 481,
+      "routine_threshold": 0.934,
+      "rare_threshold": 1.766,
+      "auc": 0.851,
+      "attack_median": 2.098,
+      "benign_median": 0.934,
+      "attack_p90": 2.819,
+      "benign_p90": 1.792
+    },
+    "source_ip": {
+      "fitted_rows": 706,
+      "vocabulary": 10,
+      "rows": 751,
+      "rows_scored": 42,
+      "unknown_template_rate": 0.008,
+      "attack_lines_scored": 27,
+      "benign_lines_scored": 15,
+      "routine_threshold": 1.386,
+      "rare_threshold": 1.386,
+      "auc": 0.23,
+      "attack_median": 1.163,
+      "benign_median": 1.386,
+      "attack_p90": 1.367,
+      "benign_p90": 1.386
+    },
+    "user+source_ip": {
+      "fitted_rows": 706,
+      "vocabulary": 10,
+      "rows": 751,
+      "rows_scored": 517,
+      "unknown_template_rate": 0.008,
+      "attack_lines_scored": 36,
+      "benign_lines_scored": 481,
+      "routine_threshold": 0.934,
+      "rare_threshold": 1.766,
+      "auc": 0.856,
+      "attack_median": 1.885,
+      "benign_median": 0.934,
+      "attack_p90": 2.303,
+      "benign_p90": 1.792
+    }
+  },
+  "bands_benign_fit": {
+    "middle (unchanged)": {
+      "attack": 1,
+      "benign": 177
+    },
+    "rare (promoted)": {
+      "attack": 30,
+      "benign": 55
+    },
+    "routine (demoted)": {
+      "attack": 5,
+      "benign": 249
+    },
+    "silent (unchanged)": {
+      "attack": 9,
+      "benign": 225
+    }
+  },
+  "triage": {
+    "attack_instances": 9,
+    "flagged_lines": 130,
+    "incidents": 94,
+    "severity_coupling": {
+      "off (v1 tiers)": {
+        "incidents": 94,
+        "notable": 19,
+        "notable_containing_an_attack": 8,
+        "precision": 0.421
+      },
+      "promote+demote, rare p90": {
+        "incidents": 94,
+        "notable": 48,
+        "notable_containing_an_attack": 8,
+        "precision": 0.167
+      },
+      "promote+demote, rare p95": {
+        "incidents": 94,
+        "notable": 30,
+        "notable_containing_an_attack": 8,
+        "precision": 0.267
+      },
+      "promote+demote, rare p99": {
+        "incidents": 94,
+        "notable": 20,
+        "notable_containing_an_attack": 8,
+        "precision": 0.4
+      },
+      "demote only": {
+        "incidents": 94,
+        "notable": 19,
+        "notable_containing_an_attack": 8,
+        "precision": 0.421
+      }
+    },
+    "ordering": {
+      "v1: (events, severity)": {
+        "precision_at_5": 1.0,
+        "precision_at_10": 0.6,
+        "precision_at_20": 0.4,
+        "rank_for_full_instance_coverage": 16
+      },
+      "(events, severity, surprisal)": {
+        "precision_at_5": 1.0,
+        "precision_at_10": 0.6,
+        "precision_at_20": 0.4,
+        "rank_for_full_instance_coverage": 12
+      },
+      "surprisal alone": {
+        "precision_at_5": 0.6,
+        "precision_at_10": 0.3,
+        "precision_at_20": 0.2,
+        "rank_for_full_instance_coverage": 46
+      }
+    }
+  }
+}

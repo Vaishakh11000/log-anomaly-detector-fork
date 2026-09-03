@@ -33,7 +33,18 @@ def triage_key(incident: dict):
 
     Event count leads: a multi-event incident is several independent signals
     about the same actor, which is stronger evidence than one line with an
-    extreme anomaly score. Severity breaks ties.
+    extreme anomaly score. Severity breaks ties, and the sequence model
+    (Stage 3) breaks what is left.
+
+    The transition surprisal is a **tiebreaker only**, which is what the
+    measurement supports and no more. Ranked on its own it is much worse than
+    this ordering -- every attack instance takes until rank 46 instead of 16 --
+    but appended after event count and severity it brings full coverage of the
+    9 synthetic attack instances forward from rank 16 to rank 12, with
+    precision@5/@10/@20 unchanged. Incidents with no surprisal (the streaming
+    path does not compute one yet) sort as 0.0 and the order is exactly what it
+    was before.
     """
     return (incident.get("event_count", 0),
-            SEVERITY_RANK.get(incident.get("severity"), 0))
+            SEVERITY_RANK.get(incident.get("severity"), 0),
+            incident.get("max_transition_surprisal") or 0.0)

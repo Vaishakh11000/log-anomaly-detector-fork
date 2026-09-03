@@ -443,7 +443,7 @@ justified building that far.
 
 **Current stage:** Stage 3 — detection depth (Stage 2b left open, see below)
 **Stage 1 started:** 2026-08-18 → **kill-point deadline 2026-09-15** (4 weeks, §1b)
-**Last session:** 2026-09-01 (Stage 3 opened: Drain3 `template_id` column added opt-in beside the regex template, and the mined OpenSSH vocabulary inspected — 5,669 regex templates collapse to 45, failed/accepted stay apart, four merges lose a distinction)
+**Last session:** 2026-09-01 (Stage 3 continued: a transition model over the mined `template_id`s, and the decision of where detection consumes it — the severity tier was measured and **rejected**, the triage tiebreaker measured and adopted)
 **Last commit:** _(see `git log`)_
 
 > ## ✅ Kill-point verdict: **CONTINUE** (31.1pt, 5 seeds, 2026-08-19)
@@ -973,7 +973,77 @@ justified building that far.
       where the lines differ, so a set frozen after too little traffic reports
       novelty it has not earned.
 
-      Next: peer-group baselines and the sequence model over these ids.
+      ✅ **Sequence model over those ids — `logdet/sequence_model.py`.** A
+      first-order Markov transition model per actor, reporting the surprisal
+      `-log P(template_i | template_{i-1})` of each observed transition. It
+      re-ranks; it never re-flags. `is_anomaly` is untouched, so every number
+      §4 asks for — line-level P/R/F1, instance detection clean and
+      camouflaged, incident count — is identical with the model on or off, and
+      **no camouflage re-run was owed**. Verified rather than argued: a unit
+      test asserts `is_anomaly`, `ml_anomaly` and `impossible_travel` are
+      unchanged, and the 751 → 130 → 94 batch and stream locks stayed green.
+
+      **Where the signal consumes cleanly was measured, not chosen.**
+      `logdet-sequence-report` scores both corpora that have ground truth:
+
+      | | synthetic (751 lines) | kill-point OpenSSH (2,583) |
+      |---|---|---|
+      | Separation, fit on clean history | AUC **0.856** | AUC **0.912** |
+      | Separation, fit on the frame it scores | 0.692 | **0.558** |
+      | user key alone | 0.851 | **0.958** |
+      | source-IP key alone | 0.230 | 0.758 |
+
+      Three findings, each of which changed the design:
+
+      **Fitting on the traffic being judged destroys the signal** — on the real
+      corpus it collapses to 0.558, near a coin flip, because ambient brute
+      force teaches the model that brute force is routine. The transition model
+      is therefore fitted in `logdet-fit`, on history, exactly like the
+      detector, and never inside the scoring path.
+
+      **Keys go in precedence order — user first, source IP only where the
+      user key is silent.** What the numbers support is the *ranking* of the
+      keys, not the combining rule: the user key is much the stronger signal on
+      both corpora. Taking the maximum across keys instead was measured and is
+      a wash (0.852 vs 0.856 on synthetic, 0.923 vs 0.912 on the kill-point
+      corpus), so precedence is kept for being the simpler rule, **not** for
+      scoring better. The fallback earns its place by being the only key with
+      anything to say about account enumeration, which varies the username on
+      every line by design; the combined row sits below user-alone on the
+      kill-point corpus because it adds rows the user key could not score at
+      all — coverage bought at lower quality, not a regression.
+
+      **The severity tier is the wrong consumption point, and that is a
+      measured negative result.** An incident takes the highest tier of any
+      line in it, so demotion is inert (identical notable set on both corpora)
+      and promotion lifts a whole incident on one line — the notable set grew
+      19 → 48 on synthetic and 72 → 84 on OpenSSH, and it never surfaced an
+      attack the baseline missed. No threshold in the swept table beats leaving
+      it off, so `SEQUENCE_SEVERITY_SHIFT = False`.
+
+      ✅ **Adopted: the surprisal is the last tiebreaker in `triage.py`**,
+      after event count and severity. Precision@5/@10/@20 unchanged on both
+      corpora; the rank by which an analyst has seen every attack instance
+      moves **16 → 12** (synthetic) and **65 → 39** (OpenSSH). Ranking on
+      surprisal alone is not safe — it drops precision@5, because a lone rare
+      transition outranks a twenty-event brute force. Incidents with no
+      surprisal sort as 0.0, so the streaming path's order is exactly what it
+      was.
+
+      **This is a triage improvement, not a detection improvement, and must not
+      be written up as one.** The same lines are flagged and the same incidents
+      are grouped either way.
+
+      Not done: peer-group baselines. Deferred deliberately — they fix cold
+      start, which no number in `results/` measures, and every detection change
+      costs the same §4 measurement regardless of how small the code is.
+
+      Next: alert suppression (use the surprisal to *clear* `is_anomaly` on
+      lone routine-transition lines). That is the only lever that can reduce
+      94/194 incidents rather than reorder them, it does move every §4 number,
+      and it owes the full camouflage suite **including the 6.5h paced run** —
+      a change that suppresses lone flagged lines is most likely to hurt
+      `slow`, where the attack *is* a series of lone lines.
       **Sequence modelling** — the highest-value single change available. v1 scores each
       line independently, but attacks are sequences; a single odd line is weak evidence
       and an odd *sequence* is strong evidence. This is the root cause of the 0.29
@@ -1338,6 +1408,15 @@ uv run logdet-preprocess --input data/raw/synthetic.log --output data/processed/
 uv run logdet-templates --output results/templates --state models/drain3_openssh.json
 uv run logdet-templates --input data/external/Linux.log --limit 50000   # any raw log
 
+# Stage 3 (sequence model). Fit on history, never on the traffic being judged.
+uv run logdet-fit --input data/processed/parsed.csv --sequence-model   # -> models/sequence_model.json
+uv run logdet-pipeline --input data/processed/parsed.csv --no-llm --sequence-model
+# What the signal separates, and where it consumes cleanly (~1 min, needs embeddings)
+uv run logdet-sequence-report                                          # synthetic corpus
+uv run logdet-sequence-report --input data/processed/killpoint/corpus.log \
+     --ground-truth data/processed/killpoint/ground_truth.csv \
+     --output results/sequence/killpoint --year 2026
+
 # Stage 2b (the bake-off). Wazuh must be up; logdet-api is started by the runner.
 uv run logdet-bakeoff --benign-only --duration 60 --output results/bakeoff/act1_benign
 uv run logdet-bakeoff --attack brute_force --level rephrase --repeat 3
@@ -1417,4 +1496,5 @@ The frozen demo folder deliberately commits it instead — do not copy that choi
 | 2026-08-31 | **A merge inside one micro-batch crashed the stream worker (`KeyError`), and the fix follows a merged incident id instead of assuming it still exists.** The presentation folder for the 31 Aug review is built as its own directory with its own generators | Found the expensive way: a live bake-off firing scored this detector at 0% while Wazuh scored 100%, and the reason was not detection at all — `/stream/status` carried `error: "KeyError: 4"`. Inside one batch, `StreamProcessor.process` collects the incident id each event lands in, then snapshots them; but a later event in the same batch can bridge two incidents, and `IncidentTracker.add` merges one into the other and pops it, so the snapshot pass looked up an id that no longer existed and killed the worker thread. Everything downstream then behaved exactly as if the log had gone quiet — the service still reported a running stream, the dashboard still showed its last incidents, and the bake-off scored a detector that had stopped reading two minutes earlier. That silence is the real defect; the `KeyError` was merely where it started. The tracker now records `merged_into` and exposes `survivor()`, `process` maps its collected ids through it, and an incident that was already emitted before being merged is marked `status: "merged"` with the id it went into, so a client is told where its events moved rather than being left with a stale open incident. The regression test is load-bearing rather than decorative: it reproduces `KeyError` on the unfixed code, and it only does so because the bridging event arrives last **in timestamp order** — the processor sorts a batch by time before filing it, so the obvious version of the test files the bridge first and never merges anything. Behaviour is otherwise unchanged: 449 tests pass, including both slow locks (751 → 130 → 94 in batch and streamed), so §4 was not triggered. A second, non-code finding from the same session is in Known Issues: two bake-off sessions writing one log file silently produce a 0% score for this detector, which is a demo hazard rather than a bug. As for the deck, it lives in `docs/presentation-2026-08-31/` with the slide text in Markdown and `build_deck.py` rendering it to PDF through headless Chromium, because a deck whose content is only inside a binary cannot be reviewed line by line or regenerated when a number changes. The three diagrams are hand-laid-out SVG rather than Mermaid — measured, not assumed: `render_diagrams.py` reports Mermaid's automatic layout of the same graphs at 6.9:1 and 0.6:1 against a slide area of 1.9:1, which scales the labels to about 7px, and Mermaid drops a subgraph's `direction` as soon as an edge crosses its boundary, so the two-row layout the pipeline needs cannot be expressed at all. Screenshots are captured from the running system by Playwright rather than mocked, and the eight references are journal-only with author-version PDFs, because the panel asked for indexed journals and the previous deck's literature table contained a row that was not a published paper |
 | 2026-09-01 | **Narration latency re-measured on the RTX 4060 demo box — 3.9s GPU, 18.2s CPU — and every deck figure repointed to it. Having both `ollama` and `ollama-cuda` installed on Arch turns out to be correct, not the CPU-only trap the 2026-08-30 entry warned about** | The deck was quoting 5.2s/24.2s from the borrowed 3050 laptop while being presented from the 4060 machine, which §2c forbids in as many words — "GPU timing numbers do not transfer" — so this was a correctness fix to the presentation, not a nice-to-have. The numbers moved in the expected direction and by an amount nobody could have guessed: the GPU figure fell only 25% (5.2s → 3.9s, because phi3-mini is small enough that neither card is the bottleneck) while the CPU figure fell 25% too (24.2s → 18.2s) purely from a wider CPU (i5-13450HX 10c/16t → i7-13650HX 14c/20t). That is the third consecutive machine to cut the CPU number, which retires v1's "40-60s on CPU is a floor" claim for good. Two method points are now written down, because the 2026-08-30 measurement did not record them and this one had to guess at reproducing it: the input is `llm_narrative.__main__`'s own 4-event smoke incident (592 prompt tokens, so the prompt is identical on every machine), and the figure is a median of 3 timed runs after a warm-up, because generated length varies 254-360 tokens run to run and a single run is therefore not a machine property. Measuring the CPU side does **not** require stopping the GPU service: a second `ollama serve` with `CUDA_VISIBLE_DEVICES=""` on port 11435 does it, but it needs `OLLAMA_MODELS=/var/lib/ollama` because the systemd unit runs as user `ollama` and a user-run server otherwise reports an empty model list and returns 404, not a useful error. The package finding corrects the previous entry rather than repeating it: `ollama-cuda` on Arch **depends on** `ollama` and only adds `cuda_v13/libggml-cuda.so` beside the plain package's `libggml-cpu-*.so`, so both being installed is the normal, working configuration — verified here at `100% GPU` and 3734 MiB of VRAM despite a version skew (binary 0.32.9-1, CUDA libs 0.32.15-1). What stands from 2026-08-30 is the *check*, not the diagnosis: `nvidia-smi` looking healthy proves nothing and `ollama ps`'s `PROCESSOR` column is the only evidence. Nothing here touched detection, grouping or scoring, so §4 did not apply |
 | 2026-09-01 | **Drain3 mining lands as an opt-in `template_id` column that no detection code reads, and the mined vocabulary is inspected before anything consumes it** | Stage 3's first move is a parser change, and a parser change is the one place where §4's benchmark rule can be satisfied *structurally* rather than by re-running eight hours of camouflage runs: the column is additive and off by default, so a default parse is byte-identical to HEAD's — checked, not asserted, by SHA-256 over every parsed record of `synthetic.log` (751 lines) and `SSH.log` (655,147), both identical, with the 751 → 130 → 94 batch and stream locks green. Mining and consuming are deliberately separate steps so each can be checked apart; the second one is what will trigger §4. Three design points, each a silent failure otherwise. **The cluster id is recorded per line, never the template text** — Drain3 widens a template as more lines arrive, so the first `Failed password` line is stored with the whole line as its template and the second turns it into `Failed password for <*> from <IP> port <PORT> ssh2`; storing the text per line would leave a corpus whose early rows and late rows disagree about what one cluster is. **IP/PORT/PID/HEX are masked explicitly rather than left to the similarity threshold**, because Drain only collapses a position once it has seen it vary, so an unmasked corpus containing a single IP mines that IP into the template and the whole numbering ends up depending on how varied the traffic happened to be instead of on the log's grammar. **`max_clusters` stays unbounded**: a bound turns the cluster table into an LRU, so a rare template evicted and later seen again comes back with a *new* id, silently renumbering the vocabulary under any model keyed on it. The inspection is the point of the session, and it is a good result with four caveats. On all 655,147 OpenSSH lines, **5,669 regex templates collapse to 45 mined ones**, the count settles (43 by 250k lines, 45 at the end) so it is a real vocabulary rather than something variable leaking in, and **no regex template is split across two clusters at all** — the 126× reduction is the regex leaving usernames in, with 1,713 `Invalid user <name>` templates becoming one. Critically, **failed and accepted password stay in separate clusters**, which is the distinction this project detects on. The caveats are the merges that absorbed a *word* rather than an identifier, separated from the harmless ones by a computed rule (a collapsed position taking ≤6 values is a word; one taking hundreds is an identifier) rather than by reading the table: `Failed password` and `Failed none` share cluster 6, four disconnect reasons share cluster 8, `failure;`/`failures;` share 13 and 18, and IPv4/IPv6 share 43. None merges a success into a failure, so none blocks the stage, but `Failed none` is a probe rather than a password attempt and a sequence model keyed on cluster 6 cannot tell the two apart. One property found by a failing test rather than by reading the docs, and now pinned: **`match` is stricter than `add`** — a frozen template set only matches lines whose differing positions the template already marks `<*>`, so a set frozen after too little traffic reports unmatched lines that read as novelty when they are really an under-trained miner. `drain3` added via `uv add` (§6); it pins `cachetools==4.2.1` and `jsonpickle==1.5.1`, which nothing else here uses. 468 tests pass (`-m "not slow"`), plus both slow locks |
+| 2026-09-01 | **The sequence model over template ids re-ranks and never re-flags, so it landed without a camouflage re-run; and the consumption point was chosen by measurement, which rejected the obvious one.** The severity tier is out, the triage tiebreaker is in | The question this session had to answer was not "does a Markov model over template ids separate attacks" — it does, at AUC 0.912 on the kill-point OpenSSH corpus — but *where detection is allowed to spend that*, and the answer had to survive §4. Keying `is_anomaly` on a discrete cluster id was ruled out first and on principle: rewording a line moves it to a different cluster, which is precisely how Wazuh's rules break under `rephrase`, and that one mechanism is the entire kill-point result. So the model is confined to ranking, `is_anomaly` is untouched, and every §4 number is identical with it on or off — asserted by a unit test over `is_anomaly`/`ml_anomaly`/`impossible_travel` and by the 751 → 130 → 94 batch and stream locks, not by argument. Three design calls were then made against measurement rather than intuition, and two of them overturned the intuition. **Fitting the transition model on the frame it scores collapses it to AUC 0.558 on the real corpus** — a coin flip — because ambient brute force teaches it that brute force is routine; on the synthetic corpus the same mistake costs 0.856 → 0.692, so the effect is larger the more realistic the data. That is the sequence-model form of the discipline `fit.py` already enforces for the detector, with sharper consequences, and it is why the model is fitted in `logdet-fit` on history. **The two sequence keys go in precedence order, and the honest reason is simplicity rather than score.** The user key is much the stronger signal (0.958 alone on the kill-point corpus against source IP's 0.758), so the ranking of the keys is well supported; the *combining rule* is not, because taking the maximum across keys measures as a wash — 0.852 against precedence's 0.856 on synthetic, 0.923 against 0.912 on the kill-point corpus, i.e. each rule wins one. Precedence is kept for being the simpler rule and the claim in the artifact says exactly that rather than dressing a tie as a win. The fallback still earns its place: it is the only key with anything to say about account enumeration, which varies the username on every line by design, and the combined row sitting below user-alone is coverage bought at lower quality, not a regression. **The severity tier turned out to be the wrong place to spend the signal, and that is the session's real finding.** An incident takes the highest tier of any line in it, so demotion is inert — the notable set is bit-identical on both corpora — and promotion lifts a whole incident on one promoted line, growing the notable set 19 → 48 (synthetic) and 72 → 84 (OpenSSH) while never surfacing an attack the baseline missed. Thresholds were swept at p90/p95/p99 and none beats leaving it off, so this is a property of the aggregation and not a tuning problem; `SEQUENCE_SEVERITY_SHIFT = False`, with the numbers recorded in config beside it so nobody re-derives it. What *was* adopted is the modest thing the measurement supports: the surprisal as the **last tiebreaker** in `triage.py`, after event count and severity. Precision@5/@10/@20 is unchanged on both corpora and the rank by which an analyst has seen every attack instance moves 16 → 12 and 65 → 39. Ranking on surprisal alone is explicitly unsafe — it drops precision@5, because one lone line with a rare transition outranks a twenty-event brute force, and event count remains the stronger evidence. **This is a triage improvement and must never be written up as a detection one**: the same lines are flagged and the same incidents are grouped either way, and the report generator says so in the artifact rather than leaving it to the reader. Peer-group baselines were deferred rather than built: they fix cold start, which no number in `results/` measures, and since every detection change costs the same §4 measurement regardless of code size, the cheap-looking change is not the cheap change. The next step is the expensive one — suppression, using the surprisal to *clear* `is_anomaly` on lone routine-transition lines, which is the only lever that can reduce 94/194 incidents rather than reorder them. It moves every §4 number and owes the full camouflage suite including the 6.5h paced run, because a change that suppresses lone flagged lines is most likely to hurt `slow`, where the attack *is* a series of lone lines. 495 tests pass (`-m "not slow"`), plus both slow locks |
 | 2026-09-01 | **The 31 Aug review deck moved out of the repo to `~/presentation-2026-08-31/`** | The review is over, and the folder was 48MB of deck, screenshots and reference PDFs that no code imports and no result depends on — carrying it in the repo taxes every clone for a one-off artifact. It is kept whole, generators included (`build_pptx.py`, `make_diagrams.py`, `capture_screenshots.py`), so it can be rebuilt or moved back if a later review wants it; the earlier entries describing it stay as written, and the paths in them now refer to that directory. Nothing about detection, evaluation or the results in `results/` changed. Note the three dev dependencies the deck pulled in — `playwright`, `markdown`, `python-pptx` — were deliberately **not** removed here, because `pyproject.toml` had uncommitted Stage 3 work in it at the time; drop them whenever that work lands if nothing else has picked them up |

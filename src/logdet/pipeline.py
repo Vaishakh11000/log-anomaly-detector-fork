@@ -19,12 +19,26 @@ from logdet.anomaly_detection import run_anomaly_detection, highest_severity
 from logdet.sequence_grouping import group_anomalies, describe_incident
 from logdet.mitre_mapping import map_incident_to_mitre
 from logdet.llm_narrative import generate_narrative
-from logdet.config import NARRATE_SEVERITIES, NARRATE_MIN_EVENTS, DEFAULT_INCIDENTS_PATH
+from logdet.sequence_model import TransitionModel
+from logdet.config import (
+    NARRATE_SEVERITIES,
+    NARRATE_MIN_EVENTS,
+    DEFAULT_INCIDENTS_PATH,
+    DEFAULT_SEQUENCE_MODEL_PATH,
+)
 
 
 def should_narrate(severity: str, event_count: int) -> bool:
     """Narrative budget policy -- see NARRATE_* in config.py for the rationale."""
     return severity in NARRATE_SEVERITIES or event_count >= NARRATE_MIN_EVENTS
+
+
+def _max_surprisal(incident: pd.DataFrame) -> float | None:
+    """Most surprising transition in an incident, or None if none was scored."""
+    if "transition_surprisal" not in incident.columns:
+        return None
+    values = incident["transition_surprisal"].dropna()
+    return float(values.max()) if len(values) else None
 
 
 def build_incident_entry(incident_id: int, incident: pd.DataFrame) -> dict:
@@ -39,6 +53,11 @@ def build_incident_entry(incident_id: int, incident: pd.DataFrame) -> dict:
         "end": str(incident["timestamp"].max()),
         "event_count": len(incident),
         "severity": highest_severity(incident["severity"]),
+        # The sequence model's contribution to triage: the most surprising
+        # template transition anywhere in this incident, or None when the
+        # model was not used. It orders the list (triage.triage_key) and
+        # nothing else -- it is not part of any detection decision.
+        "max_transition_surprisal": _max_surprisal(incident),
         "mitre_techniques": [
             {"technique_id": t["technique_id"], "technique_name": t["technique_name"],
              "tactic": t["tactic"]}
@@ -52,14 +71,25 @@ def build_incident_entry(incident_id: int, incident: pd.DataFrame) -> dict:
 
 
 def run_pipeline(input_csv: str, output_json: str, use_llm: bool = True,
-                 narrate_all: bool = False):
+                 narrate_all: bool = False, sequence_model_path: str | None = None):
     df = pd.read_csv(input_csv, parse_dates=["timestamp"])
     print(f"Loaded {len(df)} parsed log rows")
 
     df = add_embeddings_to_df(df, template_col="template")
     print("Embeddings generated")
 
-    scored = run_anomaly_detection(df)
+    # Opt-in, and it re-tiers rather than re-flags: the same lines are flagged
+    # and the same incidents are grouped with it on or off, so every number in
+    # `results/` is comparable across the switch. What it changes is which
+    # incidents rank first and which get narrated.
+    sequence_model = None
+    if sequence_model_path:
+        sequence_model = TransitionModel.load(sequence_model_path)
+        print(f"Loaded transition model: {len(sequence_model.vocabulary)} templates, "
+              f"routine <= {sequence_model.routine_threshold:.3f} nats, "
+              f"rare >= {sequence_model.rare_threshold:.3f}")
+
+    scored = run_anomaly_detection(df, sequence_model=sequence_model)
     print(f"Flagged {scored['is_anomaly'].sum()} anomalous rows out of {len(scored)} "
           f"({scored['impossible_travel'].sum()} via impossible-travel)")
 
@@ -100,10 +130,16 @@ def cli() -> None:
     parser.add_argument("--no-llm", action="store_true", help="Skip LLM narrative generation")
     parser.add_argument("--narrate-all", action="store_true",
                         help="Narrate every incident, ignoring the NARRATE_* budget policy (slow)")
+    parser.add_argument("--sequence-model", nargs="?", const=DEFAULT_SEQUENCE_MODEL_PATH,
+                        default=None,
+                        help="Adjust severity tiers with a fitted transition model over "
+                             "template_id (input must be parsed with --drain3). Does not "
+                             "change which lines are flagged or how they group.")
     args = parser.parse_args()
 
     run_pipeline(args.input, args.output, use_llm=not args.no_llm,
-                 narrate_all=args.narrate_all)
+                 narrate_all=args.narrate_all,
+                 sequence_model_path=args.sequence_model)
 
 
 if __name__ == "__main__":

@@ -12,6 +12,11 @@ Also owns two signals the embedding model can't provide on its own:
   - severity tiers: a simple bucketing of anomaly strength, plus a hard
     override to "high" for impossible-travel hits, which are trusted
     more than the ML score
+
+An optional sequence model (see sequence_model.py) can shift a flagged row one
+severity tier on how routine its template transition is. It is deliberately
+confined to the tier: it never sets or clears `is_anomaly`, so it cannot move
+recall, instance detection or incident count.
 """
 
 import numpy as np
@@ -29,11 +34,13 @@ from logdet.config import (
     MIN_SAMPLES_PER_USER,
     RANDOM_STATE,
     SEVERITY_THRESHOLDS,
+    SEQUENCE_SEVERITY_SHIFT,
     IMPOSSIBLE_TRAVEL_WINDOW_MINUTES,
     TRAVEL_SUBNET_PREFIX_LENGTH,
 )
 
 SEVERITY_ORDER = {"none": 0, "low": 1, "medium": 2, "high": 3}
+SEVERITY_BY_RANK = {rank: name for name, rank in SEVERITY_ORDER.items()}
 
 
 class PerUserAnomalyDetector:
@@ -212,12 +219,25 @@ def detect_impossible_travel(
     return df
 
 
-def assign_severity(df: pd.DataFrame, score_col: str = "anomaly_score") -> pd.DataFrame:
+def assign_severity(df: pd.DataFrame, score_col: str = "anomaly_score",
+                    surprisal_col: str | None = None,
+                    routine_threshold: float | None = None,
+                    rare_threshold: float | None = None) -> pd.DataFrame:
     """Adds a 'severity' column (high/medium/low/none) from the negated
     anomaly score (higher = more anomalous), per SEVERITY_THRESHOLDS.
     Rows with impossible_travel=True are forced to "high" regardless of
     the ML score -- a confirmed physics-based signal outranks a soft
-    semantic one."""
+    semantic one.
+
+    `surprisal_col`, when given, lets the sequence model move a row one tier:
+    a flagged line whose transition is routine for that actor is demoted, and
+    one whose transition is rare is promoted. It can never create or clear a
+    flag -- `is_anomaly` is untouched here, so line-level recall, instance
+    detection and incident count are the same numbers with or without it
+    (CLAUDE.md section 4). What changes is which incidents an analyst is shown
+    first, which is the weakness the tiers were supposed to manage and
+    measurably do not (Known Issues: medium is noisier than low).
+    """
     df = df.copy()
 
     def _bucket(row) -> str:
@@ -231,9 +251,41 @@ def assign_severity(df: pd.DataFrame, score_col: str = "anomaly_score") -> pd.Da
         return "low"
 
     df["severity"] = df.apply(_bucket, axis=1)
+
+    if surprisal_col is not None and surprisal_col in df.columns:
+        df["severity"] = [
+            _shift_severity(severity, surprisal, routine_threshold, rare_threshold)
+            for severity, surprisal in zip(df["severity"], df[surprisal_col])
+        ]
+
     if "impossible_travel" in df.columns:
         df.loc[df["impossible_travel"], "severity"] = "high"
     return df
+
+
+def _shift_severity(severity: str, surprisal: float,
+                    routine_threshold: float | None,
+                    rare_threshold: float | None) -> str:
+    """Move one tier on the sequence evidence, never off the flagged range.
+
+    A NaN surprisal means the model had nothing to say -- an unknown template,
+    the first event of a sequence, or no usable actor key -- and is left alone
+    rather than read as "unremarkable". Treating silence as evidence in either
+    direction is how a novelty signal turns into a novelty alarm.
+
+    "none" is never entered or left: it means not flagged, and this function
+    is not allowed to change what was flagged.
+    """
+    rank = SEVERITY_ORDER.get(severity, 0)
+    if rank == 0 or surprisal is None or pd.isna(surprisal):
+        return severity
+    if routine_threshold is None or rare_threshold is None:
+        return severity
+    if surprisal <= routine_threshold:
+        rank -= 1
+    elif surprisal >= rare_threshold:
+        rank += 1
+    return SEVERITY_BY_RANK[min(max(rank, 1), 3)]
 
 
 def highest_severity(severities: pd.Series) -> str:
@@ -243,7 +295,9 @@ def highest_severity(severities: pd.Series) -> str:
 
 def run_anomaly_detection(df: pd.DataFrame,
                           contamination: float = CONTAMINATION,
-                          detector: "PerUserAnomalyDetector | None" = None) -> pd.DataFrame:
+                          detector: "PerUserAnomalyDetector | None" = None,
+                          sequence_model=None,
+                          adjust_severity: bool = SEQUENCE_SEVERITY_SHIFT) -> pd.DataFrame:
     """Full Phase 3 detection stack: per-user ML scoring + impossible-travel
     rule + severity tiers. This is the entry point pipeline.py should call --
     it owns how the signals combine so orchestration code stays thin.
@@ -265,7 +319,34 @@ def run_anomaly_detection(df: pd.DataFrame,
     scored = detect_impossible_travel(scored)
     scored["ml_anomaly"] = scored["is_anomaly"]
     scored["is_anomaly"] = scored["ml_anomaly"] | scored["impossible_travel"]
-    scored = assign_severity(scored)
+
+    # The sequence model (Stage 3) never re-flags: `is_anomaly` is already
+    # final by this point and nothing below touches it, so every number
+    # CLAUDE.md section 4 asks for -- line-level P/R/F1, instance detection
+    # clean and camouflaged, incident count -- is identical with the model on
+    # or off. What a passed model adds is the `transition_surprisal` column,
+    # which triage ranks on.
+    #
+    # The model is never fitted here, only applied. Fitting it on the frame
+    # being scored costs a measured 0.855 -> 0.715 in how well the surprisal
+    # separates attack lines from benign ones on the synthetic corpus: a
+    # brute-force burst repeats one transition often enough to teach the model
+    # that the burst is normal. Same reasoning as fit.py, sharper consequences.
+    surprisal_col = None
+    routine = rare = None
+    if sequence_model is not None:
+        scored["transition_surprisal"] = sequence_model.surprisal(scored)
+        # The column is always produced; whether it is allowed to move a
+        # severity tier is a separate, measured decision -- see
+        # SEQUENCE_SEVERITY_SHIFT in config.py, which is off because tiering
+        # measurably worsened triage on every corpus with ground truth.
+        if adjust_severity:
+            surprisal_col = "transition_surprisal"
+            routine = sequence_model.routine_threshold
+            rare = sequence_model.rare_threshold
+
+    scored = assign_severity(scored, surprisal_col=surprisal_col,
+                             routine_threshold=routine, rare_threshold=rare)
     return scored
 
 
