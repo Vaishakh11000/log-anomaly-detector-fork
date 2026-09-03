@@ -18,7 +18,7 @@ from logdet.embedding import add_embeddings_to_df
 from logdet.anomaly_detection import (run_anomaly_detection, highest_severity,
                                       travel_evidence)
 from logdet.sequence_grouping import group_anomalies, describe_incident
-from logdet.mitre_mapping import map_incident_to_mitre
+from logdet.mitre_mapping import kill_chain_of, map_incident_to_mitre
 from logdet.llm_narrative import generate_narrative
 from logdet.sequence_model import TransitionModel
 from logdet.config import (
@@ -89,9 +89,16 @@ def build_incident_entry(incident_id: int, incident: pd.DataFrame,
         "max_transition_surprisal": _max_surprisal(incident),
         "mitre_techniques": [
             {"technique_id": t["technique_id"], "technique_name": t["technique_name"],
-             "tactic": t["tactic"]}
+             "tactic": t["tactic"], "tactics": t["tactics"],
+             "tactic_ids": t["tactic_ids"], "url": t["url"]}
             for t in techniques
         ],
+        # The tactics this incident touches, in ATT&CK matrix order -- the
+        # kill-chain view of the same techniques. Derived from the bundle, so
+        # it says where the activity sits in an attack rather than only what it
+        # was. Enrichment, like the techniques it comes from: it feeds no
+        # detection, grouping or severity decision.
+        "kill_chain": kill_chain_of(techniques),
         "events": _event_records(incident),
         # Evidence, not detections -- see the docstring.
         "context_events": [

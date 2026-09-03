@@ -239,6 +239,12 @@ for incident in filtered:
                 f"`{t['technique_id']}` {t['technique_name']} ({t['tactic']})"
                 for t in techniques
             ))
+            # The same techniques seen as a kill chain: which ATT&CK tactics
+            # this incident touches, in matrix order. Descriptive only.
+            chain = incident.get("kill_chain") or []
+            if chain:
+                st.markdown("**Kill chain:** " + " → ".join(
+                    f"{t['tactic']} (`{t['tactic_id']}`)" for t in chain))
         else:
             st.caption("No MITRE technique matched — the lookup table is deliberately "
                        "small and keyword-grounded, so unmatched is common and honest.")

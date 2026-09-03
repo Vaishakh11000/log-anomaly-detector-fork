@@ -1,0 +1,1907 @@
+{
+  "summary": {
+    "attack_version": "19.2",
+    "mapped": 11,
+    "strict_universe": 86,
+    "wider_universe": 89,
+    "mapped_in_strict": 1,
+    "mapped_in_wider": 2,
+    "mapped_outside_universe": 9,
+    "mapped_and_observed": 6,
+    "mapped_never_observed": 5,
+    "signal_mapped": 2
+  },
+  "corpora": {
+    "synthetic": {
+      "T1110": 78,
+      "T1078": 311,
+      "T1548": 6,
+      "T1136": 3,
+      "_lines": 751
+    },
+    "openssh": {
+      "T1110": 457880,
+      "T1078": 364,
+      "_lines": 655147
+    },
+    "incidents": {
+      "T1110": 51,
+      "T1087": 3,
+      "T1136": 2,
+      "T1548": 2,
+      "T1078": 3,
+      "T1021.004": 3,
+      "_incidents": 94
+    }
+  },
+  "rows": [
+    {
+      "technique_id": "T1078",
+      "name": "Valid Accounts",
+      "tactics": [
+        "Initial Access",
+        "Persistence",
+        "Privilege Escalation",
+        "Stealth"
+      ],
+      "kill_chain": 2,
+      "mapped_by": "keyword",
+      "in_strict_universe": false,
+      "in_wider_universe": false,
+      "attack_log_sources": [],
+      "observed": {
+        "synthetic": 311,
+        "openssh": 364,
+        "incidents": 3
+      }
+    },
+    {
+      "technique_id": "T1078.001",
+      "name": "Valid Accounts: Default Accounts",
+      "tactics": [
+        "Initial Access",
+        "Persistence",
+        "Privilege Escalation",
+        "Stealth"
+      ],
+      "kill_chain": 2,
+      "mapped_by": null,
+      "in_strict_universe": false,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "auditd:USER_LOGIN"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1078.002",
+      "name": "Valid Accounts: Domain Accounts",
+      "tactics": [
+        "Initial Access",
+        "Persistence",
+        "Privilege Escalation",
+        "Stealth"
+      ],
+      "kill_chain": 2,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1078.003",
+      "name": "Valid Accounts: Local Accounts",
+      "tactics": [
+        "Initial Access",
+        "Persistence",
+        "Privilege Escalation",
+        "Stealth"
+      ],
+      "kill_chain": 2,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "auditd:USER_LOGIN",
+        "linux:auth"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1189",
+      "name": "Drive-by Compromise",
+      "tactics": [
+        "Initial Access"
+      ],
+      "kill_chain": 2,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1199",
+      "name": "Trusted Relationship",
+      "tactics": [
+        "Initial Access"
+      ],
+      "kill_chain": 2,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1200",
+      "name": "Hardware Additions",
+      "tactics": [
+        "Initial Access"
+      ],
+      "kill_chain": 2,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1566.003",
+      "name": "Phishing: Spearphishing via Service",
+      "tactics": [
+        "Initial Access"
+      ],
+      "kill_chain": 2,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1669",
+      "name": "Wi-Fi Networks",
+      "tactics": [
+        "Initial Access"
+      ],
+      "kill_chain": 2,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1053",
+      "name": "Scheduled Task/Job",
+      "tactics": [
+        "Execution",
+        "Persistence",
+        "Privilege Escalation"
+      ],
+      "kill_chain": 3,
+      "mapped_by": "keyword",
+      "in_strict_universe": false,
+      "in_wider_universe": false,
+      "attack_log_sources": [],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1059.004",
+      "name": "Command and Scripting Interpreter: Unix Shell",
+      "tactics": [
+        "Execution"
+      ],
+      "kill_chain": 3,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1059.005",
+      "name": "Command and Scripting Interpreter: Visual Basic",
+      "tactics": [
+        "Execution"
+      ],
+      "kill_chain": 3,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1059.006",
+      "name": "Command and Scripting Interpreter: Python",
+      "tactics": [
+        "Execution"
+      ],
+      "kill_chain": 3,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1059.007",
+      "name": "Command and Scripting Interpreter: JavaScript",
+      "tactics": [
+        "Execution"
+      ],
+      "kill_chain": 3,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1129",
+      "name": "Shared Modules",
+      "tactics": [
+        "Execution"
+      ],
+      "kill_chain": 3,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1203",
+      "name": "Exploitation for Client Execution",
+      "tactics": [
+        "Execution"
+      ],
+      "kill_chain": 3,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1204",
+      "name": "User Execution",
+      "tactics": [
+        "Execution"
+      ],
+      "kill_chain": 3,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1569",
+      "name": "System Services",
+      "tactics": [
+        "Execution"
+      ],
+      "kill_chain": 3,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1574",
+      "name": "Hijack Execution Flow",
+      "tactics": [
+        "Execution",
+        "Stealth"
+      ],
+      "kill_chain": 3,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1674",
+      "name": "Input Injection",
+      "tactics": [
+        "Execution"
+      ],
+      "kill_chain": 3,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1037.004",
+      "name": "Boot or Logon Initialization Scripts: RC Scripts",
+      "tactics": [
+        "Persistence",
+        "Privilege Escalation"
+      ],
+      "kill_chain": 4,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1098",
+      "name": "Account Manipulation",
+      "tactics": [
+        "Persistence",
+        "Privilege Escalation"
+      ],
+      "kill_chain": 4,
+      "mapped_by": "keyword",
+      "in_strict_universe": false,
+      "in_wider_universe": false,
+      "attack_log_sources": [],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1136",
+      "name": "Create Account",
+      "tactics": [
+        "Persistence"
+      ],
+      "kill_chain": 4,
+      "mapped_by": "keyword",
+      "in_strict_universe": false,
+      "in_wider_universe": false,
+      "attack_log_sources": [],
+      "observed": {
+        "synthetic": 3,
+        "openssh": 0,
+        "incidents": 2
+      }
+    },
+    {
+      "technique_id": "T1505",
+      "name": "Server Software Component",
+      "tactics": [
+        "Persistence"
+      ],
+      "kill_chain": 4,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1505.002",
+      "name": "Server Software Component: Transport Agent",
+      "tactics": [
+        "Persistence"
+      ],
+      "kill_chain": 4,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1542.002",
+      "name": "Pre-OS Boot: Component Firmware",
+      "tactics": [
+        "Persistence",
+        "Stealth"
+      ],
+      "kill_chain": 4,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1542.003",
+      "name": "Pre-OS Boot: Bootkit",
+      "tactics": [
+        "Persistence",
+        "Stealth"
+      ],
+      "kill_chain": 4,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1546",
+      "name": "Event Triggered Execution",
+      "tactics": [
+        "Persistence",
+        "Privilege Escalation"
+      ],
+      "kill_chain": 4,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1547.013",
+      "name": "Boot or Logon Autostart Execution: XDG Autostart Entries",
+      "tactics": [
+        "Persistence",
+        "Privilege Escalation"
+      ],
+      "kill_chain": 4,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:auth"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1668",
+      "name": "Exclusive Control",
+      "tactics": [
+        "Persistence"
+      ],
+      "kill_chain": 4,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1548",
+      "name": "Abuse Elevation Control Mechanism",
+      "tactics": [
+        "Privilege Escalation"
+      ],
+      "kill_chain": 5,
+      "mapped_by": "keyword",
+      "in_strict_universe": false,
+      "in_wider_universe": false,
+      "attack_log_sources": [],
+      "observed": {
+        "synthetic": 6,
+        "openssh": 0,
+        "incidents": 2
+      }
+    },
+    {
+      "technique_id": "T1014",
+      "name": "Rootkit",
+      "tactics": [
+        "Stealth"
+      ],
+      "kill_chain": 6,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1036",
+      "name": "Masquerading",
+      "tactics": [
+        "Stealth"
+      ],
+      "kill_chain": 6,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1036.003",
+      "name": "Masquerading: Rename Legitimate Utilities",
+      "tactics": [
+        "Stealth"
+      ],
+      "kill_chain": 6,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1036.004",
+      "name": "Masquerading: Masquerade Task or Service",
+      "tactics": [
+        "Stealth"
+      ],
+      "kill_chain": 6,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:cron"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1036.006",
+      "name": "Masquerading: Space after Filename",
+      "tactics": [
+        "Stealth"
+      ],
+      "kill_chain": 6,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1070",
+      "name": "Indicator Removal",
+      "tactics": [
+        "Stealth"
+      ],
+      "kill_chain": 6,
+      "mapped_by": "keyword",
+      "in_strict_universe": false,
+      "in_wider_universe": false,
+      "attack_log_sources": [],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1211",
+      "name": "Exploitation for Stealth",
+      "tactics": [
+        "Stealth"
+      ],
+      "kill_chain": 6,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1480",
+      "name": "Execution Guardrails",
+      "tactics": [
+        "Stealth"
+      ],
+      "kill_chain": 6,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1480.001",
+      "name": "Execution Guardrails: Environmental Keying",
+      "tactics": [
+        "Stealth"
+      ],
+      "kill_chain": 6,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1564.005",
+      "name": "Hide Artifacts: Hidden File System",
+      "tactics": [
+        "Stealth"
+      ],
+      "kill_chain": 6,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1564.007",
+      "name": "Hide Artifacts: VBA Stomping",
+      "tactics": [
+        "Stealth"
+      ],
+      "kill_chain": 6,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1684.002",
+      "name": "Social Engineering: Email Spoofing",
+      "tactics": [
+        "Stealth"
+      ],
+      "kill_chain": 6,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1685.003",
+      "name": "Disable or Modify Tools: Modify or Spoof Tool UI",
+      "tactics": [
+        "Defense Impairment"
+      ],
+      "kill_chain": 7,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1685.004",
+      "name": "Disable or Modify Tools: Disable or Modify Linux Audit System Log",
+      "tactics": [
+        "Defense Impairment"
+      ],
+      "kill_chain": 7,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1689",
+      "name": "Downgrade Attack",
+      "tactics": [
+        "Defense Impairment"
+      ],
+      "kill_chain": 7,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1110",
+      "name": "Brute Force",
+      "tactics": [
+        "Credential Access"
+      ],
+      "kill_chain": 8,
+      "mapped_by": "keyword",
+      "in_strict_universe": false,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "auditd:USER_LOGIN"
+      ],
+      "observed": {
+        "synthetic": 78,
+        "openssh": 457880,
+        "incidents": 51
+      }
+    },
+    {
+      "technique_id": "T1110.001",
+      "name": "Brute Force: Password Guessing",
+      "tactics": [
+        "Credential Access"
+      ],
+      "kill_chain": 8,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1110.002",
+      "name": "Brute Force: Password Cracking",
+      "tactics": [
+        "Credential Access"
+      ],
+      "kill_chain": 8,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1110.003",
+      "name": "Brute Force: Password Spraying",
+      "tactics": [
+        "Credential Access"
+      ],
+      "kill_chain": 8,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1110.004",
+      "name": "Brute Force: Credential Stuffing",
+      "tactics": [
+        "Credential Access"
+      ],
+      "kill_chain": 8,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1111",
+      "name": "Multi-Factor Authentication Interception",
+      "tactics": [
+        "Credential Access"
+      ],
+      "kill_chain": 8,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1552",
+      "name": "Unsecured Credentials",
+      "tactics": [
+        "Credential Access"
+      ],
+      "kill_chain": 8,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1552.001",
+      "name": "Unsecured Credentials: Credentials In Files",
+      "tactics": [
+        "Credential Access"
+      ],
+      "kill_chain": 8,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1557.003",
+      "name": "Adversary-in-the-Middle: DHCP Spoofing",
+      "tactics": [
+        "Credential Access",
+        "Collection"
+      ],
+      "kill_chain": 8,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1558",
+      "name": "Steal or Forge Kerberos Tickets",
+      "tactics": [
+        "Credential Access"
+      ],
+      "kill_chain": 8,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1621",
+      "name": "Multi-Factor Authentication Request Generation",
+      "tactics": [
+        "Credential Access"
+      ],
+      "kill_chain": 8,
+      "mapped_by": null,
+      "in_strict_universe": false,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "auditd:AUTH"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1016.001",
+      "name": "System Network Configuration Discovery: Internet Connection Discovery",
+      "tactics": [
+        "Discovery"
+      ],
+      "kill_chain": 9,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1018",
+      "name": "Remote System Discovery",
+      "tactics": [
+        "Discovery"
+      ],
+      "kill_chain": 9,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1046",
+      "name": "Network Service Discovery",
+      "tactics": [
+        "Discovery"
+      ],
+      "kill_chain": 9,
+      "mapped_by": "keyword",
+      "in_strict_universe": false,
+      "in_wider_universe": false,
+      "attack_log_sources": [],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1069.002",
+      "name": "Permission Groups Discovery: Domain Groups",
+      "tactics": [
+        "Discovery"
+      ],
+      "kill_chain": 9,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1087",
+      "name": "Account Discovery",
+      "tactics": [
+        "Discovery"
+      ],
+      "kill_chain": 9,
+      "mapped_by": "signal",
+      "in_strict_universe": false,
+      "in_wider_universe": false,
+      "attack_log_sources": [],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 3
+      }
+    },
+    {
+      "technique_id": "T1087.002",
+      "name": "Account Discovery: Domain Account",
+      "tactics": [
+        "Discovery"
+      ],
+      "kill_chain": 9,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linuxsyslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1124",
+      "name": "System Time Discovery",
+      "tactics": [
+        "Discovery"
+      ],
+      "kill_chain": 9,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:cron",
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1201",
+      "name": "Password Policy Discovery",
+      "tactics": [
+        "Discovery"
+      ],
+      "kill_chain": 9,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1217",
+      "name": "Browser Information Discovery",
+      "tactics": [
+        "Discovery"
+      ],
+      "kill_chain": 9,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1021",
+      "name": "Remote Services",
+      "tactics": [
+        "Lateral Movement"
+      ],
+      "kill_chain": 10,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1021.004",
+      "name": "Remote Services: SSH",
+      "tactics": [
+        "Lateral Movement"
+      ],
+      "kill_chain": 10,
+      "mapped_by": "signal",
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 3
+      }
+    },
+    {
+      "technique_id": "T1021.005",
+      "name": "Remote Services: VNC",
+      "tactics": [
+        "Lateral Movement"
+      ],
+      "kill_chain": 10,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1210",
+      "name": "Exploitation of Remote Services",
+      "tactics": [
+        "Lateral Movement"
+      ],
+      "kill_chain": 10,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1534",
+      "name": "Internal Spearphishing",
+      "tactics": [
+        "Lateral Movement"
+      ],
+      "kill_chain": 10,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1039",
+      "name": "Data from Network Shared Drive",
+      "tactics": [
+        "Collection"
+      ],
+      "kill_chain": 11,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1114",
+      "name": "Email Collection",
+      "tactics": [
+        "Collection"
+      ],
+      "kill_chain": 11,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1125",
+      "name": "Video Capture",
+      "tactics": [
+        "Collection"
+      ],
+      "kill_chain": 11,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1132",
+      "name": "Data Encoding",
+      "tactics": [
+        "Command and Control"
+      ],
+      "kill_chain": 12,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1568",
+      "name": "Dynamic Resolution",
+      "tactics": [
+        "Command and Control"
+      ],
+      "kill_chain": 12,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1568.002",
+      "name": "Dynamic Resolution: Domain Generation Algorithms",
+      "tactics": [
+        "Command and Control"
+      ],
+      "kill_chain": 12,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1568.003",
+      "name": "Dynamic Resolution: DNS Calculation",
+      "tactics": [
+        "Command and Control"
+      ],
+      "kill_chain": 12,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1571",
+      "name": "Non-Standard Port",
+      "tactics": [
+        "Command and Control"
+      ],
+      "kill_chain": 12,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1572",
+      "name": "Protocol Tunneling",
+      "tactics": [
+        "Command and Control"
+      ],
+      "kill_chain": 12,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1573",
+      "name": "Encrypted Channel",
+      "tactics": [
+        "Command and Control"
+      ],
+      "kill_chain": 12,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1573.001",
+      "name": "Encrypted Channel: Symmetric Cryptography",
+      "tactics": [
+        "Command and Control"
+      ],
+      "kill_chain": 12,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1573.002",
+      "name": "Encrypted Channel: Asymmetric Cryptography",
+      "tactics": [
+        "Command and Control"
+      ],
+      "kill_chain": 12,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1011.001",
+      "name": "Exfiltration Over Other Network Medium: Exfiltration Over Bluetooth",
+      "tactics": [
+        "Exfiltration"
+      ],
+      "kill_chain": 13,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1029",
+      "name": "Scheduled Transfer",
+      "tactics": [
+        "Exfiltration"
+      ],
+      "kill_chain": 13,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:cron"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1041",
+      "name": "Exfiltration Over C2 Channel",
+      "tactics": [
+        "Exfiltration"
+      ],
+      "kill_chain": 13,
+      "mapped_by": "keyword",
+      "in_strict_universe": false,
+      "in_wider_universe": false,
+      "attack_log_sources": [],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1489",
+      "name": "Service Stop",
+      "tactics": [
+        "Impact"
+      ],
+      "kill_chain": 14,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1491",
+      "name": "Defacement",
+      "tactics": [
+        "Impact"
+      ],
+      "kill_chain": 14,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1491.001",
+      "name": "Defacement: Internal Defacement",
+      "tactics": [
+        "Impact"
+      ],
+      "kill_chain": 14,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1496.001",
+      "name": "Resource Hijacking: Compute Hijacking",
+      "tactics": [
+        "Impact"
+      ],
+      "kill_chain": 14,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:cron"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1499",
+      "name": "Endpoint Denial of Service",
+      "tactics": [
+        "Impact"
+      ],
+      "kill_chain": 14,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1499.002",
+      "name": "Endpoint Denial of Service: Service Exhaustion Flood",
+      "tactics": [
+        "Impact"
+      ],
+      "kill_chain": 14,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1499.003",
+      "name": "Endpoint Denial of Service: Application Exhaustion Flood",
+      "tactics": [
+        "Impact"
+      ],
+      "kill_chain": 14,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1529",
+      "name": "System Shutdown/Reboot",
+      "tactics": [
+        "Impact"
+      ],
+      "kill_chain": 14,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1565",
+      "name": "Data Manipulation",
+      "tactics": [
+        "Impact"
+      ],
+      "kill_chain": 14,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1565.002",
+      "name": "Data Manipulation: Transmitted Data Manipulation",
+      "tactics": [
+        "Impact"
+      ],
+      "kill_chain": 14,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1565.003",
+      "name": "Data Manipulation: Runtime Data Manipulation",
+      "tactics": [
+        "Impact"
+      ],
+      "kill_chain": 14,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    },
+    {
+      "technique_id": "T1657",
+      "name": "Financial Theft",
+      "tactics": [
+        "Impact"
+      ],
+      "kill_chain": 14,
+      "mapped_by": null,
+      "in_strict_universe": true,
+      "in_wider_universe": true,
+      "attack_log_sources": [
+        "linux:syslog"
+      ],
+      "observed": {
+        "synthetic": 0,
+        "openssh": 0,
+        "incidents": 0
+      }
+    }
+  ]
+}

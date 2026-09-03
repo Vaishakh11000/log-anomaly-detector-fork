@@ -12,6 +12,7 @@ import pytest
 from logdet.config import ENUMERATION_MIN_DISTINCT_USERS
 from logdet.mitre_mapping import (
     MITRE_LOOKUP,
+    kill_chain_of,
     SIGNAL_LOOKUP,
     detect_incident_signals,
     map_incident_to_mitre,
@@ -96,9 +97,58 @@ def test_incident_techniques_are_deduplicated():
 
 
 def test_every_table_entry_is_well_formed():
-    """The narrative prompt reads these fields directly; a missing one becomes
-    a 'nan' in an examiner-facing narrative."""
+    """The table is now keywords plus a join key -- names and tactics come from
+    ATT&CK (see test_attack.py), so what is checked here is the authored half."""
     for entry in MITRE_LOOKUP:
         assert entry["technique_id"].startswith("T")
-        assert entry["technique_name"] and entry["tactic"] and entry["keywords"]
+        assert entry["keywords"]
         assert all(kw == kw.lower() for kw in entry["keywords"]), "matching is case-folded"
+        assert "technique_name" not in entry and "tactic" not in entry, (
+            "hand-typed names and tactics are what the ATT&CK index replaced; "
+            "re-adding one puts the author back in charge of what a technique is")
+
+
+def test_described_techniques_carry_every_field_the_prompt_reads():
+    """The narrative prompt reads these fields directly; a missing one becomes
+    a 'nan' in an examiner-facing narrative."""
+    for entry in map_to_mitre("Failed password for admin from 10.0.0.5 port 51422 ssh2"):
+        assert entry["technique_name"] and entry["tactic"]
+        assert entry["tactics"] and entry["tactic_ids"] and entry["kill_chain"]
+
+
+def test_incident_techniques_are_ordered_by_kill_chain():
+    """The technique list reads as a progression rather than by match order."""
+    df = pd.DataFrame([
+        {"user": "alice", "source_ip": "10.0.0.5", "impossible_travel": False,
+         "message": "Failed password for alice from 10.0.0.5"},
+        {"user": "alice", "source_ip": "10.0.0.5", "impossible_travel": False,
+         "message": "Accepted password for alice from 10.0.0.5"},
+    ])
+    positions = [min(t["kill_chain"]) for t in map_incident_to_mitre(df)]
+    assert positions == sorted(positions)
+    # T1078 Valid Accounts (Initial Access) precedes T1110 Brute Force
+    # (Credential Access) in the matrix, whatever order the lines arrived in.
+    assert [t["technique_id"] for t in map_incident_to_mitre(df)] == ["T1078", "T1110"]
+
+
+def test_kill_chain_of_orders_tactics_and_names_their_techniques():
+    df = pd.DataFrame([
+        {"user": "alice", "source_ip": "10.0.0.5", "impossible_travel": True,
+         "message": "Accepted password for alice from 10.0.0.5"},
+    ])
+    chain = kill_chain_of(map_incident_to_mitre(df))
+    assert [t["position"] for t in chain] == sorted(t["position"] for t in chain)
+    assert all(t["tactic_id"].startswith("TA") for t in chain)
+    lateral = [t for t in chain if t["tactic"] == "Lateral Movement"]
+    assert lateral and lateral[0]["technique_ids"] == ["T1021.004"]
+
+
+def test_a_signal_technique_keeps_its_authored_evidence_sentence():
+    """ATT&CK describes the technique; the evidence line describes *our*
+    detector, so it stays authored and must survive the STIX lookup."""
+    df = pd.DataFrame([
+        {"user": "alice", "source_ip": "10.0.0.5", "impossible_travel": True,
+         "message": "Accepted password for alice from 10.0.0.5"},
+    ])
+    travel = [t for t in map_incident_to_mitre(df) if t["technique_id"] == "T1021.004"]
+    assert travel and "geographically implausible" in travel[0]["evidence"]

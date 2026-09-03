@@ -27,6 +27,7 @@ logdet-fit         = "logdet.fit:cli"
 logdet-stream      = "logdet.stream:cli"
 logdet-api         = "logdet.api:cli"
 logdet-replay      = "logdet.replay:cli"
+logdet-attack      = "logdet.attack:cli"
 logdet-generate    = "logdet_eval.generate_logs:cli"
 logdet-evaluate    = "logdet_eval.evaluate:cli"
 logdet-adversarial = "logdet_eval.adversarial:cli"
@@ -40,6 +41,7 @@ logdet-templates   = "logdet_eval.template_report:cli"
 logdet-sequence-report = "logdet_eval.sequence_report:cli"
 logdet-suppression-report = "logdet_eval.suppression_report:cli"
 logdet-bakeoff     = "logdet_eval.bakeoff:cli"
+logdet-coverage    = "logdet_eval.coverage_report:cli"
 
 [dependency-groups]
 dev = [
