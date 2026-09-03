@@ -13,22 +13,12 @@ Phase 3 behaviour) scattered enumeration into N singleton alerts.
 
 import pandas as pd
 
-from logdet.config import INCIDENT_WINDOW_MINUTES, GROUP_BY_SOURCE_IP, NON_IDENTITY_VALUES
+from logdet.config import INCIDENT_WINDOW_MINUTES, GROUP_BY_SOURCE_IP
+from logdet.entity_graph import EntityGraph, normalise_identity
 
-
-def _identity(value) -> str | None:
-    """Normalise a user/IP cell to a joinable identity, or None if it isn't one.
-
-    Placeholders like "unknown" are not identities -- they're the parser saying
-    it found no user. Joining on them would merge unrelated systemd noise into
-    one fake incident.
-    """
-    if pd.isna(value):
-        return None
-    text = str(value).strip()
-    if not text or text.lower() in NON_IDENTITY_VALUES:
-        return None
-    return text
+# The identity rule lives in entity_graph now, so the graph, the grouper and
+# the incident summary cannot drift apart about what counts as a user.
+_identity = normalise_identity
 
 
 def _linked(row_a: pd.Series, row_b: pd.Series, group_by_source_ip: bool) -> bool:
@@ -57,26 +47,6 @@ def linked(row_a, row_b, group_by_source_ip: bool = GROUP_BY_SOURCE_IP) -> bool:
     return _linked(row_a, row_b, group_by_source_ip)
 
 
-class _UnionFind:
-    """Minimal union-find so incident membership is transitive: if A links to B
-    and B links to C, all three land in one incident even if A and C share nothing."""
-
-    def __init__(self, size: int):
-        self.parent = list(range(size))
-
-    def find(self, x: int) -> int:
-        while self.parent[x] != x:
-            self.parent[x] = self.parent[self.parent[x]]   # path compression
-            x = self.parent[x]
-        return x
-
-    def union(self, x: int, y: int) -> None:
-        root_x, root_y = self.find(x), self.find(y)
-        if root_x != root_y:
-            # keep the lower index as root so incidents stay in chronological order
-            self.parent[max(root_x, root_y)] = min(root_x, root_y)
-
-
 def group_anomalies(df: pd.DataFrame,
                     window_minutes: int = INCIDENT_WINDOW_MINUTES,
                     group_by_source_ip: bool = GROUP_BY_SOURCE_IP,
@@ -87,6 +57,12 @@ def group_anomalies(df: pd.DataFrame,
     Two anomalies join the same incident when they fall within `window_minutes`
     of each other AND share a user or a source IP. Linking is transitive, so a
     chain of events spanning more than one window still reads as one story.
+
+    The link rule is unchanged; what computes it is now the entity graph
+    (Stage 4) rather than a pairwise backward scan. The partition is the same
+    one -- see entity_graph's docstring for why chaining an entity's events
+    consecutively is exact rather than an approximation, and
+    tests/test_entity_graph.py for the assertion that the two agree.
     """
     anomalies = df[df["is_anomaly"] == True].copy()
     anomalies = anomalies.dropna(subset=[time_col]).sort_values(time_col).reset_index(drop=True)
@@ -94,24 +70,12 @@ def group_anomalies(df: pd.DataFrame,
     if anomalies.empty:
         return []
 
-    window = pd.Timedelta(minutes=window_minutes)
-    groups = _UnionFind(len(anomalies))
+    kinds = ("user", "ip") if group_by_source_ip else ("user",)
+    graph = EntityGraph.build(anomalies, window_minutes=window_minutes,
+                              kinds=kinds, time_col=time_col)
 
-    for i in range(len(anomalies)):
-        row_i = anomalies.iloc[i]
-        # walk backwards only while the previous rows are still inside the window
-        for j in range(i - 1, -1, -1):
-            row_j = anomalies.iloc[j]
-            if row_i[time_col] - row_j[time_col] > window:
-                break
-            if _linked(row_i, row_j, group_by_source_ip):
-                groups.union(i, j)
-
-    incidents: dict[int, list[int]] = {}
-    for i in range(len(anomalies)):
-        incidents.setdefault(groups.find(i), []).append(i)
-
-    return [anomalies.iloc[idx].reset_index(drop=True) for idx in incidents.values()]
+    return [anomalies.iloc[positions].reset_index(drop=True)
+            for positions in graph.components(kinds)]
 
 
 def describe_incident(incident: pd.DataFrame) -> str:

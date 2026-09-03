@@ -15,7 +15,8 @@ import json
 import pandas as pd
 
 from logdet.embedding import add_embeddings_to_df
-from logdet.anomaly_detection import run_anomaly_detection, highest_severity
+from logdet.anomaly_detection import (run_anomaly_detection, highest_severity,
+                                      travel_evidence)
 from logdet.sequence_grouping import group_anomalies, describe_incident
 from logdet.mitre_mapping import map_incident_to_mitre
 from logdet.llm_narrative import generate_narrative
@@ -42,9 +43,36 @@ def _max_surprisal(incident: pd.DataFrame) -> float | None:
     return float(values.max()) if len(values) else None
 
 
-def build_incident_entry(incident_id: int, incident: pd.DataFrame) -> dict:
-    """Everything about an incident that doesn't need the LLM."""
+EVENT_FIELDS = ["timestamp", "user", "source_ip", "message"]
+
+
+def _event_records(frame: pd.DataFrame) -> list[dict]:
+    """Serialisable event rows.
+
+    fillna before astype(str), or missing cells serialise as the string "nan".
+    """
+    fields = [c for c in EVENT_FIELDS if c in frame.columns]
+    return (frame[fields].astype(object)
+            .where(frame[fields].notna(), "")
+            .astype(str).to_dict(orient="records"))
+
+
+def build_incident_entry(incident_id: int, incident: pd.DataFrame,
+                         context: pd.DataFrame | None = None) -> dict:
+    """Everything about an incident that doesn't need the LLM.
+
+    `context` is the wider frame the incident was cut out of -- the full scored
+    log in batch mode, the rolling window in the stream. It is used only to
+    retrieve *evidence*: the benign earlier login an impossible-travel hit was
+    compared against, which is flagged nowhere and so has never been shown
+    (Known Issues). Those rows land in `context_events`, deliberately not in
+    `events`: they are not detections, they must not count towards
+    `event_count`, severity or triage, and the bake-off attributes our flagged
+    lines by walking `events` -- putting a benign line there would turn a
+    display fix into a false positive.
+    """
     techniques = map_incident_to_mitre(incident)
+    evidence = travel_evidence(incident, context) if context is not None else None
     return {
         "incident_id": incident_id,
         "summary": describe_incident(incident),
@@ -64,10 +92,12 @@ def build_incident_entry(incident_id: int, incident: pd.DataFrame) -> dict:
              "tactic": t["tactic"]}
             for t in techniques
         ],
-        # fillna before astype(str), or missing cells serialise as the string "nan"
-        "events": incident[["timestamp", "user", "source_ip", "message"]]
-                  .astype(object).where(incident[["timestamp", "user", "source_ip", "message"]].notna(), "")
-                  .astype(str).to_dict(orient="records"),
+        "events": _event_records(incident),
+        # Evidence, not detections -- see the docstring.
+        "context_events": [
+            dict(record, role="prior login compared against")
+            for record in _event_records(evidence)
+        ] if evidence is not None and len(evidence) else [],
     }
 
 
@@ -104,7 +134,12 @@ def run_pipeline(input_csv: str, output_json: str, use_llm: bool = True,
     print(f"Grouped into {len(incidents)} incidents "
           f"({sum(1 for i in incidents if len(i) > 1)} multi-event)")
 
-    results = [build_incident_entry(i, inc) for i, inc in enumerate(incidents)]
+    results = [build_incident_entry(i, inc, context=scored)
+               for i, inc in enumerate(incidents)]
+    carried = sum(1 for entry in results if entry["context_events"])
+    if carried:
+        print(f"Carried the compared-against login into {carried} "
+              "impossible-travel incidents as evidence")
 
     if use_llm:
         targets = [e for e in results
@@ -116,7 +151,9 @@ def run_pipeline(input_csv: str, output_json: str, use_llm: bool = True,
             print(f"  [{n}/{len(targets)}] incident {entry['incident_id']} "
                   f"({entry['severity']}, {entry['event_count']} events)...", flush=True)
             try:
-                entry["narrative"] = generate_narrative(incidents[entry["incident_id"]])
+                entry["narrative"] = generate_narrative(
+                    incidents[entry["incident_id"]],
+                    context_events=entry["context_events"])
             except Exception as e:
                 entry["narrative"] = f"[LLM narrative generation failed: {e}]"
 

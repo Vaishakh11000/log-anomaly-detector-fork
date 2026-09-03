@@ -41,6 +41,39 @@ Write a concise ({sentences} sentence) narrative explaining:
 Only reference technique IDs listed above. Do not invent new ones.
 """
 
+# Spliced in ahead of the MITRE block, and only when there is evidence to show.
+# The prompt is byte-identical to the pre-Stage-4 one when the list is empty,
+# which keeps the narration-latency figures in CLAUDE.md section 2c (592 prompt
+# tokens on the module's own smoke incident) comparable across this change.
+CONTEXT_BLOCK = """Benign events the detector compared those against (evidence, NOT anomalies):
+{context}
+
+"""
+
+
+def _context_lines(context_events: list[dict] | None) -> str:
+    """Format retrieved evidence rows for the prompt.
+
+    These are the events an incident was *judged against* -- for impossible
+    travel, the user's earlier login from the other subnet. Without them the
+    narrative asserts a conclusion whose second half is nowhere in the prompt,
+    and phi3 fills the hole by inventing one.
+    """
+    lines = []
+    for event in context_events or []:
+        parts = [f"- [{event.get('timestamp', '')}]"]
+        user, src = _field(event.get("user")), _field(event.get("source_ip"))
+        if user:
+            parts.append(f"user={user}")
+        if src:
+            parts.append(f"src={src}")
+        role = _field(event.get("role"))
+        parts.append(f": {event.get('message', '')}")
+        if role:
+            parts.append(f"({role})")
+        lines.append(" ".join(parts))
+    return "\n".join(lines)
+
 
 def _field(value) -> str | None:
     """Readable field value, or None when the parser found nothing.
@@ -104,7 +137,9 @@ def format_incident_for_prompt(incident_df: pd.DataFrame) -> tuple[str, str]:
     return events_str, mitre_str
 
 
-def generate_narrative(incident_df: pd.DataFrame, model: str = LLM_MODEL) -> str:
+def build_prompt(incident_df: pd.DataFrame,
+                 context_events: list[dict] | None = None) -> str:
+    """The exact text sent to the model, so a test can assert on it."""
     events_str, mitre_str = format_incident_for_prompt(incident_df)
     prompt = PROMPT_TEMPLATE.format(
         summary=summarise_incident(incident_df),
@@ -112,6 +147,18 @@ def generate_narrative(incident_df: pd.DataFrame, model: str = LLM_MODEL) -> str
         mitre_matches=mitre_str,
         sentences=NARRATIVE_SENTENCE_RANGE,
     )
+    context_str = _context_lines(context_events)
+    if context_str:
+        prompt = prompt.replace(
+            "Matched MITRE ATT&CK techniques",
+            CONTEXT_BLOCK.format(context=context_str) + "Matched MITRE ATT&CK techniques",
+            1)
+    return prompt
+
+
+def generate_narrative(incident_df: pd.DataFrame, model: str = LLM_MODEL,
+                       context_events: list[dict] | None = None) -> str:
+    prompt = build_prompt(incident_df, context_events)
 
     response = requests.post(
         OLLAMA_URL,

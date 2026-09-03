@@ -488,7 +488,9 @@ def create_app(service: StreamService | None = None) -> FastAPI:
 
         from logdet.llm_narrative import generate_narrative
         try:
-            narrative = generate_narrative(pd.DataFrame(found["events"]))
+            narrative = generate_narrative(
+                pd.DataFrame(found["events"]),
+                context_events=found.get("context_events"))
         except Exception as exc:                          # noqa: BLE001
             raise HTTPException(status_code=503,
                                 detail=f"narrative generation failed: {exc}")

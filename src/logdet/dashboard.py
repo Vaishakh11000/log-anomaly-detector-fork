@@ -249,6 +249,15 @@ for incident in filtered:
             st.subheader("Raw events")
             st.dataframe(pd.DataFrame(incident["events"]), width="stretch")
 
+            # The benign events this incident was judged against -- for
+            # impossible travel, the earlier login from the other subnet.
+            # Shown apart from the flagged events, and labelled, because they
+            # are evidence and not detections.
+            context_events = incident.get("context_events") or []
+            if context_events:
+                st.caption("Compared against (benign, not flagged)")
+                st.dataframe(pd.DataFrame(context_events), width="stretch")
+
         with col2:
             st.subheader("LLM narrative")
             narrative = incident.get("narrative")

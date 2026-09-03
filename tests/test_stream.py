@@ -304,6 +304,38 @@ def test_impossible_travel_is_caught_across_two_batches():
     assert incidents[0]["severity"] == "high"
 
 
+def test_travel_evidence_is_carried_across_a_batch_boundary():
+    """The compared-against login is in an earlier batch and is benign, so it is
+    in neither the incident nor the flagged set -- the rolling context is the
+    only place it exists. It is evidence, so it must not move any count."""
+    proc = processor()
+    proc.process([line("Jul 18 10:00:00",
+                       "Accepted password for alice from 10.0.0.5 port 52000 ssh2")])
+    incidents = proc.process([line("Jul 18 10:15:00",
+                                   "Accepted password for alice from 203.0.113.44 port 52010 ssh2")])
+
+    entry = incidents[0]
+    assert [e["source_ip"] for e in entry["context_events"]] == ["10.0.0.5"]
+    assert entry["event_count"] == 1
+    assert [e["source_ip"] for e in entry["events"]] == ["203.0.113.44"]
+
+
+def test_evidence_survives_a_later_update_to_the_same_incident():
+    """A later batch's context need not reach back to the compared-against
+    login; evidence found once is not dropped when the incident grows."""
+    proc = processor()
+    proc.process([line("Jul 18 10:00:00",
+                       "Accepted password for alice from 10.0.0.5 port 52000 ssh2")])
+    proc.process([line("Jul 18 10:15:00",
+                       "Accepted password for alice from 203.0.113.44 port 52010 ssh2")])
+    incidents = proc.process([line("Jul 18 10:20:00",
+                                   "Failed password for alice from 203.0.113.44 port 52011 ssh2")])
+
+    entry = incidents[0]
+    assert entry["event_count"] == 2
+    assert [e["source_ip"] for e in entry["context_events"]] == ["10.0.0.5"]
+
+
 def test_streamed_incidents_match_a_batch_run_over_the_same_lines():
     """The claim that makes streaming trustworthy. Same lines, same detector,
     same verdict -- whether they arrive all at once or five at a time."""

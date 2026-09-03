@@ -322,6 +322,13 @@ class StreamProcessor:
         self.parser = LineParser(year=year)
         self.tracker = IncidentTracker(window_minutes=window_minutes)
         self.history: pd.DataFrame | None = None
+        # The frame this batch was scored against -- the rolling window as it
+        # stood *before* pruning, plus the batch itself. Evidence retrieval
+        # needs exactly what detection saw: `_remember` prunes relative to the
+        # newest line, so a micro-batch spanning more than the retention window
+        # can drop the very login an impossible-travel hit was compared against
+        # in the same call that detected it.
+        self._scoring_context: pd.DataFrame | None = None
         self.lines_seen = 0
         self.lines_parsed = 0
         # Snapshots of every incident emitted, so a closed one can be reported
@@ -342,7 +349,8 @@ class StreamProcessor:
             combined = detect_impossible_travel(combined)
             scored = combined.tail(len(scored)).copy()
         else:
-            scored = detect_impossible_travel(scored)
+            combined = scored = detect_impossible_travel(scored)
+        self._scoring_context = combined
 
         scored["ml_anomaly"] = scored["is_anomaly"]
         scored["is_anomaly"] = scored["ml_anomaly"] | scored["impossible_travel"]
@@ -363,7 +371,21 @@ class StreamProcessor:
         from logdet.pipeline import build_incident_entry   # local: avoids a cycle
 
         events = self.tracker.incidents[incident_id]["events"]
-        entry = build_incident_entry(incident_id, pd.DataFrame(events))
+        # The batch's scoring context is the stream's version of "the wider
+        # log": it is where an impossible-travel hit's compared-against login
+        # is found. Evidence only -- it lands in `context_events` and changes
+        # no count, which is what keeps the streamed-equals-batch lock meaning
+        # what it meant.
+        entry = build_incident_entry(incident_id, pd.DataFrame(events),
+                                     context=self._scoring_context)
+        # An incident is re-snapshotted every batch it grows in, and a later
+        # batch's context may no longer reach back to the login this incident
+        # was judged against. Evidence found once is kept rather than dropped
+        # on the next update.
+        if not entry["context_events"]:
+            previous = self._emitted.get(incident_id, {}).get("context_events")
+            if previous:
+                entry["context_events"] = previous
         entry["status"] = status
         self._emitted[incident_id] = entry
         return entry

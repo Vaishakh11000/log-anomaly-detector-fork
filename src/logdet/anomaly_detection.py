@@ -33,6 +33,7 @@ import joblib
 import sklearn
 from sklearn.ensemble import IsolationForest
 
+from logdet.entity_graph import Entity, EntityGraph, normalise_identity
 from logdet.config import (
     EMBEDDING_MODEL,
     CONTAMINATION,
@@ -187,8 +188,86 @@ class PerUserAnomalyDetector:
             "fitted_at", "users") if key in payload}
 
 
+# The line shape the travel check is allowed to reason about. It is a physics
+# check on real logins, not a generic IP-change detector, so it only ever looks
+# at successful authentications.
+LOGIN_MESSAGE = "accepted password"
+
+
 def _subnet_prefix(ip: str, prefix_len: int = TRAVEL_SUBNET_PREFIX_LENGTH) -> str:
     return ".".join(ip.split(".")[:prefix_len])
+
+
+def _login_rows(df: pd.DataFrame, message_col: str = "message",
+                ip_col: str = "source_ip") -> pd.DataFrame:
+    """The successful logins in a frame, with a usable source IP."""
+    if message_col not in df.columns or ip_col not in df.columns:
+        return df.iloc[0:0]
+    mask = df[message_col].str.contains(LOGIN_MESSAGE, case=False, na=False)
+    return df[mask & df[ip_col].notna()]
+
+
+def travel_evidence(incident: pd.DataFrame, context: pd.DataFrame,
+                    window_minutes: int = IMPOSSIBLE_TRAVEL_WINDOW_MINUTES,
+                    user_col: str = "user", time_col: str = "timestamp",
+                    ip_col: str = "source_ip") -> pd.DataFrame:
+    """The earlier logins an impossible-travel hit in `incident` was judged against.
+
+    Fixes a display gap that has been in Known Issues since v1: the travel
+    check compares a login with that user's *previous* login, but the previous
+    one is benign, so it was never flagged, never grouped, and never shown. The
+    incident stated the conclusion -- "impossible travel" -- while showing only
+    one of the two logins the conclusion is about, which is the single least
+    defensible thing an analyst can be handed.
+
+    Retrieval is a graph query rather than a second scan: index the context's
+    logins by entity and ask the user node for the event preceding this one
+    (`EntityGraph.preceding`). `context` is the full scored frame in batch mode
+    and the stream's rolling window live, so the same code serves both.
+
+    Returned rows are evidence, never detections. Nothing here sets or clears a
+    flag, and callers keep them out of `events`, out of `event_count` and out
+    of the line attribution the bake-off scores -- carrying a benign line into
+    the flagged set would turn a display fix into a false positive.
+    """
+    empty = incident.iloc[0:0]
+    if "impossible_travel" not in incident.columns or context is None:
+        return empty
+    hits = incident[incident["impossible_travel"].astype(bool)]
+    if hits.empty:
+        return empty
+
+    logins = _login_rows(context, ip_col=ip_col).sort_values(time_col).reset_index(drop=True)
+    if logins.empty:
+        return empty
+
+    graph = EntityGraph.build(logins, window_minutes=window_minutes,
+                              kinds=("user",), time_col=time_col)
+    already = set(zip(incident[time_col], incident.get("message", [])))
+
+    found: list[int] = []
+    for _, hit in hits.iterrows():
+        user = normalise_identity(hit.get(user_col))
+        if user is None:
+            continue
+        # Locate the hit among the context's logins by (time, ip, message):
+        # the incident is a copy with its own index, so positions do not carry.
+        same = logins.index[(logins[time_col] == hit[time_col])
+                            & (logins[ip_col] == hit[ip_col])
+                            & (logins["message"] == hit["message"])]
+        for position in same:
+            prior = graph.preceding(int(position), Entity("user", user))
+            if prior is None:
+                continue
+            row = logins.iloc[prior]
+            if (row[time_col], row["message"]) in already:
+                continue   # already in the incident; not new evidence
+            found.append(prior)
+
+    if not found:
+        return empty
+    return (logins.iloc[sorted(set(found))]
+            .sort_values(time_col).reset_index(drop=True))
 
 
 def detect_impossible_travel(
@@ -209,8 +288,8 @@ def detect_impossible_travel(
     df["impossible_travel"] = False
     window = pd.Timedelta(minutes=window_minutes)
 
-    login_mask = df[message_col].str.contains("accepted password", case=False, na=False)
-    logins = df[login_mask & df[ip_col].notna()].sort_values([user_col, time_col])
+    logins = _login_rows(df, message_col=message_col, ip_col=ip_col).sort_values(
+        [user_col, time_col])
 
     prev_user = None
     prev_ip = None
