@@ -65,7 +65,12 @@ from logdet.embedding import add_embeddings_to_df
 from logdet.preprocessing import preprocess_file
 from logdet.sequence_grouping import group_anomalies
 from logdet.sequence_model import TransitionModel
-from logdet.suppression import lone_flagged_mask, suppress_routine_singletons
+from logdet.suppression import (
+    lone_flagged_mask,
+    lone_mask,
+    neighbourhood_counts,
+    suppress_routine_singletons,
+)
 from logdet.templating import TemplateMiner
 from logdet_eval.config import SYNTHETIC_TOTAL_LINES, SYNTHETIC_YEAR, SYNTHETIC_SEED
 from logdet_eval.generate_logs import build_dataset, format_line
@@ -74,6 +79,24 @@ from logdet_eval.generate_logs import build_dataset, format_line
 # the two the model already carries (`routine_threshold`, `rare_threshold`);
 # the others are there so the adopted value can be read as a point on a curve.
 SWEEP_QUANTILES = (0.50, 0.75, SEQUENCE_RARE_QUANTILE, 0.95, 0.99)
+
+# The loneness tests swept, as (label, mode, flagged-share). "incident" is the
+# shipped guard; "quiet" and the "share" family are the entity-graph versions,
+# and they run in opposite directions -- "quiet" only calls a line lone when
+# nothing at all touches its entities (a strictly smaller pool than
+# "incident"), while "share" above 0 also calls lone a line that grouping does
+# corroborate, as long as its entity's traffic is overwhelmingly benign (a
+# strictly larger one). share=0.0 is "incident" computed the other way and is
+# swept so the two can be checked against each other on real corpora rather
+# than only in a unit test.
+SWEEP_LONENESS = (
+    ("quiet", "quiet", 0.0),
+    ("incident", "incident", 0.0),
+    ("share@0.00", "share", 0.0),
+    ("share@0.25", "share", 0.25),
+    ("share@0.50", "share", 0.50),
+    ("share@0.75", "share", 0.75),
+)
 
 
 def _prf(scored: pd.DataFrame) -> dict:
@@ -187,6 +210,40 @@ def eligibility(scored: pd.DataFrame, history_surprisal: pd.Series) -> dict:
     }
 
 
+def loneness_pools(scored: pd.DataFrame) -> list[dict]:
+    """How many rows each loneness test calls uncorroborated, and how many of
+    those are attack lines.
+
+    This is the guard doing the safety work, so the number that matters in
+    this table is the *attack* column: a test that calls attack lines lone is
+    a test that will delete evidence once the threshold lets it through.
+    """
+    flagged = scored["is_anomaly"].astype(bool)
+    counts = neighbourhood_counts(scored)
+    rows = []
+    for label, mode, share in SWEEP_LONENESS:
+        lone = lone_mask(scored, mode=mode, flagged_share=share)
+        sub = scored[lone]
+        rows.append({
+            "loneness": label,
+            "mode": mode,
+            "flagged_share": share,
+            "lone_rows": int(lone.sum()),
+            "lone_attack": int(sub["attack"].sum()),
+        })
+    rows.append({
+        "loneness": "-- context --",
+        "mode": "",
+        "flagged_share": None,
+        "flagged_rows": int(flagged.sum()),
+        "median_neighbours": float(counts.loc[flagged, "neighbours"].median())
+        if flagged.any() else 0.0,
+        "median_flagged_neighbours": float(
+            counts.loc[flagged, "flagged_neighbours"].median()) if flagged.any() else 0.0,
+    })
+    return rows
+
+
 def score_corpus(history: pd.DataFrame, corpus: pd.DataFrame) -> tuple:
     """Fit on history, score the corpus once, and return (model, scored frame).
 
@@ -215,6 +272,19 @@ def run_corpus(name: str, history: pd.DataFrame, corpus: pd.DataFrame) -> dict:
             **evaluate(suppress_routine_singletons(scored, threshold)),
         }
 
+    # The loneness sweep is run at the *adopted* threshold only. Crossing it
+    # with the quantile sweep would be two knobs moving at once, and the
+    # threshold has already been measured and settled (q0.99 rejected under
+    # camouflage); this session is asking about the other guard.
+    adopted_threshold = float(history_surprisal.quantile(SEQUENCE_RARE_QUANTILE))
+    loneness_arms = {}
+    for label, mode, share in SWEEP_LONENESS:
+        loneness_arms[label] = {
+            "threshold_nats": round(adopted_threshold, 3),
+            **evaluate(suppress_routine_singletons(
+                scored, adopted_threshold, loneness=mode, flagged_share=share)),
+        }
+
     return {
         "corpus": name,
         "rows": int(len(corpus)),
@@ -226,7 +296,9 @@ def run_corpus(name: str, history: pd.DataFrame, corpus: pd.DataFrame) -> dict:
         "rare_threshold": round(model.rare_threshold, 3),
         "conditional_separation": conditional_separation(scored),
         "eligibility": eligibility(scored, history_surprisal),
+        "loneness_pools": loneness_pools(scored),
         "arms": arms,
+        "loneness_arms": loneness_arms,
     }
 
 
@@ -405,6 +477,62 @@ def render_report(payload: dict) -> str:
                 f"{arm['instance_detection_rate']:.0%} "
                 f"({arm['instances_detected']}/{arm['instances']}) | "
                 f"{arm['flagged_lines']} | {arm['incidents']} |")
+
+        if row.get("loneness_pools"):
+            context = row["loneness_pools"][-1]
+            lines += [
+                "",
+                "### Which loneness test (Stage 4 entity graph)",
+                "",
+                "Loneness is the guard doing the safety work, so it is the guard to move",
+                "if suppression is to be pushed harder -- the threshold has already been",
+                "swept above, and q0.99 was measured and rejected under camouflage. The",
+                "shipped test (`incident`) sees only the flagged rows. The graph sees the",
+                "whole frame, so it can tell an unknown IP appearing once from a busy",
+                "known host that also logged one odd line.",
+                "",
+                f"A flagged line on this corpus has a median of "
+                f"{context['median_neighbours']:.0f} events sharing its user or source IP "
+                f"inside the window, of which {context['median_flagged_neighbours']:.0f} "
+                "are themselves flagged.",
+                "",
+                "**The attack column is the one to read.** A test that calls attack lines",
+                "lone is a test that will delete evidence as soon as the threshold lets",
+                "one through.",
+                "",
+                "| loneness test | rows called lone | of which attack |",
+                "|---|---|---|",
+            ]
+            for pool in row["loneness_pools"][:-1]:
+                mark = "  ← shipped" if pool["loneness"] == "incident" else ""
+                lines.append(f"| `{pool['loneness']}`{mark} | {pool['lone_rows']} | "
+                             f"{pool['lone_attack']} |")
+
+        if row.get("loneness_arms"):
+            lines += [
+                "",
+                "Section 4 numbers per loneness test, all at the adopted threshold",
+                f"(q{payload['adopted_quantile']:.2f}):",
+                "",
+                "| loneness test | P | R | F1 | instance detection | incidents | "
+                "suppressed (attack) |",
+                "|---|---|---|---|---|---|---|",
+            ]
+            for name, arm in row["loneness_arms"].items():
+                mark = "  ← shipped" if name == "incident" else ""
+                lines.append(
+                    f"| `{name}`{mark} | {arm['precision']} | {arm['recall']} | "
+                    f"{arm['f1']} | {arm['instance_detection_rate']:.0%} "
+                    f"({arm['instances_detected']}/{arm['instances']}) | "
+                    f"{arm['incidents']} | {arm['suppressed_lines']} "
+                    f"({arm['suppressed_attack_lines']}) |")
+            lines += [
+                "",
+                "Clean corpora cannot settle this on their own -- clean instance detection",
+                "saturates at 100%, which is exactly the margin camouflage eats first. Any",
+                "test adopted here owes the five-seed camouflage suite before its default",
+                "can change.",
+            ]
         lines.append("")
     return "\n".join(lines)
 

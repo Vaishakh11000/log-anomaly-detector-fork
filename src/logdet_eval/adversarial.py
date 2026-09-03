@@ -49,6 +49,8 @@ from logdet.config import (
     PROCESSED_DATA_DIR,
     RESULTS_DIR,
     SEQUENCE_SUPPRESSION_QUANTILE,
+    SUPPRESSION_FLAGGED_SHARE,
+    SUPPRESSION_LONENESS,
 )
 from logdet_eval.config import (
     SYNTHETIC_HOST,
@@ -68,6 +70,7 @@ from logdet.preprocessing import preprocess_file
 from logdet.embedding import add_embeddings_to_df
 from logdet.anomaly_detection import run_anomaly_detection
 from logdet.sequence_grouping import group_anomalies
+from logdet.suppression import LONENESS_MODES
 from logdet.sequence_model import TransitionModel
 from logdet.templating import TemplateMiner
 
@@ -250,7 +253,9 @@ def detect_on_log(log_path: str, parsed_csv: str, year: int = SYNTHETIC_YEAR,
                   contamination: float = CONTAMINATION,
                   sequence_model=None, miner_state: str | None = None,
                   suppress: bool = False,
-                  suppression_threshold: float | None = None) -> pd.DataFrame:
+                  suppression_threshold: float | None = None,
+                  suppression_loneness: str = SUPPRESSION_LONENESS,
+                  suppression_share: float = SUPPRESSION_FLAGGED_SHARE) -> pd.DataFrame:
     """Run the real detection chain over a log file.
 
     `contamination` is exposed so Phase 7's proposed retune can be tested under
@@ -275,7 +280,9 @@ def detect_on_log(log_path: str, parsed_csv: str, year: int = SYNTHETIC_YEAR,
     df = add_embeddings_to_df(df, template_col="template")
     return run_anomaly_detection(df, contamination=contamination,
                                  sequence_model=sequence_model, suppress=suppress,
-                                 suppression_threshold=suppression_threshold)
+                                 suppression_threshold=suppression_threshold,
+                                 suppression_loneness=suppression_loneness,
+                                 suppression_share=suppression_share)
 
 
 def measure(scored: pd.DataFrame, ground_truth: pd.DataFrame, log_path: str) -> dict:
@@ -339,7 +346,9 @@ def run_condition(name: str, strategies: list[str], base_events: list[dict],
                   year: int = SYNTHETIC_YEAR,
                   sequence_model=None, miner_state: str | None = None,
                   suppress: bool = False,
-                  suppression_threshold: float | None = None) -> dict:
+                  suppression_threshold: float | None = None,
+                  suppression_loneness: str = SUPPRESSION_LONENESS,
+                  suppression_share: float = SUPPRESSION_FLAGGED_SHARE) -> dict:
     """Build one camouflaged corpus, detect on it, and measure.
 
     `host` and `year` are parameters so the identical camouflage code can run
@@ -356,7 +365,9 @@ def run_condition(name: str, strategies: list[str], base_events: list[dict],
     scored = detect_on_log(str(log_path), str(work_dir / f"{name}_parsed.csv"),
                            year=year, contamination=contamination,
                            sequence_model=sequence_model, miner_state=miner_state,
-                           suppress=suppress, suppression_threshold=suppression_threshold)
+                           suppress=suppress, suppression_threshold=suppression_threshold,
+                           suppression_loneness=suppression_loneness,
+                           suppression_share=suppression_share)
     result = measure(scored, pd.read_csv(gt_path), str(log_path))
     result["condition"] = name
     result["strategies"] = strategies
@@ -585,7 +596,9 @@ def render_report(results: list[dict], n_seeds: int = 1) -> str:
 def main(output_dir: str, seed: int, n_seeds: int,
          contamination: float = CONTAMINATION,
          suppress: bool = False,
-         suppression_quantile: float = SEQUENCE_SUPPRESSION_QUANTILE) -> list[dict]:
+         suppression_quantile: float = SEQUENCE_SUPPRESSION_QUANTILE,
+         suppression_loneness: str = SUPPRESSION_LONENESS,
+         suppression_share: float = SUPPRESSION_FLAGGED_SHARE) -> list[dict]:
     work_dir = Path(PROCESSED_DATA_DIR) / "adversarial"
     work_dir.mkdir(parents=True, exist_ok=True)
 
@@ -596,7 +609,10 @@ def main(output_dir: str, seed: int, n_seeds: int,
     if suppress:
         fitted = synthetic_history(work_dir, seed=seed + HISTORY_SEED_OFFSET,
                                    quantile=suppression_quantile)
-        print(f"Suppression on: {fitted.describe()}")
+        print(f"Suppression on: {fitted.describe()}, loneness "
+              f"{suppression_loneness}"
+              + (f" (share <= {suppression_share})"
+                 if suppression_loneness == "share" else ""))
 
     conditions = ([("baseline", [])]
                   + [(s, [s]) for s in STRATEGIES]
@@ -615,7 +631,9 @@ def main(output_dir: str, seed: int, n_seeds: int,
                                    sequence_model=fitted.model if fitted else None,
                                    miner_state=fitted.miner_state if fitted else None,
                                    suppress=suppress,
-                                   suppression_threshold=fitted.threshold if fitted else None)
+                                   suppression_threshold=fitted.threshold if fitted else None,
+                                   suppression_loneness=suppression_loneness,
+                                   suppression_share=suppression_share)
             runs[name].append(result)
             o = result["overall"]
             print(f"  {name:<16} line {o['line_detection_rate']:.0%} | "
@@ -651,6 +669,17 @@ def cli() -> None:
                         help="Quantile of the fitted history a lone flagged line must "
                              "exceed to survive. The default is the config value; other "
                              "values are for the sweep, not for shopping.")
+    parser.add_argument("--suppression-loneness", default=SUPPRESSION_LONENESS,
+                        choices=LONENESS_MODES,
+                        help="Which loneness test decides a flagged line is "
+                             "uncorroborated. 'incident' is grouping's own answer "
+                             "(flagged rows only); 'share' and 'quiet' ask the entity "
+                             "graph over the whole frame. See logdet/config.py.")
+    parser.add_argument("--suppression-share", type=float,
+                        default=SUPPRESSION_FLAGGED_SHARE,
+                        help="Only read with --suppression-loneness share: the flagged "
+                             "share of a line's entity neighbourhood at or below which "
+                             "it counts as lone. 0.0 reproduces 'incident'.")
     parser.add_argument("--suppress", action="store_true",
                         help="Enable Stage 3 alert suppression (fits a transition model on a "
                              "separate benign-only history corpus first). This is the arm "
@@ -658,7 +687,9 @@ def cli() -> None:
     args = parser.parse_args()
 
     main(args.output_dir, args.seed, args.seeds, contamination=args.contamination,
-         suppress=args.suppress, suppression_quantile=args.suppression_quantile)
+         suppress=args.suppress, suppression_quantile=args.suppression_quantile,
+         suppression_loneness=args.suppression_loneness,
+         suppression_share=args.suppression_share)
 
 
 if __name__ == "__main__":

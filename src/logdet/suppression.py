@@ -23,10 +23,17 @@ A flagged row is suppressed when **all four** hold:
    only thing that detects Scenario B at all -- the embeddings contribute
    nothing there, because both login legs are identical vectors after IP
    masking. Suppressing one would be removing the only evidence there is.
-2. It is **lone**: the only flagged row in its incident under the grouping that
-   was in force before any suppression. A row that shares a user or a source IP
-   with another flagged row inside the incident window is corroborated, and
-   corroboration is the evidence the whole grouping layer exists to find.
+2. It is **lone**: uncorroborated by the traffic around it. A row that shares a
+   user or a source IP with another flagged row inside the incident window is
+   corroborated, and corroboration is the evidence the whole grouping layer
+   exists to find. *Which* test answers this is `SUPPRESSION_LONENESS` -- the
+   shipped one ("incident") is grouping's own answer and sees only the flagged
+   rows; "share" and "quiet" ask the Stage 4 entity graph the same question
+   over the whole frame, benign lines included. **Both graph tests were
+   measured on the full section 4 suite and rejected** -- see config.py and
+   results/suppression/loneness/. The short version is that the attack lines
+   suppression costs are genuinely isolated, so seeing the benign traffic
+   around an alert does not make this guard safer.
 3. Its transition surprisal is **defined**. NaN means the model had nothing to
    say -- an unknown template, the first event of a sequence, or no usable
    actor key -- and silence is not evidence in either direction. This is the
@@ -78,25 +85,47 @@ numbers comparable to every number in `results/`. Making it work in a stream
 means deferring the decision by at least the incident window and re-verifying
 that lock -- a separate piece of work, not a parameter.
 
-One pass, and it cannot cascade
--------------------------------
+One pass, and what that costs under each loneness test
+------------------------------------------------------
 
 Suppression is computed against the pre-suppression grouping and applied once.
-That is not a simplification, it is exact: the only rows removed are singleton
-incidents, and removing a singleton cannot change any other incident's
-membership -- no other row was linked to it, or it would not have been a
-singleton. So a second pass would find the same singletons it found the first
-time, and iterating is provably a no-op.
+
+Under "incident" and "quiet" that is not a simplification, it is exact: the
+only rows removed are singleton incidents, and removing a singleton cannot
+change any other incident's membership -- no other row was linked to it, or it
+would not have been a singleton. So a second pass finds the same singletons it
+found the first time, and iterating is provably a no-op.
+
+Under "share" with a threshold above 0 it *is* a choice, and the deliberate
+one. That test can withdraw a row from a multi-row incident, which can leave
+another row alone, which a second pass would then be free to withdraw as well.
+Iterating would let suppression eat a whole incident one line at a time --
+precisely the failure mode that destroys attack evidence, and the reason the
+loneness guard exists at all. So the rule is applied against the grouping that
+was in force before any suppression, once, and a row corroborated at that
+moment stays corroborated.
 """
 
 from __future__ import annotations
 
 import pandas as pd
 
-from logdet.config import SEQUENCE_SUPPRESSION_QUANTILE
+from logdet.config import (
+    GROUP_BY_SOURCE_IP,
+    INCIDENT_WINDOW_MINUTES,
+    SEQUENCE_SUPPRESSION_QUANTILE,
+    SUPPRESSION_FLAGGED_SHARE,
+    SUPPRESSION_LONENESS,
+)
+from logdet.entity_graph import EntityGraph
 from logdet.sequence_grouping import group_anomalies
 
 SURPRISAL_COLUMN = "transition_surprisal"
+
+# The three answers to "is this alert uncorroborated?". See config.py for what
+# each means and results/suppression/suppression_loneness.md for the numbers
+# that chose between them.
+LONENESS_MODES = ("incident", "share", "quiet")
 
 
 def lone_flagged_mask(scored: pd.DataFrame, **grouping) -> pd.Series:
@@ -122,8 +151,100 @@ def lone_flagged_mask(scored: pd.DataFrame, **grouping) -> pd.Series:
     return lone
 
 
+def neighbourhood_counts(scored: pd.DataFrame,
+                         window_minutes: int = INCIDENT_WINDOW_MINUTES,
+                         group_by_source_ip: bool = GROUP_BY_SOURCE_IP,
+                         time_col: str = "timestamp") -> pd.DataFrame:
+    """Per flagged row: how much traffic its entities account for.
+
+    Two counts, both over the **whole frame** rather than over the flagged rows
+    alone, and that difference is the entire point of building this on the
+    Stage 4 entity graph:
+
+      `neighbours`          other events sharing this row's user or source IP
+                            inside the incident window, benign ones included
+      `flagged_neighbours`  how many of those are themselves flagged
+
+    Union-find only ever held the flagged rows, so it could answer the second
+    question and not the first -- an unknown IP appearing exactly once and a
+    busy known host that also logged one odd line were the same thing to it.
+
+    Rows with no timestamp are given zero on both counts and are excluded from
+    everyone else's, matching the grouper, which drops them. They are protected
+    separately by `lone_mask`, which never calls a row without a timestamp lone.
+    """
+    counts = pd.DataFrame({"neighbours": 0, "flagged_neighbours": 0},
+                          index=scored.index)
+    if "is_anomaly" not in scored.columns or time_col not in scored.columns:
+        return counts
+
+    frame = scored.dropna(subset=[time_col]).sort_values(time_col)
+    if frame.empty:
+        return counts
+
+    kinds = ("user", "ip") if group_by_source_ip else ("user",)
+    row_ids = list(frame.index)
+    flagged = frame["is_anomaly"].astype(bool).to_numpy()
+    graph = EntityGraph.build(frame.reset_index(drop=True),
+                              window_minutes=window_minutes, kinds=kinds,
+                              time_col=time_col)
+
+    # Only flagged rows are ever asked about, and the graph query is O(events
+    # on that entity), so skipping the benign majority keeps this linear in the
+    # number of alerts rather than in the size of the corpus.
+    for position in range(len(frame)):
+        if not flagged[position]:
+            continue
+        others = graph.neighbours(position, kinds=kinds)
+        counts.at[row_ids[position], "neighbours"] = len(others)
+        counts.at[row_ids[position], "flagged_neighbours"] = sum(
+            1 for other in others if flagged[other])
+    return counts
+
+
+def lone_mask(scored: pd.DataFrame,
+              mode: str = SUPPRESSION_LONENESS,
+              flagged_share: float = SUPPRESSION_FLAGGED_SHARE,
+              **grouping) -> pd.Series:
+    """True for each flagged row the chosen loneness test calls uncorroborated.
+
+    `mode` selects between the three tests described in config.py. "incident"
+    is the shipped one and is computed by the grouper itself; "share" and
+    "quiet" are graph queries over the whole frame. "share" at 0.0 is the same
+    test as "incident" -- asserted in tests/test_suppression.py rather than
+    assumed, because the two are computed by different code paths and a drift
+    between them would silently change what suppression does.
+    """
+    if mode not in LONENESS_MODES:
+        raise ValueError(f"unknown loneness mode {mode!r}; expected one of {LONENESS_MODES}")
+    if mode == "incident":
+        return lone_flagged_mask(scored, **grouping)
+
+    lone = pd.Series(False, index=scored.index)
+    if "is_anomaly" not in scored.columns or not scored["is_anomaly"].any():
+        return lone
+
+    counts = neighbourhood_counts(scored, **grouping)
+    flagged = scored["is_anomaly"].astype(bool)
+    # A row without a timestamp is invisible to the graph and would otherwise
+    # score zero neighbours, i.e. maximally lone -- the opposite of the safe
+    # answer. The grouper drops such rows, so exclude them here too.
+    time_col = grouping.get("time_col", "timestamp")
+    known_time = (scored[time_col].notna() if time_col in scored.columns
+                  else pd.Series(False, index=scored.index))
+
+    if mode == "quiet":
+        return flagged & known_time & (counts["neighbours"] == 0)
+
+    share = counts["flagged_neighbours"] / counts["neighbours"].where(
+        counts["neighbours"] > 0)
+    return flagged & known_time & (share.fillna(0.0) <= flagged_share)
+
+
 def suppression_mask(scored: pd.DataFrame, threshold: float | None,
                      surprisal_col: str = SURPRISAL_COLUMN,
+                     loneness: str = SUPPRESSION_LONENESS,
+                     flagged_share: float = SUPPRESSION_FLAGGED_SHARE,
                      **grouping) -> pd.Series:
     """Which flagged rows the rule would clear. See the module docstring."""
     blank = pd.Series(False, index=scored.index)
@@ -140,11 +261,14 @@ def suppression_mask(scored: pd.DataFrame, threshold: float | None,
         eligible &= ~scored["impossible_travel"].astype(bool)
     if not eligible.any():
         return blank
-    return eligible & lone_flagged_mask(scored, **grouping)
+    return eligible & lone_mask(scored, mode=loneness,
+                                flagged_share=flagged_share, **grouping)
 
 
 def suppress_routine_singletons(scored: pd.DataFrame, threshold: float | None,
                                 surprisal_col: str = SURPRISAL_COLUMN,
+                                loneness: str = SUPPRESSION_LONENESS,
+                                flagged_share: float = SUPPRESSION_FLAGGED_SHARE,
                                 **grouping) -> pd.DataFrame:
     """Return `scored` with the suppressed rows' `is_anomaly` cleared.
 
@@ -156,7 +280,9 @@ def suppress_routine_singletons(scored: pd.DataFrame, threshold: float | None,
     having to be recomputed.
     """
     scored = scored.copy()
-    mask = suppression_mask(scored, threshold, surprisal_col=surprisal_col, **grouping)
+    mask = suppression_mask(scored, threshold, surprisal_col=surprisal_col,
+                            loneness=loneness, flagged_share=flagged_share,
+                            **grouping)
     scored["suppressed"] = mask
     scored.loc[mask, "is_anomaly"] = False
     return scored

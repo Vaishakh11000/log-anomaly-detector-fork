@@ -149,6 +149,57 @@ SEQUENCE_SUPPRESSION = True
 # See logdet/suppression.py and results/suppression/.
 SEQUENCE_SUPPRESSION_QUANTILE = SEQUENCE_RARE_QUANTILE
 
+# Which loneness test decides that a flagged line is uncorroborated. This is
+# the guard doing the *safety* work in suppression -- the surprisal threshold
+# above is only selectivity (results/suppression/suppression.md: among flagged
+# rows the surprisal separates attack from benign at AUC 0.278 on the synthetic
+# corpus, i.e. backwards). So this is the knob to move if suppression is to be
+# pushed harder, and it is also the one that has to be re-measured under
+# camouflage from scratch whenever it moves.
+#
+#   "incident"  a flagged line is lone when no *other flagged line* shares its
+#               user or source IP inside the incident window. This is grouping's
+#               own answer, and it is blind to benign traffic: it cannot tell an
+#               unknown IP appearing exactly once from a busy known host that
+#               also logged one odd line.
+#   "share"     a flagged line is lone when the flagged share of its entity
+#               neighbourhood -- counted over the *whole* frame, benign lines
+#               included, via the Stage 4 entity graph -- is at or below
+#               SUPPRESSION_FLAGGED_SHARE. At 0.0 this is exactly "incident"
+#               (asserted by a test); above 0.0 it suppresses lines that
+#               grouping does corroborate but whose entity is overwhelmingly
+#               benign.
+#   "quiet"     a flagged line is lone only when *nothing at all* shares its
+#               user or source IP inside the window. Strictly the safest and
+#               strictly the smallest pool.
+#
+# **Measured 2026-09-04, and both graph tests were rejected**
+# (results/suppression/loneness/). The full section 4 suite was run for each:
+# both clean corpora, plus instance detection under camouflage over 5 seeds.
+# Instance detection is unchanged on every arm and every condition.
+#
+#   quiet       strictly dominated. Costs the *same* attack lines as "incident"
+#               (8 on `slow`, 6 on `realistic-combo`) while suppressing fewer
+#               benign ones, so alert volume goes back up (626 -> 632 incidents
+#               on `slow`) for nothing. The attack lines suppression costs are
+#               genuinely isolated, so demanding total isolation does not
+#               protect them -- which is the finding, and it needed the
+#               camouflage suite to see.
+#   share@0.50  identical incident counts to "incident" on all nine camouflage
+#               conditions, and it removes one attack line on `temporal` and one
+#               on `volume`, both previously free (line rates 0.858 -> 0.854 and
+#               0.847 -> 0.841). On clean data it looks good -- kill-point 147 ->
+#               142 incidents, precision 0.248 -> 0.260 -- and it triples the
+#               attack lines admitted into the pool there, 3 -> 9. That is the
+#               q0.99 mistake on the guard instead of the threshold.
+#
+# What the graph did earn: share@0.00 reproduces "incident" exactly on both real
+# corpora, so the two code paths agree outside the unit test.
+SUPPRESSION_LONENESS = "incident"
+
+# Only read when SUPPRESSION_LONENESS == "share". 0.0 reproduces "incident".
+SUPPRESSION_FLAGGED_SHARE = 0.0
+
 # --- Anomaly detection ---
 CONTAMINATION = 0.20          # tuned in Phase 3 against synthetic ground truth --
                                # see Decision Log: 0.05 gave P=0.62/R=0.36, 0.20 gave

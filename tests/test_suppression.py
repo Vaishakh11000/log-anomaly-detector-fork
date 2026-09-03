@@ -19,6 +19,8 @@ from logdet.sequence_grouping import group_anomalies
 from logdet.sequence_model import TransitionModel
 from logdet.suppression import (
     lone_flagged_mask,
+    lone_mask,
+    neighbourhood_counts,
     suppress_routine_singletons,
     suppression_mask,
     threshold_for,
@@ -226,3 +228,101 @@ def test_a_checkpoint_written_with_suppression_is_refused_by_a_run_without_it(tm
                 "contamination": 0.2}
     assert load_resumable(partial, {**settings, "suppression": True}) is not None
     assert load_resumable(partial, {**settings, "suppression": False}) is None
+
+
+# --- guard 2, the graph version: which loneness test ------------------------
+#
+# Loneness is the safety guard (see the module docstring), so the entity-graph
+# versions of it get the same treatment the original got: one test per property
+# that would silently change what gets deleted.
+
+def _graph_frame() -> pd.DataFrame:
+    """One busy benign entity with a single flagged line, and one flagged line
+    whose entity nothing else touches. `incident` calls both lone; the graph
+    tests are what separate them."""
+    rows = []
+    base = pd.Timestamp("2026-07-14 10:00:00")
+    for n in range(5):                       # busy host: 4 benign + 1 flagged
+        rows.append({"user": "busy", "source_ip": "10.0.0.9",
+                     "timestamp": base + pd.Timedelta(minutes=n),
+                     "is_anomaly": n == 0})
+    rows.append({"user": "onceonly", "source_ip": "203.0.113.7",
+                 "timestamp": base + pd.Timedelta(minutes=2), "is_anomaly": True})
+    defaults = {"impossible_travel": False, "transition_surprisal": 0.1, "message": "x"}
+    return pd.DataFrame([{**defaults, **row} for row in rows])
+
+
+def test_share_at_zero_is_the_shipped_incident_test():
+    """The two are computed by different code -- the grouper's components on the
+    flagged rows, and a graph query over the whole frame -- so their agreement
+    is asserted rather than assumed. A drift between them would silently change
+    which alerts are withdrawn."""
+    for scored in (_graph_frame(), frame([{}, {}]), frame([{}, {}, {}])):
+        assert list(lone_mask(scored, mode="share", flagged_share=0.0)) == \
+               list(lone_flagged_mask(scored))
+
+
+def test_quiet_excludes_a_line_on_a_busy_but_benign_entity():
+    scored = _graph_frame()
+    incident = lone_mask(scored, mode="incident")
+    quiet = lone_mask(scored, mode="quiet")
+
+    # both flagged lines are alone among the flagged rows
+    assert [bool(v) for v in incident] == [True, False, False, False, False, True]
+    # only the one nothing else touches is quiet
+    assert [bool(v) for v in quiet] == [False, False, False, False, False, True]
+
+
+def test_a_raised_share_calls_a_corroborated_line_lone():
+    """`share` above 0 is the direction that suppresses *more*: a line grouping
+    corroborates is still called lone when its entity's traffic is
+    overwhelmingly benign. This is what makes it the risky end of the sweep."""
+    scored = _graph_frame()
+    scored.loc[1, "is_anomaly"] = True      # busy host now has 2 of 5 flagged
+
+    assert not lone_mask(scored, mode="incident").iloc[0]
+    assert not lone_mask(scored, mode="share", flagged_share=0.0).iloc[0]
+    # one of its four in-window neighbours is flagged: share 0.25
+    assert lone_mask(scored, mode="share", flagged_share=0.25).iloc[0]
+
+
+def test_quiet_is_a_subset_of_incident_which_is_a_subset_of_a_raised_share():
+    """The sweep is ordered, and the ordering is what lets a single dial be read
+    as safety on one end and selectivity on the other."""
+    scored = _graph_frame()
+    quiet = lone_mask(scored, mode="quiet")
+    incident = lone_mask(scored, mode="incident")
+    loose = lone_mask(scored, mode="share", flagged_share=0.75)
+    assert (quiet <= incident).all()
+    assert (incident <= loose).all()
+
+
+def test_neighbourhood_counts_see_benign_traffic_union_find_could_not():
+    counts = neighbourhood_counts(_graph_frame())
+    # the flagged line on the busy host: 4 benign neighbours, none flagged
+    assert counts.loc[0, "neighbours"] == 4
+    assert counts.loc[0, "flagged_neighbours"] == 0
+    # the isolated line shares neither user nor IP with anything
+    assert counts.loc[5, "neighbours"] == 0
+
+
+def test_a_row_without_a_timestamp_is_never_called_lone_by_any_test():
+    """The graph cannot see such a row, so it would otherwise score zero
+    neighbours -- maximally lone, the opposite of the safe answer."""
+    scored = frame([{}, {}])
+    scored.loc[0, "timestamp"] = pd.NaT
+    for mode in ("incident", "share", "quiet"):
+        assert not lone_mask(scored, mode=mode, flagged_share=0.5).iloc[0]
+
+
+def test_an_unknown_loneness_mode_is_refused():
+    with pytest.raises(ValueError, match="unknown loneness mode"):
+        lone_mask(frame([{}]), mode="whatever")
+
+
+def test_the_default_loneness_test_is_pinned():
+    """Changing it is a detection change and owes the full section 4 suite, so
+    it should be a deliberate edit with a failing test attached."""
+    from logdet.config import SUPPRESSION_FLAGGED_SHARE, SUPPRESSION_LONENESS
+    assert SUPPRESSION_LONENESS == "incident"
+    assert SUPPRESSION_FLAGGED_SHARE == 0.0

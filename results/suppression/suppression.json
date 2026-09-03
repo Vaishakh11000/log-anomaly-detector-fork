@@ -83,6 +83,58 @@
           }
         ]
       },
+      "loneness_pools": [
+        {
+          "loneness": "quiet",
+          "mode": "quiet",
+          "flagged_share": 0.0,
+          "lone_rows": 58,
+          "lone_attack": 0
+        },
+        {
+          "loneness": "incident",
+          "mode": "incident",
+          "flagged_share": 0.0,
+          "lone_rows": 84,
+          "lone_attack": 2
+        },
+        {
+          "loneness": "share@0.00",
+          "mode": "share",
+          "flagged_share": 0.0,
+          "lone_rows": 84,
+          "lone_attack": 2
+        },
+        {
+          "loneness": "share@0.25",
+          "mode": "share",
+          "flagged_share": 0.25,
+          "lone_rows": 84,
+          "lone_attack": 2
+        },
+        {
+          "loneness": "share@0.50",
+          "mode": "share",
+          "flagged_share": 0.5,
+          "lone_rows": 85,
+          "lone_attack": 3
+        },
+        {
+          "loneness": "share@0.75",
+          "mode": "share",
+          "flagged_share": 0.75,
+          "lone_rows": 85,
+          "lone_attack": 3
+        },
+        {
+          "loneness": "-- context --",
+          "mode": "",
+          "flagged_share": null,
+          "flagged_rows": 130,
+          "median_neighbours": 1.0,
+          "median_flagged_neighbours": 0.0
+        }
+      ],
       "arms": {
         "off": {
           "tp": 39,
@@ -185,6 +237,110 @@
           "suppressed_lines": 50,
           "suppressed_attack_lines": 0
         }
+      },
+      "loneness_arms": {
+        "quiet": {
+          "threshold_nats": 1.928,
+          "tp": 39,
+          "fp": 88,
+          "fn": 6,
+          "precision": 0.307,
+          "recall": 0.867,
+          "f1": 0.453,
+          "instances": 9,
+          "instances_detected": 9,
+          "instance_detection_rate": 1.0,
+          "flagged_lines": 127,
+          "incidents": 91,
+          "singleton_incidents": 81,
+          "suppressed_lines": 3,
+          "suppressed_attack_lines": 0
+        },
+        "incident": {
+          "threshold_nats": 1.928,
+          "tp": 39,
+          "fp": 87,
+          "fn": 6,
+          "precision": 0.31,
+          "recall": 0.867,
+          "f1": 0.456,
+          "instances": 9,
+          "instances_detected": 9,
+          "instance_detection_rate": 1.0,
+          "flagged_lines": 126,
+          "incidents": 90,
+          "singleton_incidents": 80,
+          "suppressed_lines": 4,
+          "suppressed_attack_lines": 0
+        },
+        "share@0.00": {
+          "threshold_nats": 1.928,
+          "tp": 39,
+          "fp": 87,
+          "fn": 6,
+          "precision": 0.31,
+          "recall": 0.867,
+          "f1": 0.456,
+          "instances": 9,
+          "instances_detected": 9,
+          "instance_detection_rate": 1.0,
+          "flagged_lines": 126,
+          "incidents": 90,
+          "singleton_incidents": 80,
+          "suppressed_lines": 4,
+          "suppressed_attack_lines": 0
+        },
+        "share@0.25": {
+          "threshold_nats": 1.928,
+          "tp": 39,
+          "fp": 87,
+          "fn": 6,
+          "precision": 0.31,
+          "recall": 0.867,
+          "f1": 0.456,
+          "instances": 9,
+          "instances_detected": 9,
+          "instance_detection_rate": 1.0,
+          "flagged_lines": 126,
+          "incidents": 90,
+          "singleton_incidents": 80,
+          "suppressed_lines": 4,
+          "suppressed_attack_lines": 0
+        },
+        "share@0.50": {
+          "threshold_nats": 1.928,
+          "tp": 39,
+          "fp": 87,
+          "fn": 6,
+          "precision": 0.31,
+          "recall": 0.867,
+          "f1": 0.456,
+          "instances": 9,
+          "instances_detected": 9,
+          "instance_detection_rate": 1.0,
+          "flagged_lines": 126,
+          "incidents": 90,
+          "singleton_incidents": 80,
+          "suppressed_lines": 4,
+          "suppressed_attack_lines": 0
+        },
+        "share@0.75": {
+          "threshold_nats": 1.928,
+          "tp": 39,
+          "fp": 87,
+          "fn": 6,
+          "precision": 0.31,
+          "recall": 0.867,
+          "f1": 0.456,
+          "instances": 9,
+          "instances_detected": 9,
+          "instance_detection_rate": 1.0,
+          "flagged_lines": 126,
+          "incidents": 90,
+          "singleton_incidents": 80,
+          "suppressed_lines": 4,
+          "suppressed_attack_lines": 0
+        }
       }
     },
     {
@@ -269,6 +425,58 @@
           }
         ]
       },
+      "loneness_pools": [
+        {
+          "loneness": "quiet",
+          "mode": "quiet",
+          "flagged_share": 0.0,
+          "lone_rows": 104,
+          "lone_attack": 0
+        },
+        {
+          "loneness": "incident",
+          "mode": "incident",
+          "flagged_share": 0.0,
+          "lone_rows": 158,
+          "lone_attack": 3
+        },
+        {
+          "loneness": "share@0.00",
+          "mode": "share",
+          "flagged_share": 0.0,
+          "lone_rows": 158,
+          "lone_attack": 3
+        },
+        {
+          "loneness": "share@0.25",
+          "mode": "share",
+          "flagged_share": 0.25,
+          "lone_rows": 174,
+          "lone_attack": 9
+        },
+        {
+          "loneness": "share@0.50",
+          "mode": "share",
+          "flagged_share": 0.5,
+          "lone_rows": 183,
+          "lone_attack": 9
+        },
+        {
+          "loneness": "share@0.75",
+          "mode": "share",
+          "flagged_share": 0.75,
+          "lone_rows": 189,
+          "lone_attack": 9
+        },
+        {
+          "loneness": "-- context --",
+          "mode": "",
+          "flagged_share": null,
+          "flagged_rows": 277,
+          "median_neighbours": 1.0,
+          "median_flagged_neighbours": 0.0
+        }
+      ],
       "arms": {
         "off": {
           "tp": 57,
@@ -369,6 +577,110 @@
           "incidents": 141,
           "singleton_incidents": 105,
           "suppressed_lines": 53,
+          "suppressed_attack_lines": 0
+        }
+      },
+      "loneness_arms": {
+        "quiet": {
+          "threshold_nats": 2.59,
+          "tp": 57,
+          "fp": 205,
+          "fn": 43,
+          "precision": 0.218,
+          "recall": 0.57,
+          "f1": 0.315,
+          "instances": 9,
+          "instances_detected": 9,
+          "instance_detection_rate": 1.0,
+          "flagged_lines": 262,
+          "incidents": 179,
+          "singleton_incidents": 143,
+          "suppressed_lines": 15,
+          "suppressed_attack_lines": 0
+        },
+        "incident": {
+          "threshold_nats": 2.59,
+          "tp": 57,
+          "fp": 173,
+          "fn": 43,
+          "precision": 0.248,
+          "recall": 0.57,
+          "f1": 0.345,
+          "instances": 9,
+          "instances_detected": 9,
+          "instance_detection_rate": 1.0,
+          "flagged_lines": 230,
+          "incidents": 147,
+          "singleton_incidents": 111,
+          "suppressed_lines": 47,
+          "suppressed_attack_lines": 0
+        },
+        "share@0.00": {
+          "threshold_nats": 2.59,
+          "tp": 57,
+          "fp": 173,
+          "fn": 43,
+          "precision": 0.248,
+          "recall": 0.57,
+          "f1": 0.345,
+          "instances": 9,
+          "instances_detected": 9,
+          "instance_detection_rate": 1.0,
+          "flagged_lines": 230,
+          "incidents": 147,
+          "singleton_incidents": 111,
+          "suppressed_lines": 47,
+          "suppressed_attack_lines": 0
+        },
+        "share@0.25": {
+          "threshold_nats": 2.59,
+          "tp": 57,
+          "fp": 167,
+          "fn": 43,
+          "precision": 0.254,
+          "recall": 0.57,
+          "f1": 0.352,
+          "instances": 9,
+          "instances_detected": 9,
+          "instance_detection_rate": 1.0,
+          "flagged_lines": 224,
+          "incidents": 144,
+          "singleton_incidents": 111,
+          "suppressed_lines": 53,
+          "suppressed_attack_lines": 0
+        },
+        "share@0.50": {
+          "threshold_nats": 2.59,
+          "tp": 57,
+          "fp": 162,
+          "fn": 43,
+          "precision": 0.26,
+          "recall": 0.57,
+          "f1": 0.357,
+          "instances": 9,
+          "instances_detected": 9,
+          "instance_detection_rate": 1.0,
+          "flagged_lines": 219,
+          "incidents": 142,
+          "singleton_incidents": 111,
+          "suppressed_lines": 58,
+          "suppressed_attack_lines": 0
+        },
+        "share@0.75": {
+          "threshold_nats": 2.59,
+          "tp": 57,
+          "fp": 158,
+          "fn": 43,
+          "precision": 0.265,
+          "recall": 0.57,
+          "f1": 0.362,
+          "instances": 9,
+          "instances_detected": 9,
+          "instance_detection_rate": 1.0,
+          "flagged_lines": 215,
+          "incidents": 141,
+          "singleton_incidents": 111,
+          "suppressed_lines": 62,
           "suppressed_attack_lines": 0
         }
       }

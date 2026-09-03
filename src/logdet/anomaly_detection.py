@@ -42,6 +42,8 @@ from logdet.config import (
     SEVERITY_THRESHOLDS,
     SEQUENCE_SEVERITY_SHIFT,
     SEQUENCE_SUPPRESSION,
+    SUPPRESSION_FLAGGED_SHARE,
+    SUPPRESSION_LONENESS,
     IMPOSSIBLE_TRAVEL_WINDOW_MINUTES,
     TRAVEL_SUBNET_PREFIX_LENGTH,
 )
@@ -384,7 +386,10 @@ def run_anomaly_detection(df: pd.DataFrame,
                           sequence_model=None,
                           adjust_severity: bool = SEQUENCE_SEVERITY_SHIFT,
                           suppress: bool = SEQUENCE_SUPPRESSION,
-                          suppression_threshold: float | None = None) -> pd.DataFrame:
+                          suppression_threshold: float | None = None,
+                          suppression_loneness: str = SUPPRESSION_LONENESS,
+                          suppression_share: float = SUPPRESSION_FLAGGED_SHARE
+                          ) -> pd.DataFrame:
     """Full Phase 3 detection stack: per-user ML scoring + impossible-travel
     rule + severity tiers. This is the entry point pipeline.py should call --
     it owns how the signals combine so orchestration code stays thin.
@@ -437,7 +442,9 @@ def run_anomaly_detection(df: pd.DataFrame,
             from logdet.suppression import suppress_routine_singletons, threshold_for
             threshold = (suppression_threshold if suppression_threshold is not None
                          else threshold_for(sequence_model))
-            scored = suppress_routine_singletons(scored, threshold)
+            scored = suppress_routine_singletons(
+                scored, threshold, loneness=suppression_loneness,
+                flagged_share=suppression_share)
         # The column is always produced; whether it is allowed to move a
         # severity tier is a separate, measured decision -- see
         # SEQUENCE_SEVERITY_SHIFT in config.py, which is off because tiering

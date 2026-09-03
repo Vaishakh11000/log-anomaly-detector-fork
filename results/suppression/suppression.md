@@ -73,6 +73,47 @@ below-median transition. The two signals are positively correlated.
 | q0.95 | 0.375 | 0.867 | 0.523 | 100% (9/9) | 104 | 68 |
 | q0.99 | 0.487 | 0.867 | 0.624 | 100% (9/9) | 80 | 44 |
 
+### Which loneness test (Stage 4 entity graph)
+
+Loneness is the guard doing the safety work, so it is the guard to move
+if suppression is to be pushed harder -- the threshold has already been
+swept above, and q0.99 was measured and rejected under camouflage. The
+shipped test (`incident`) sees only the flagged rows. The graph sees the
+whole frame, so it can tell an unknown IP appearing once from a busy
+known host that also logged one odd line.
+
+A flagged line on this corpus has a median of 1 events sharing its user or source IP inside the window, of which 0 are themselves flagged.
+
+**The attack column is the one to read.** A test that calls attack lines
+lone is a test that will delete evidence as soon as the threshold lets
+one through.
+
+| loneness test | rows called lone | of which attack |
+|---|---|---|
+| `quiet` | 58 | 0 |
+| `incident`  ← shipped | 84 | 2 |
+| `share@0.00` | 84 | 2 |
+| `share@0.25` | 84 | 2 |
+| `share@0.50` | 85 | 3 |
+| `share@0.75` | 85 | 3 |
+
+Section 4 numbers per loneness test, all at the adopted threshold
+(q0.90):
+
+| loneness test | P | R | F1 | instance detection | incidents | suppressed (attack) |
+|---|---|---|---|---|---|---|
+| `quiet` | 0.307 | 0.867 | 0.453 | 100% (9/9) | 91 | 3 (0) |
+| `incident`  ← shipped | 0.31 | 0.867 | 0.456 | 100% (9/9) | 90 | 4 (0) |
+| `share@0.00` | 0.31 | 0.867 | 0.456 | 100% (9/9) | 90 | 4 (0) |
+| `share@0.25` | 0.31 | 0.867 | 0.456 | 100% (9/9) | 90 | 4 (0) |
+| `share@0.50` | 0.31 | 0.867 | 0.456 | 100% (9/9) | 90 | 4 (0) |
+| `share@0.75` | 0.31 | 0.867 | 0.456 | 100% (9/9) | 90 | 4 (0) |
+
+Clean corpora cannot settle this on their own -- clean instance detection
+saturates at 100%, which is exactly the margin camouflage eats first. Any
+test adopted here owes the five-seed camouflage suite before its default
+can change.
+
 ## kill-point OpenSSH (2,583 lines)
 
 History: 2483 benign lines, 38 mined templates, 0.23% of scored lines carry a template the model never saw (those are never suppressed).
@@ -133,3 +174,44 @@ below-median transition. The two signals are positively correlated.
 | q0.90 (adopted) | 0.248 | 0.57 | 0.345 | 100% (9/9) | 230 | 147 |
 | q0.95 | 0.248 | 0.57 | 0.345 | 100% (9/9) | 230 | 147 |
 | q0.99 | 0.254 | 0.57 | 0.352 | 100% (9/9) | 224 | 141 |
+
+### Which loneness test (Stage 4 entity graph)
+
+Loneness is the guard doing the safety work, so it is the guard to move
+if suppression is to be pushed harder -- the threshold has already been
+swept above, and q0.99 was measured and rejected under camouflage. The
+shipped test (`incident`) sees only the flagged rows. The graph sees the
+whole frame, so it can tell an unknown IP appearing once from a busy
+known host that also logged one odd line.
+
+A flagged line on this corpus has a median of 1 events sharing its user or source IP inside the window, of which 0 are themselves flagged.
+
+**The attack column is the one to read.** A test that calls attack lines
+lone is a test that will delete evidence as soon as the threshold lets
+one through.
+
+| loneness test | rows called lone | of which attack |
+|---|---|---|
+| `quiet` | 104 | 0 |
+| `incident`  ← shipped | 158 | 3 |
+| `share@0.00` | 158 | 3 |
+| `share@0.25` | 174 | 9 |
+| `share@0.50` | 183 | 9 |
+| `share@0.75` | 189 | 9 |
+
+Section 4 numbers per loneness test, all at the adopted threshold
+(q0.90):
+
+| loneness test | P | R | F1 | instance detection | incidents | suppressed (attack) |
+|---|---|---|---|---|---|---|
+| `quiet` | 0.218 | 0.57 | 0.315 | 100% (9/9) | 179 | 15 (0) |
+| `incident`  ← shipped | 0.248 | 0.57 | 0.345 | 100% (9/9) | 147 | 47 (0) |
+| `share@0.00` | 0.248 | 0.57 | 0.345 | 100% (9/9) | 147 | 47 (0) |
+| `share@0.25` | 0.254 | 0.57 | 0.352 | 100% (9/9) | 144 | 53 (0) |
+| `share@0.50` | 0.26 | 0.57 | 0.357 | 100% (9/9) | 142 | 58 (0) |
+| `share@0.75` | 0.265 | 0.57 | 0.362 | 100% (9/9) | 141 | 62 (0) |
+
+Clean corpora cannot settle this on their own -- clean instance detection
+saturates at 100%, which is exactly the margin camouflage eats first. Any
+test adopted here owes the five-seed camouflage suite before its default
+can change.

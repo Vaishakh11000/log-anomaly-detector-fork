@@ -1,0 +1,446 @@
+{
+  "seeds": 5,
+  "conditions": [
+    {
+      "condition": "baseline",
+      "arms": {
+        "off": {
+          "instance_detection_rate": 1.0,
+          "instances_detected": 45,
+          "instances": 45,
+          "line_detection_rate": 0.858,
+          "flagged_lines": 699,
+          "incidents": 519,
+          "suppressed_lines": null,
+          "suppressed_attack_lines": null,
+          "instance_delta_points": 0.0
+        },
+        "incident": {
+          "instance_detection_rate": 1.0,
+          "instances_detected": 45,
+          "instances": 45,
+          "line_detection_rate": 0.858,
+          "flagged_lines": 677,
+          "incidents": 497,
+          "suppressed_lines": 22,
+          "suppressed_attack_lines": 0,
+          "instance_delta_points": 0.0
+        },
+        "quiet": {
+          "instance_detection_rate": 1.0,
+          "instances_detected": 45,
+          "instances": 45,
+          "line_detection_rate": 0.858,
+          "flagged_lines": 683,
+          "incidents": 503,
+          "suppressed_lines": 16,
+          "suppressed_attack_lines": 0,
+          "instance_delta_points": 0.0
+        },
+        "share@0.50": {
+          "instance_detection_rate": 1.0,
+          "instances_detected": 45,
+          "instances": 45,
+          "line_detection_rate": 0.858,
+          "flagged_lines": 677,
+          "incidents": 497,
+          "suppressed_lines": 22,
+          "suppressed_attack_lines": 0,
+          "instance_delta_points": 0.0
+        }
+      }
+    },
+    {
+      "condition": "temporal",
+      "arms": {
+        "off": {
+          "instance_detection_rate": 1.0,
+          "instances_detected": 45,
+          "instances": 45,
+          "line_detection_rate": 0.858,
+          "flagged_lines": 699,
+          "incidents": 520,
+          "suppressed_lines": null,
+          "suppressed_attack_lines": null,
+          "instance_delta_points": 0.0
+        },
+        "incident": {
+          "instance_detection_rate": 1.0,
+          "instances_detected": 45,
+          "instances": 45,
+          "line_detection_rate": 0.858,
+          "flagged_lines": 677,
+          "incidents": 498,
+          "suppressed_lines": 22,
+          "suppressed_attack_lines": 0,
+          "instance_delta_points": 0.0
+        },
+        "quiet": {
+          "instance_detection_rate": 1.0,
+          "instances_detected": 45,
+          "instances": 45,
+          "line_detection_rate": 0.858,
+          "flagged_lines": 683,
+          "incidents": 504,
+          "suppressed_lines": 16,
+          "suppressed_attack_lines": 0,
+          "instance_delta_points": 0.0
+        },
+        "share@0.50": {
+          "instance_detection_rate": 1.0,
+          "instances_detected": 45,
+          "instances": 45,
+          "line_detection_rate": 0.854,
+          "flagged_lines": 676,
+          "incidents": 498,
+          "suppressed_lines": 23,
+          "suppressed_attack_lines": 1,
+          "instance_delta_points": 0.0
+        }
+      }
+    },
+    {
+      "condition": "slow",
+      "arms": {
+        "off": {
+          "instance_detection_rate": 0.8,
+          "instances_detected": 36,
+          "instances": 45,
+          "line_detection_rate": 0.824,
+          "flagged_lines": 696,
+          "incidents": 656,
+          "suppressed_lines": null,
+          "suppressed_attack_lines": null,
+          "instance_delta_points": 0.0
+        },
+        "incident": {
+          "instance_detection_rate": 0.8,
+          "instances_detected": 36,
+          "instances": 45,
+          "line_detection_rate": 0.79,
+          "flagged_lines": 666,
+          "incidents": 626,
+          "suppressed_lines": 30,
+          "suppressed_attack_lines": 8,
+          "instance_delta_points": 0.0
+        },
+        "quiet": {
+          "instance_detection_rate": 0.8,
+          "instances_detected": 36,
+          "instances": 45,
+          "line_detection_rate": 0.79,
+          "flagged_lines": 672,
+          "incidents": 632,
+          "suppressed_lines": 24,
+          "suppressed_attack_lines": 8,
+          "instance_delta_points": 0.0
+        },
+        "share@0.50": {
+          "instance_detection_rate": 0.8,
+          "instances_detected": 36,
+          "instances": 45,
+          "line_detection_rate": 0.79,
+          "flagged_lines": 665,
+          "incidents": 626,
+          "suppressed_lines": 31,
+          "suppressed_attack_lines": 8,
+          "instance_delta_points": 0.0
+        }
+      }
+    },
+    {
+      "condition": "rephrase",
+      "arms": {
+        "off": {
+          "instance_detection_rate": 1.0,
+          "instances_detected": 45,
+          "instances": 45,
+          "line_detection_rate": 0.996,
+          "flagged_lines": 721,
+          "incidents": 510,
+          "suppressed_lines": null,
+          "suppressed_attack_lines": null,
+          "instance_delta_points": 0.0
+        },
+        "incident": {
+          "instance_detection_rate": 1.0,
+          "instances_detected": 45,
+          "instances": 45,
+          "line_detection_rate": 0.996,
+          "flagged_lines": 700,
+          "incidents": 489,
+          "suppressed_lines": 21,
+          "suppressed_attack_lines": 0,
+          "instance_delta_points": 0.0
+        },
+        "quiet": {
+          "instance_detection_rate": 1.0,
+          "instances_detected": 45,
+          "instances": 45,
+          "line_detection_rate": 0.996,
+          "flagged_lines": 706,
+          "incidents": 495,
+          "suppressed_lines": 15,
+          "suppressed_attack_lines": 0,
+          "instance_delta_points": 0.0
+        },
+        "share@0.50": {
+          "instance_detection_rate": 1.0,
+          "instances_detected": 45,
+          "instances": 45,
+          "line_detection_rate": 0.996,
+          "flagged_lines": 700,
+          "incidents": 489,
+          "suppressed_lines": 21,
+          "suppressed_attack_lines": 0,
+          "instance_delta_points": 0.0
+        }
+      }
+    },
+    {
+      "condition": "mimicry",
+      "arms": {
+        "off": {
+          "instance_detection_rate": 1.0,
+          "instances_detected": 45,
+          "instances": 45,
+          "line_detection_rate": 0.76,
+          "flagged_lines": 676,
+          "incidents": 536,
+          "suppressed_lines": null,
+          "suppressed_attack_lines": null,
+          "instance_delta_points": 0.0
+        },
+        "incident": {
+          "instance_detection_rate": 1.0,
+          "instances_detected": 45,
+          "instances": 45,
+          "line_detection_rate": 0.76,
+          "flagged_lines": 654,
+          "incidents": 514,
+          "suppressed_lines": 22,
+          "suppressed_attack_lines": 0,
+          "instance_delta_points": 0.0
+        },
+        "quiet": {
+          "instance_detection_rate": 1.0,
+          "instances_detected": 45,
+          "instances": 45,
+          "line_detection_rate": 0.76,
+          "flagged_lines": 660,
+          "incidents": 520,
+          "suppressed_lines": 16,
+          "suppressed_attack_lines": 0,
+          "instance_delta_points": 0.0
+        },
+        "share@0.50": {
+          "instance_detection_rate": 1.0,
+          "instances_detected": 45,
+          "instances": 45,
+          "line_detection_rate": 0.76,
+          "flagged_lines": 654,
+          "incidents": 514,
+          "suppressed_lines": 22,
+          "suppressed_attack_lines": 0,
+          "instance_delta_points": 0.0
+        }
+      }
+    },
+    {
+      "condition": "noise",
+      "arms": {
+        "off": {
+          "instance_detection_rate": 1.0,
+          "instances_detected": 45,
+          "instances": 45,
+          "line_detection_rate": 0.824,
+          "flagged_lines": 734,
+          "incidents": 548,
+          "suppressed_lines": null,
+          "suppressed_attack_lines": null,
+          "instance_delta_points": 0.0
+        },
+        "incident": {
+          "instance_detection_rate": 1.0,
+          "instances_detected": 45,
+          "instances": 45,
+          "line_detection_rate": 0.824,
+          "flagged_lines": 707,
+          "incidents": 521,
+          "suppressed_lines": 27,
+          "suppressed_attack_lines": 0,
+          "instance_delta_points": 0.0
+        },
+        "quiet": {
+          "instance_detection_rate": 1.0,
+          "instances_detected": 45,
+          "instances": 45,
+          "line_detection_rate": 0.824,
+          "flagged_lines": 714,
+          "incidents": 528,
+          "suppressed_lines": 20,
+          "suppressed_attack_lines": 0,
+          "instance_delta_points": 0.0
+        },
+        "share@0.50": {
+          "instance_detection_rate": 1.0,
+          "instances_detected": 45,
+          "instances": 45,
+          "line_detection_rate": 0.824,
+          "flagged_lines": 707,
+          "incidents": 521,
+          "suppressed_lines": 27,
+          "suppressed_attack_lines": 0,
+          "instance_delta_points": 0.0
+        }
+      }
+    },
+    {
+      "condition": "volume",
+      "arms": {
+        "off": {
+          "instance_detection_rate": 1.0,
+          "instances_detected": 45,
+          "instances": 45,
+          "line_detection_rate": 0.847,
+          "flagged_lines": 643,
+          "incidents": 519,
+          "suppressed_lines": null,
+          "suppressed_attack_lines": null,
+          "instance_delta_points": 0.0
+        },
+        "incident": {
+          "instance_detection_rate": 1.0,
+          "instances_detected": 45,
+          "instances": 45,
+          "line_detection_rate": 0.847,
+          "flagged_lines": 621,
+          "incidents": 497,
+          "suppressed_lines": 22,
+          "suppressed_attack_lines": 0,
+          "instance_delta_points": 0.0
+        },
+        "quiet": {
+          "instance_detection_rate": 1.0,
+          "instances_detected": 45,
+          "instances": 45,
+          "line_detection_rate": 0.847,
+          "flagged_lines": 627,
+          "incidents": 503,
+          "suppressed_lines": 16,
+          "suppressed_attack_lines": 0,
+          "instance_delta_points": 0.0
+        },
+        "share@0.50": {
+          "instance_detection_rate": 1.0,
+          "instances_detected": 45,
+          "instances": 45,
+          "line_detection_rate": 0.841,
+          "flagged_lines": 620,
+          "incidents": 497,
+          "suppressed_lines": 23,
+          "suppressed_attack_lines": 1,
+          "instance_delta_points": 0.0
+        }
+      }
+    },
+    {
+      "condition": "ip_rotate",
+      "arms": {
+        "off": {
+          "instance_detection_rate": 0.844,
+          "instances_detected": 38,
+          "instances": 45,
+          "line_detection_rate": 0.837,
+          "flagged_lines": 695,
+          "incidents": 602,
+          "suppressed_lines": null,
+          "suppressed_attack_lines": null,
+          "instance_delta_points": 0.0
+        },
+        "incident": {
+          "instance_detection_rate": 0.844,
+          "instances_detected": 38,
+          "instances": 45,
+          "line_detection_rate": 0.837,
+          "flagged_lines": 673,
+          "incidents": 580,
+          "suppressed_lines": 22,
+          "suppressed_attack_lines": 0,
+          "instance_delta_points": 0.0
+        },
+        "quiet": {
+          "instance_detection_rate": 0.844,
+          "instances_detected": 38,
+          "instances": 45,
+          "line_detection_rate": 0.837,
+          "flagged_lines": 679,
+          "incidents": 586,
+          "suppressed_lines": 16,
+          "suppressed_attack_lines": 0,
+          "instance_delta_points": 0.0
+        },
+        "share@0.50": {
+          "instance_detection_rate": 0.844,
+          "instances_detected": 38,
+          "instances": 45,
+          "line_detection_rate": 0.837,
+          "flagged_lines": 673,
+          "incidents": 580,
+          "suppressed_lines": 22,
+          "suppressed_attack_lines": 0,
+          "instance_delta_points": 0.0
+        }
+      }
+    },
+    {
+      "condition": "realistic-combo",
+      "arms": {
+        "off": {
+          "instance_detection_rate": 0.911,
+          "instances_detected": 41,
+          "instances": 45,
+          "line_detection_rate": 0.776,
+          "flagged_lines": 705,
+          "incidents": 673,
+          "suppressed_lines": null,
+          "suppressed_attack_lines": null,
+          "instance_delta_points": 0.0
+        },
+        "incident": {
+          "instance_detection_rate": 0.911,
+          "instances_detected": 41,
+          "instances": 45,
+          "line_detection_rate": 0.741,
+          "flagged_lines": 670,
+          "incidents": 638,
+          "suppressed_lines": 35,
+          "suppressed_attack_lines": 6,
+          "instance_delta_points": 0.0
+        },
+        "quiet": {
+          "instance_detection_rate": 0.911,
+          "instances_detected": 41,
+          "instances": 45,
+          "line_detection_rate": 0.741,
+          "flagged_lines": 679,
+          "incidents": 647,
+          "suppressed_lines": 26,
+          "suppressed_attack_lines": 6,
+          "instance_delta_points": 0.0
+        },
+        "share@0.50": {
+          "instance_detection_rate": 0.911,
+          "instances_detected": 41,
+          "instances": 45,
+          "line_detection_rate": 0.741,
+          "flagged_lines": 668,
+          "incidents": 638,
+          "suppressed_lines": 37,
+          "suppressed_attack_lines": 6,
+          "instance_delta_points": 0.0
+        }
+      }
+    }
+  ]
+}
