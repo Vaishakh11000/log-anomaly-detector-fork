@@ -92,6 +92,63 @@ SEQUENCE_ROUTINE_QUANTILE = 0.50   # at or below the median transition for this
 SEQUENCE_RARE_QUANTILE = 0.90      # rarer than 90% of fitted transitions:
                                    # promote
 
+# --- Alert suppression (Stage 3) ---
+# The first Stage 3 lever that *shortens* the alert list rather than reordering
+# it: clear `is_anomaly` on a flagged line that is alone in its incident and
+# whose template transition is not rare. **On, on measurement** -- it is the one
+# Stage 3 change that moves line-level P/R/F1, instance detection and incident
+# count, so it owed the full CLAUDE.md section 4 suite before its default could
+# change, and it was not adopted on clean-corpus evidence.
+#
+# What it buys (results/suppression/suppression.md), zero attack lines removed
+# on either clean corpus:
+#   synthetic  P 0.300 -> 0.310, recall 0.867 unchanged, 94  -> 90  incidents
+#   OpenSSH    P 0.206 -> 0.248, recall 0.570 unchanged, 194 -> 147 incidents
+#
+# What it costs (results/suppression/suppression_adversarial.md, 5 seeds):
+# instance detection is unchanged on all nine camouflage conditions, and
+# unchanged *seed by seed* -- across 45 instance-firings suppression never
+# removed the last surviving line of an instance. But it does thin the evidence
+# on the two timing-spread conditions, which is where a future strengthening of
+# this rule will break first:
+#   slow             line rate 0.824 -> 0.790,  8 attack lines removed
+#   realistic-combo  line rate 0.776 -> 0.741,  6 attack lines removed
+# Every other condition removes zero attack lines. The mechanism is legible:
+# spreading an attack in time makes its lines lone, and lone is what puts a line
+# in the eligible pool.
+#
+# Note this switch only has an effect when a sequence model is actually passed,
+# so the batch and stream paths that pass none are untouched by it.
+SEQUENCE_SUPPRESSION = True
+
+# Which quantile of the fitted history a lone flagged line has to clear to
+# survive. 0.90 is the model's existing `rare_threshold`, reused rather than
+# introduced: the rule reads "a lone flagged line survives only if its
+# transition is in the rarest tenth of history".
+#
+# The intuitive value, 0.50 ("suppress a *routine* transition"), was measured
+# first and is nearly inert -- 0 of 59 eligible rows on the synthetic corpus and
+# 13 of 63 on the kill-point corpus clear it. That is structural, not a tuning
+# miss: the flagged rows are already the anomalous tail, and a line the
+# embedding detector found unusual almost never has a below-median transition.
+# The two signals are positively correlated, so conditioning on one shifts the
+# other.
+#
+# **0.99 was measured too, and rejected, and that is the entry worth reading.**
+# On clean data it is far the best-looking value -- synthetic F1 0.446 -> 0.624
+# and 94 -> 44 incidents, against q0.90's 0.456 and 90. Under camouflage it
+# surrenders exactly the margin CLAUDE.md section 4 says clean data hides:
+#   slow             instance detection 80.0% -> 66.7% (-13.3pt), line rate
+#                    0.824 -> 0.266, 130 attack lines removed
+#   ip_rotate        84.4% -> 80.0% (-4.4pt), line rate 0.837 -> 0.601
+#   realistic-combo  91.1% -> 88.9% (-2.2pt), line rate 0.776 -> 0.471
+# It halves total alert volume across the suite (5,083 -> 2,927 incidents) by
+# deleting detections. This is the 2026-08-16 contamination lesson reproduced
+# on a different knob: a threshold validated only on clean data is a threshold
+# validated on the half of the evidence that saturates.
+# See logdet/suppression.py and results/suppression/.
+SEQUENCE_SUPPRESSION_QUANTILE = SEQUENCE_RARE_QUANTILE
+
 # --- Anomaly detection ---
 CONTAMINATION = 0.20          # tuned in Phase 3 against synthetic ground truth --
                                # see Decision Log: 0.05 gave P=0.62/R=0.36, 0.20 gave

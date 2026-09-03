@@ -13,10 +13,15 @@ Also owns two signals the embedding model can't provide on its own:
     override to "high" for impossible-travel hits, which are trusted
     more than the ML score
 
-An optional sequence model (see sequence_model.py) can shift a flagged row one
-severity tier on how routine its template transition is. It is deliberately
-confined to the tier: it never sets or clears `is_anomaly`, so it cannot move
-recall, instance detection or incident count.
+An optional sequence model (see sequence_model.py) feeds two things here, and
+they differ in exactly the way CLAUDE.md section 4 cares about:
+
+  - a severity shift, which moves a flagged row one tier and cannot change what
+    is flagged (measured and left off -- see SEQUENCE_SEVERITY_SHIFT)
+  - alert suppression (see suppression.py), which *clears* `is_anomaly` on a
+    lone flagged row whose template transition is not rare. This one does move
+    recall, instance detection and incident count, so it is opt-in and owes the
+    full camouflage suite before its default can change.
 """
 
 import numpy as np
@@ -35,6 +40,7 @@ from logdet.config import (
     RANDOM_STATE,
     SEVERITY_THRESHOLDS,
     SEQUENCE_SEVERITY_SHIFT,
+    SEQUENCE_SUPPRESSION,
     IMPOSSIBLE_TRAVEL_WINDOW_MINUTES,
     TRAVEL_SUBNET_PREFIX_LENGTH,
 )
@@ -297,7 +303,9 @@ def run_anomaly_detection(df: pd.DataFrame,
                           contamination: float = CONTAMINATION,
                           detector: "PerUserAnomalyDetector | None" = None,
                           sequence_model=None,
-                          adjust_severity: bool = SEQUENCE_SEVERITY_SHIFT) -> pd.DataFrame:
+                          adjust_severity: bool = SEQUENCE_SEVERITY_SHIFT,
+                          suppress: bool = SEQUENCE_SUPPRESSION,
+                          suppression_threshold: float | None = None) -> pd.DataFrame:
     """Full Phase 3 detection stack: per-user ML scoring + impossible-travel
     rule + severity tiers. This is the entry point pipeline.py should call --
     it owns how the signals combine so orchestration code stays thin.
@@ -308,6 +316,10 @@ def run_anomaly_detection(df: pd.DataFrame,
     Keeps 'ml_anomaly' (the embedding verdict before the rule is OR-ed in)
     alongside 'is_anomaly', so evaluation can attribute a detection to the
     model or to the rule.
+
+    `suppress` is the only argument here that can change what is flagged. It
+    needs a `sequence_model` to have anything to work with, defaults to the
+    config value (off), and is what CLAUDE.md section 4's suite toggles.
     """
     # Passing a detector means "score with this, do not refit" -- the streaming
     # path (fit on history, score on the stream). Omitting it keeps the batch
@@ -336,6 +348,17 @@ def run_anomaly_detection(df: pd.DataFrame,
     routine = rare = None
     if sequence_model is not None:
         scored["transition_surprisal"] = sequence_model.surprisal(scored)
+        # Suppression is the one Stage 3 consumption point that *does* touch
+        # `is_anomaly`, so it is opt-in and it is applied here -- before
+        # severity, because a row that is no longer flagged must tier as
+        # "none", and before grouping, because removing a singleton is the
+        # whole point. See logdet/suppression.py for the four guards and for
+        # why one pass is exact rather than approximate.
+        if suppress:
+            from logdet.suppression import suppress_routine_singletons, threshold_for
+            threshold = (suppression_threshold if suppression_threshold is not None
+                         else threshold_for(sequence_model))
+            scored = suppress_routine_singletons(scored, threshold)
         # The column is always produced; whether it is allowed to move a
         # severity tier is a separate, measured decision -- see
         # SEQUENCE_SEVERITY_SHIFT in config.py, which is off because tiering

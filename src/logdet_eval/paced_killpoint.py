@@ -35,6 +35,7 @@ import pandas as pd
 from logdet.config import CONTAMINATION, RESULTS_DIR
 from logdet_eval import paced_replay, wazuh_runner
 from logdet_eval.adversarial import REALISTIC_COMBO, camouflage_events, detect_on_log
+from logdet_eval.history import HISTORY_SEED_OFFSET, openssh_history
 from logdet_eval.corpus_openssh import CORPUS_HOST, build_paced_corpus
 from logdet_eval.generate_logs import write_outputs
 from logdet_eval.killpoint import (
@@ -94,7 +95,8 @@ def run_paired(seeds: int = 5, start_seed: int = 42, ambient_ratio: float = 0.05
                max_events_per_ip: int = MAX_EVENTS_PER_IP,
                target_background_lines: int | None = TARGET_BACKGROUND_LINES,
                checkpoint: Callable[[dict], None] | None = None,
-               resume_from: list[dict] | None = None) -> dict:
+               resume_from: list[dict] | None = None,
+               suppress: bool = False) -> dict:
     """Score both systems per condition, replaying to Wazuh in wall-clock time."""
     have_wazuh = wazuh_runner.container_available()
     if not have_wazuh:
@@ -116,6 +118,7 @@ def run_paired(seeds: int = 5, start_seed: int = 42, ambient_ratio: float = 0.05
             "contamination": contamination,
             "primary_level": PRIMARY_LEVEL,
             "wazuh_available": have_wazuh,
+            "suppression": suppress,
             "corpus_manifest": manifest,
             "conditions": done,
             "complete": complete,
@@ -134,6 +137,16 @@ def run_paired(seeds: int = 5, start_seed: int = 42, ambient_ratio: float = 0.05
     started = time.monotonic()
     with tempfile.TemporaryDirectory() as tmp:
         work_dir = Path(tmp)
+        # Stage 3 suppression, fitted once on a benign-only slice of the same
+        # background. Once, not per seed and not per condition: it is history,
+        # and refitting it alongside each corpus would confound "the attacker
+        # changed tactics" with "the defender was shown a different past".
+        fitted = None
+        if suppress:
+            fitted = openssh_history(work_dir, seed=start_seed + HISTORY_SEED_OFFSET,
+                                     ambient_ratio=ambient_ratio,
+                                     year=CORPUS_START_YEAR)
+            print(f"Suppression on: {fitted.describe()}")
         for name, strategies in CONDITIONS:
             if name in already_done:
                 continue
@@ -157,7 +170,11 @@ def run_paired(seeds: int = 5, start_seed: int = 42, ambient_ratio: float = 0.05
                 lines, stamps = _corpus_lines(log_path, events)
 
                 scored = detect_on_log(str(log_path), str(work_dir / f"{name}_{seed}.csv"),
-                                       year=CORPUS_START_YEAR, contamination=contamination)
+                                       year=CORPUS_START_YEAR, contamination=contamination,
+                                       sequence_model=fitted.model if fitted else None,
+                                       miner_state=fitted.miner_state if fitted else None,
+                                       suppress=suppress,
+                                       suppression_threshold=fitted.threshold if fitted else None)
                 ours_runs.append(measure_lines(_our_flagged_lines(scored), ground_truth,
                                                total_lines=len(lines)))
 
@@ -377,6 +394,10 @@ def cli() -> None:
     parser.add_argument("--conditions", default=None,
                         help="comma-separated subset, for smoke runs")
     parser.add_argument("--output-dir", default=f"{RESULTS_DIR}/killpoint")
+    parser.add_argument("--suppress", action="store_true",
+                        help="Enable Stage 3 alert suppression, fitting the transition "
+                             "model on a benign-only background at a disjoint seed. "
+                             "Results are NOT comparable to a run without it.")
     parser.add_argument("--resume", action="store_true",
                         help="reuse completed conditions from a checkpoint")
     args = parser.parse_args()
@@ -398,6 +419,7 @@ def cli() -> None:
         resume_from = load_resumable(partial_path, {
             "seeds": args.seeds, "start_seed": args.seed,
             "ambient_ratio": args.ambient_ratio, "contamination": CONTAMINATION,
+            "suppression": args.suppress,
             "max_events_per_ip": args.max_events_per_ip,
             "target_background_lines": args.background_lines,
         })
@@ -407,7 +429,7 @@ def cli() -> None:
                          max_events_per_ip=args.max_events_per_ip,
                          target_background_lines=args.background_lines,
                          checkpoint=lambda p: partial_path.write_text(json.dumps(p, indent=2)),
-                         resume_from=resume_from)
+                         resume_from=resume_from, suppress=args.suppress)
     comparison = compare(payload)
     payload["comparison"] = comparison
 

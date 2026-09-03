@@ -38,6 +38,7 @@ logdet-paced-killpoint = "logdet_eval.paced_killpoint:cli"
 logdet-killpoint-summary = "logdet_eval.killpoint_summary:cli"
 logdet-templates   = "logdet_eval.template_report:cli"
 logdet-sequence-report = "logdet_eval.sequence_report:cli"
+logdet-suppression-report = "logdet_eval.suppression_report:cli"
 logdet-bakeoff     = "logdet_eval.bakeoff:cli"
 
 [dependency-groups]

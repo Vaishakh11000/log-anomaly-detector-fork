@@ -48,6 +48,7 @@ from logdet.config import (
     INCIDENT_WINDOW_MINUTES,
     PROCESSED_DATA_DIR,
     RESULTS_DIR,
+    SEQUENCE_SUPPRESSION_QUANTILE,
 )
 from logdet_eval.config import (
     SYNTHETIC_HOST,
@@ -62,10 +63,13 @@ from logdet_eval.config import (
     SYNTHETIC_USERS,
 )
 from logdet_eval.generate_logs import build_dataset, write_outputs, next_pid
+from logdet_eval.history import HISTORY_SEED_OFFSET, synthetic_history
 from logdet.preprocessing import preprocess_file
 from logdet.embedding import add_embeddings_to_df
 from logdet.anomaly_detection import run_anomaly_detection
 from logdet.sequence_grouping import group_anomalies
+from logdet.sequence_model import TransitionModel
+from logdet.templating import TemplateMiner
 
 from datetime import timedelta
 
@@ -243,15 +247,35 @@ def camouflage_events(events: list[dict], strategies: list[str], seed: int) -> l
 # --- Evaluation ------------------------------------------------------------
 
 def detect_on_log(log_path: str, parsed_csv: str, year: int = SYNTHETIC_YEAR,
-                  contamination: float = CONTAMINATION) -> pd.DataFrame:
+                  contamination: float = CONTAMINATION,
+                  sequence_model=None, miner_state: str | None = None,
+                  suppress: bool = False,
+                  suppression_threshold: float | None = None) -> pd.DataFrame:
     """Run the real detection chain over a log file.
 
     `contamination` is exposed so Phase 7's proposed retune can be tested under
     camouflage before it is adopted -- a setting that looks good on clean data
-    has to survive here first."""
-    df = preprocess_file(log_path, parsed_csv, year=year)
+    has to survive here first.
+
+    `sequence_model` + `miner_state` + `suppress` are the Stage 3 alert
+    suppression path, and the three travel together for a reason. The model is
+    keyed on Drain3 cluster ids, which only mean anything relative to the miner
+    that assigned them, so the corpus has to be mined by a miner restored from
+    the *same* state the model was fitted against. Starting a fresh miner here
+    would renumber the vocabulary and every transition would be looked up under
+    the wrong template -- silently, with plausible-looking numbers out the
+    other end. Omitting all three keeps the v1 chain exactly as it was.
+    """
+    miner = None
+    if miner_state is not None:
+        miner = TemplateMiner()
+        miner.load(miner_state)
+    df = preprocess_file(log_path, parsed_csv, year=year, miner=miner,
+                         mine_templates=miner is not None)
     df = add_embeddings_to_df(df, template_col="template")
-    return run_anomaly_detection(df, contamination=contamination)
+    return run_anomaly_detection(df, contamination=contamination,
+                                 sequence_model=sequence_model, suppress=suppress,
+                                 suppression_threshold=suppression_threshold)
 
 
 def measure(scored: pd.DataFrame, ground_truth: pd.DataFrame, log_path: str) -> dict:
@@ -288,14 +312,22 @@ def measure(scored: pd.DataFrame, ground_truth: pd.DataFrame, log_path: str) -> 
         }
 
     all_instances = gt.groupby(["scenario", "instance"])["is_anomaly"].any()
+    overall = {
+        "attack_lines": int(len(gt)),
+        "line_detection_rate": round(float(gt["is_anomaly"].mean()), 3),
+        "instance_detection_rate": round(float(all_instances.mean()), 3),
+        "total_flagged_lines": int(scored["is_anomaly"].sum()),
+        "incidents": len(group_anomalies(scored)),
+    }
+    if "suppressed" in scored.columns:
+        # How many alerts the Stage 3 rule withdrew, and how many of those were
+        # attack lines. The second number is the one that decides whether the
+        # rule is safe: alert volume can always be cut by removing detections.
+        overall["suppressed_lines"] = int(scored["suppressed"].sum())
+        overall["suppressed_attack_lines"] = int(
+            sum(1 for n in gt["line_number"] if bool(scored.loc[n - 1, "suppressed"])))
     return {
-        "overall": {
-            "attack_lines": int(len(gt)),
-            "line_detection_rate": round(float(gt["is_anomaly"].mean()), 3),
-            "instance_detection_rate": round(float(all_instances.mean()), 3),
-            "total_flagged_lines": int(scored["is_anomaly"].sum()),
-            "incidents": len(group_anomalies(scored)),
-        },
+        "overall": overall,
         "per_scenario": per_scenario,
     }
 
@@ -304,7 +336,10 @@ def run_condition(name: str, strategies: list[str], base_events: list[dict],
                   work_dir: Path, seed: int,
                   contamination: float = CONTAMINATION,
                   host: str = SYNTHETIC_HOST,
-                  year: int = SYNTHETIC_YEAR) -> dict:
+                  year: int = SYNTHETIC_YEAR,
+                  sequence_model=None, miner_state: str | None = None,
+                  suppress: bool = False,
+                  suppression_threshold: float | None = None) -> dict:
     """Build one camouflaged corpus, detect on it, and measure.
 
     `host` and `year` are parameters so the identical camouflage code can run
@@ -319,7 +354,9 @@ def run_condition(name: str, strategies: list[str], base_events: list[dict],
     write_outputs(events, str(log_path), str(gt_path), host=host)
 
     scored = detect_on_log(str(log_path), str(work_dir / f"{name}_parsed.csv"),
-                           year=year, contamination=contamination)
+                           year=year, contamination=contamination,
+                           sequence_model=sequence_model, miner_state=miner_state,
+                           suppress=suppress, suppression_threshold=suppression_threshold)
     result = measure(scored, pd.read_csv(gt_path), str(log_path))
     result["condition"] = name
     result["strategies"] = strategies
@@ -365,6 +402,10 @@ def pool(runs: list[dict]) -> dict:
             "instances_detected": instances_detected,
             "total_flagged_lines": sum(r["overall"]["total_flagged_lines"] for r in runs),
             "incidents": sum(r["overall"]["incidents"] for r in runs),
+            **({"suppressed_lines": sum(r["overall"]["suppressed_lines"] for r in runs),
+                "suppressed_attack_lines": sum(
+                    r["overall"]["suppressed_attack_lines"] for r in runs)}
+               if "suppressed_lines" in runs[0]["overall"] else {}),
         },
         "per_scenario": per_scenario,
         "per_seed_instance_rate": [r["overall"]["instance_detection_rate"] for r in runs],
@@ -542,9 +583,20 @@ def render_report(results: list[dict], n_seeds: int = 1) -> str:
 
 
 def main(output_dir: str, seed: int, n_seeds: int,
-         contamination: float = CONTAMINATION) -> list[dict]:
+         contamination: float = CONTAMINATION,
+         suppress: bool = False,
+         suppression_quantile: float = SEQUENCE_SUPPRESSION_QUANTILE) -> list[dict]:
     work_dir = Path(PROCESSED_DATA_DIR) / "adversarial"
     work_dir.mkdir(parents=True, exist_ok=True)
+
+    # History is fitted once, not per seed: it is history. Varying it with the
+    # evaluation seed would confound "the attacker changed tactics" with "the
+    # defender was shown a different past".
+    fitted = None
+    if suppress:
+        fitted = synthetic_history(work_dir, seed=seed + HISTORY_SEED_OFFSET,
+                                   quantile=suppression_quantile)
+        print(f"Suppression on: {fitted.describe()}")
 
     conditions = ([("baseline", [])]
                   + [(s, [s]) for s in STRATEGIES]
@@ -559,7 +611,11 @@ def main(output_dir: str, seed: int, n_seeds: int,
         base_events = build_dataset(seed=s)
         for name, strategies in conditions:
             result = run_condition(name, strategies, base_events, work_dir, s,
-                                   contamination=contamination)
+                                   contamination=contamination,
+                                   sequence_model=fitted.model if fitted else None,
+                                   miner_state=fitted.miner_state if fitted else None,
+                                   suppress=suppress,
+                                   suppression_threshold=fitted.threshold if fitted else None)
             runs[name].append(result)
             o = result["overall"]
             print(f"  {name:<16} line {o['line_detection_rate']:.0%} | "
@@ -590,9 +646,19 @@ def cli() -> None:
                         help="How many consecutive seeds to pool over")
     parser.add_argument("--contamination", type=float, default=CONTAMINATION,
                         help="Override the detector's contamination (Phase 7 retune check)")
+    parser.add_argument("--suppression-quantile", type=float,
+                        default=SEQUENCE_SUPPRESSION_QUANTILE,
+                        help="Quantile of the fitted history a lone flagged line must "
+                             "exceed to survive. The default is the config value; other "
+                             "values are for the sweep, not for shopping.")
+    parser.add_argument("--suppress", action="store_true",
+                        help="Enable Stage 3 alert suppression (fits a transition model on a "
+                             "separate benign-only history corpus first). This is the arm "
+                             "CLAUDE.md section 4 compares against the default one.")
     args = parser.parse_args()
 
-    main(args.output_dir, args.seed, args.seeds, contamination=args.contamination)
+    main(args.output_dir, args.seed, args.seeds, contamination=args.contamination,
+         suppress=args.suppress, suppression_quantile=args.suppression_quantile)
 
 
 if __name__ == "__main__":

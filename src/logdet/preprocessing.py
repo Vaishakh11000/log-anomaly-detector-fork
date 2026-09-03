@@ -146,7 +146,8 @@ class LineParser:
 def preprocess_file(input_path: str, output_path: str, year: int = None,
                     handle_year_rollover: bool = True,
                     mine_templates: bool = False,
-                    template_state_path: str | None = None) -> pd.DataFrame:
+                    template_state_path: str | None = None,
+                    miner: "TemplateMiner | None" = None) -> pd.DataFrame:
     """Parse a raw log file into the structured frame the pipeline scores.
 
     `handle_year_rollover` matters for any log spanning New Year: syslog carries
@@ -161,8 +162,18 @@ def preprocess_file(input_path: str, output_path: str, year: int = None,
     reason mining and consuming are separate steps is so each can be checked on
     its own. `template_state_path`, if given, is where the mined cluster table
     is written -- ids mean nothing without it.
+
+    `miner` passes in an *existing* miner instead of starting a fresh one, which
+    is what any caller scoring against a fitted sequence model has to do: cluster
+    ids are assigned by the miner that saw the traffic, so a corpus mined by a
+    second, independent miner gets a numbering the model was never fit on. The
+    miner keeps mining (rather than only matching) so a genuinely new template
+    still gets an id -- one the model does not know, which reads as silence and
+    never as evidence. See templating.TemplateMiner.match for why freezing is
+    the more dangerous option.
     """
-    miner = TemplateMiner() if mine_templates else None
+    if miner is None and mine_templates:
+        miner = TemplateMiner()
     parser = LineParser(year=year, handle_year_rollover=handle_year_rollover,
                         miner=miner)
 

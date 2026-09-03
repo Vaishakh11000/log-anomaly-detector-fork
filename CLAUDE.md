@@ -443,7 +443,7 @@ justified building that far.
 
 **Current stage:** Stage 3 — detection depth (Stage 2b left open, see below)
 **Stage 1 started:** 2026-08-18 → **kill-point deadline 2026-09-15** (4 weeks, §1b)
-**Last session:** 2026-09-01 (Stage 3 continued: a transition model over the mined `template_id`s, and the decision of where detection consumes it — the severity tier was measured and **rejected**, the triage tiebreaker measured and adopted)
+**Last session:** 2026-09-03 (Stage 3: **alert suppression** — the first Stage 3 change that clears `is_anomaly`. Full §4 suite run: adopted at q0.90, rejected at q0.99)
 **Last commit:** _(see `git log`)_
 
 > ## ✅ Kill-point verdict: **CONTINUE** (31.1pt, 5 seeds, 2026-08-19)
@@ -1038,12 +1038,101 @@ justified building that far.
       start, which no number in `results/` measures, and every detection change
       costs the same §4 measurement regardless of how small the code is.
 
-      Next: alert suppression (use the surprisal to *clear* `is_anomaly` on
-      lone routine-transition lines). That is the only lever that can reduce
-      94/194 incidents rather than reorder them, it does move every §4 number,
-      and it owes the full camouflage suite **including the 6.5h paced run** —
-      a change that suppresses lone flagged lines is most likely to hurt
-      `slow`, where the attack *is* a series of lone lines.
+      ✅ **Alert suppression — `logdet/suppression.py`.** The first Stage 3
+      change that clears `is_anomaly`, so §4 applied in full and was run in
+      full. A flagged line is withdrawn only when **all four** hold: it is not
+      an impossible-travel hit, it is **alone in its incident**, the model has
+      a transition to score it with, and that transition is **not in the
+      rarest tenth** of the fitted history. One pass, and provably
+      non-cascading — removing a singleton cannot change any other incident's
+      membership, so a second pass is a no-op.
+
+      **The obvious version of the rule is inert, and that is measured.**
+      "Suppress a *routine* transition" (at or below the fitted median) clears
+      **0 of 59** eligible rows on the synthetic corpus and 13 of 63 on the
+      kill-point corpus. The flagged rows already *are* the anomalous tail, so
+      a line the embeddings found unusual almost never has a below-median
+      transition — the two signals are positively correlated. The threshold
+      adopted is the model's existing `rare_threshold`, reused rather than
+      introduced.
+
+      **Loneness is the safety guard; the surprisal is only selectivity** —
+      computed in the report, not asserted. AUC of the surprisal at separating
+      attack from benign:
+
+      | population | synthetic | kill-point |
+      |---|---|---|
+      | all lines (the published figure) | 0.833 | 0.904 |
+      | **flagged rows only** | **0.278** | **0.645** |
+      | flagged **and** lone | 0.987 | 0.954 |
+
+      Among flagged rows the signal runs *backwards* on the synthetic corpus,
+      so suppressing on surprisal alone would preferentially delete attacks.
+      It inverts under the loneness restriction only because the lone attack
+      lines that exist are impossible-travel hits, which guard 1 removes
+      anyway.
+
+      **§4 items 1, 2, 4 — both clean corpora** (`results/suppression/suppression.md`).
+      Zero attack lines suppressed at every threshold on either corpus:
+
+      | corpus | P | R | instance detection | incidents |
+      |---|---|---|---|---|
+      | synthetic, off → on | 0.300 → 0.310 | 0.867 → **0.867** | 100% → **100%** | 94 → 90 |
+      | kill-point OpenSSH, off → on | 0.206 → 0.248 | 0.570 → **0.570** | 100% → **100%** | 194 → **147** |
+
+      **§4 item 3 — camouflage, 5 seeds, 9 conditions**
+      (`results/suppression/suppression_adversarial.md`). Instance detection is
+      **unchanged on every condition and unchanged seed by seed**: across all
+      45 instance-firings suppression never removed the last surviving line of
+      an instance. Alert volume falls ~4%.
+
+      **The cost is real and sub-instance, and it lands exactly where it was
+      predicted.** Two conditions lose attack lines; every other condition
+      loses none:
+
+      | condition | line rate off → on | attack lines removed |
+      |---|---|---|
+      | `slow` | 0.824 → 0.790 | 8 |
+      | `realistic-combo` | 0.776 → 0.741 | 6 |
+
+      The suppression *rate* carries the mechanism: ~3% of flagged lines on
+      every condition, rising to 4.3% (`slow`) and 5.0% (`realistic-combo`).
+      Spreading an attack in time makes its lines lone, and lone is what puts
+      a line in the eligible pool. **`slow` is where any future strengthening
+      of this rule breaks first.**
+
+      ⛔ **q0.99 measured and rejected — the entry worth reading.** On clean
+      data it is much the best-looking threshold: synthetic F1 0.446 → **0.624**
+      and 94 → **44** incidents, against q0.90's 0.456 and 90. Under camouflage
+      it surrenders the margin §4 says clean data hides:
+
+      | condition | instance detection | line rate | attack lines removed |
+      |---|---|---|---|
+      | `slow` | 80.0% → **66.7% (−13.3pt)** | 0.824 → **0.266** | 130 |
+      | `ip_rotate` | 84.4% → 80.0% (−4.4pt) | 0.837 → 0.601 | 55 |
+      | `realistic-combo` | 91.1% → 88.9% (−2.2pt) | 0.776 → 0.471 | 52 |
+
+      It halves alert volume across the suite (5,083 → 2,927 incidents) by
+      deleting detections. This is the 2026-08-16 contamination lesson
+      reproduced on a different knob.
+
+      **Batch only, deliberately.** Loneness is not knowable at emit time — a
+      line alone in this micro-batch may be joined by the next one — so
+      suppressing in the stream would withdraw alerts the batch path keeps and
+      break the streamed-equals-batch lock. Making it work there means
+      deferring the decision by at least the incident window and re-verifying
+      that lock. Not attempted; recorded as the blocker.
+
+      527 tests pass (1 skipped), including both pinned regression locks. The
+      locks stay green because neither the batch nor the stream path passes a
+      sequence model, and suppression cannot fire without one.
+
+      Next: the entity graph (Stage 4) is the natural follow-on — it makes the
+      impossible-travel display gap fixable and gives grouping something better
+      than union-find to decide "lone" with. If suppression is to be pushed
+      harder first, the honest lever is **not** a looser threshold (q0.99 is
+      already measured and rejected) but a *better loneness test*, since that
+      is the guard doing the safety work.
       **Sequence modelling** — the highest-value single change available. v1 scores each
       line independently, but attacks are sequences; a single odd line is weak evidence
       and an odd *sequence* is strong evidence. This is the root cause of the 0.29
@@ -1124,6 +1213,24 @@ justified building that far.
   measurably slows the measurement.
 - v1's severity tiers do not cleanly separate precision by tier (medium is noisier than
   low). Informal calls against a 45-line ground truth, never calibrated. Stage 3.
+- **The committed 2026-08-18 `results/adversarial_results.json` no longer reproduces
+  exactly at HEAD.** A fresh 5-seed control run (2026-09-03) matches it on 8 of 9
+  conditions; `realistic-combo` reports **673 incidents against the committed 670**,
+  with **line and instance detection rates identical**. That artifact predates the
+  2026-08-30 preprocessing widening, which was verified byte-identical only on
+  `synthetic.log` and `SSH.log` — never on a camouflaged corpus, and `noise`/
+  `realistic-combo` inject `CRON`/`systemd` filler the original corpora do not
+  contain. Not caused by suppression: control and treatment arms were run in the
+  same session on the same code. Worth an hour to confirm the cause and re-cut the
+  artifact; until then quote the fresh control in `results/suppression/adv_off/`,
+  not the committed file.
+- **Alert suppression is batch-only and must stay that way until the stream can
+  defer.** Loneness is not knowable at emit time, so suppressing in
+  `StreamProcessor` would withdraw alerts the batch path keeps and break the
+  streamed-equals-batch lock. Nothing in the stream passes a sequence model, so it
+  cannot fire there by accident today — but wiring one in without a deferral window
+  would silently break the equivalence that makes streamed numbers comparable to
+  `results/`.
 
 ---
 
@@ -1411,6 +1518,21 @@ uv run logdet-templates --input data/external/Linux.log --limit 50000   # any ra
 # Stage 3 (sequence model). Fit on history, never on the traffic being judged.
 uv run logdet-fit --input data/processed/parsed.csv --sequence-model   # -> models/sequence_model.json
 uv run logdet-pipeline --input data/processed/parsed.csv --no-llm --sequence-model
+# Stage 3 (alert suppression). ON by default when a sequence model is passed.
+uv run logdet-pipeline --input data/processed/parsed.csv --no-llm \
+     --sequence-model --suppress
+# Section 4 items 1/2/4 on both corpora with ground truth (~4 min, needs embeddings)
+uv run logdet-suppression-report
+# Section 4 item 3 -- instance detection under camouflage. NOT optional (~12 min/arm)
+uv run logdet-adversarial --seeds 5 --output-dir results/suppression/adv_off
+uv run logdet-adversarial --seeds 5 --suppress --output-dir results/suppression/adv_q090
+uv run logdet-adversarial --seeds 5 --suppress --suppression-quantile 0.99 \
+     --output-dir results/suppression/adv_q099        # the rejected arm
+uv run logdet-suppression-report --merge-adversarial off=results/suppression/adv_off \
+     q0.90=results/suppression/adv_q090 q0.99=results/suppression/adv_q099
+# Kill point with suppression (Wazuh must be up; NOT comparable to a run without it)
+uv run logdet-killpoint --seeds 5 --suppress
+
 # What the signal separates, and where it consumes cleanly (~1 min, needs embeddings)
 uv run logdet-sequence-report                                          # synthetic corpus
 uv run logdet-sequence-report --input data/processed/killpoint/corpus.log \
@@ -1498,3 +1620,4 @@ The frozen demo folder deliberately commits it instead — do not copy that choi
 | 2026-09-01 | **Drain3 mining lands as an opt-in `template_id` column that no detection code reads, and the mined vocabulary is inspected before anything consumes it** | Stage 3's first move is a parser change, and a parser change is the one place where §4's benchmark rule can be satisfied *structurally* rather than by re-running eight hours of camouflage runs: the column is additive and off by default, so a default parse is byte-identical to HEAD's — checked, not asserted, by SHA-256 over every parsed record of `synthetic.log` (751 lines) and `SSH.log` (655,147), both identical, with the 751 → 130 → 94 batch and stream locks green. Mining and consuming are deliberately separate steps so each can be checked apart; the second one is what will trigger §4. Three design points, each a silent failure otherwise. **The cluster id is recorded per line, never the template text** — Drain3 widens a template as more lines arrive, so the first `Failed password` line is stored with the whole line as its template and the second turns it into `Failed password for <*> from <IP> port <PORT> ssh2`; storing the text per line would leave a corpus whose early rows and late rows disagree about what one cluster is. **IP/PORT/PID/HEX are masked explicitly rather than left to the similarity threshold**, because Drain only collapses a position once it has seen it vary, so an unmasked corpus containing a single IP mines that IP into the template and the whole numbering ends up depending on how varied the traffic happened to be instead of on the log's grammar. **`max_clusters` stays unbounded**: a bound turns the cluster table into an LRU, so a rare template evicted and later seen again comes back with a *new* id, silently renumbering the vocabulary under any model keyed on it. The inspection is the point of the session, and it is a good result with four caveats. On all 655,147 OpenSSH lines, **5,669 regex templates collapse to 45 mined ones**, the count settles (43 by 250k lines, 45 at the end) so it is a real vocabulary rather than something variable leaking in, and **no regex template is split across two clusters at all** — the 126× reduction is the regex leaving usernames in, with 1,713 `Invalid user <name>` templates becoming one. Critically, **failed and accepted password stay in separate clusters**, which is the distinction this project detects on. The caveats are the merges that absorbed a *word* rather than an identifier, separated from the harmless ones by a computed rule (a collapsed position taking ≤6 values is a word; one taking hundreds is an identifier) rather than by reading the table: `Failed password` and `Failed none` share cluster 6, four disconnect reasons share cluster 8, `failure;`/`failures;` share 13 and 18, and IPv4/IPv6 share 43. None merges a success into a failure, so none blocks the stage, but `Failed none` is a probe rather than a password attempt and a sequence model keyed on cluster 6 cannot tell the two apart. One property found by a failing test rather than by reading the docs, and now pinned: **`match` is stricter than `add`** — a frozen template set only matches lines whose differing positions the template already marks `<*>`, so a set frozen after too little traffic reports unmatched lines that read as novelty when they are really an under-trained miner. `drain3` added via `uv add` (§6); it pins `cachetools==4.2.1` and `jsonpickle==1.5.1`, which nothing else here uses. 468 tests pass (`-m "not slow"`), plus both slow locks |
 | 2026-09-01 | **The sequence model over template ids re-ranks and never re-flags, so it landed without a camouflage re-run; and the consumption point was chosen by measurement, which rejected the obvious one.** The severity tier is out, the triage tiebreaker is in | The question this session had to answer was not "does a Markov model over template ids separate attacks" — it does, at AUC 0.912 on the kill-point OpenSSH corpus — but *where detection is allowed to spend that*, and the answer had to survive §4. Keying `is_anomaly` on a discrete cluster id was ruled out first and on principle: rewording a line moves it to a different cluster, which is precisely how Wazuh's rules break under `rephrase`, and that one mechanism is the entire kill-point result. So the model is confined to ranking, `is_anomaly` is untouched, and every §4 number is identical with it on or off — asserted by a unit test over `is_anomaly`/`ml_anomaly`/`impossible_travel` and by the 751 → 130 → 94 batch and stream locks, not by argument. Three design calls were then made against measurement rather than intuition, and two of them overturned the intuition. **Fitting the transition model on the frame it scores collapses it to AUC 0.558 on the real corpus** — a coin flip — because ambient brute force teaches it that brute force is routine; on the synthetic corpus the same mistake costs 0.856 → 0.692, so the effect is larger the more realistic the data. That is the sequence-model form of the discipline `fit.py` already enforces for the detector, with sharper consequences, and it is why the model is fitted in `logdet-fit` on history. **The two sequence keys go in precedence order, and the honest reason is simplicity rather than score.** The user key is much the stronger signal (0.958 alone on the kill-point corpus against source IP's 0.758), so the ranking of the keys is well supported; the *combining rule* is not, because taking the maximum across keys measures as a wash — 0.852 against precedence's 0.856 on synthetic, 0.923 against 0.912 on the kill-point corpus, i.e. each rule wins one. Precedence is kept for being the simpler rule and the claim in the artifact says exactly that rather than dressing a tie as a win. The fallback still earns its place: it is the only key with anything to say about account enumeration, which varies the username on every line by design, and the combined row sitting below user-alone is coverage bought at lower quality, not a regression. **The severity tier turned out to be the wrong place to spend the signal, and that is the session's real finding.** An incident takes the highest tier of any line in it, so demotion is inert — the notable set is bit-identical on both corpora — and promotion lifts a whole incident on one promoted line, growing the notable set 19 → 48 (synthetic) and 72 → 84 (OpenSSH) while never surfacing an attack the baseline missed. Thresholds were swept at p90/p95/p99 and none beats leaving it off, so this is a property of the aggregation and not a tuning problem; `SEQUENCE_SEVERITY_SHIFT = False`, with the numbers recorded in config beside it so nobody re-derives it. What *was* adopted is the modest thing the measurement supports: the surprisal as the **last tiebreaker** in `triage.py`, after event count and severity. Precision@5/@10/@20 is unchanged on both corpora and the rank by which an analyst has seen every attack instance moves 16 → 12 and 65 → 39. Ranking on surprisal alone is explicitly unsafe — it drops precision@5, because one lone line with a rare transition outranks a twenty-event brute force, and event count remains the stronger evidence. **This is a triage improvement and must never be written up as a detection one**: the same lines are flagged and the same incidents are grouped either way, and the report generator says so in the artifact rather than leaving it to the reader. Peer-group baselines were deferred rather than built: they fix cold start, which no number in `results/` measures, and since every detection change costs the same §4 measurement regardless of code size, the cheap-looking change is not the cheap change. The next step is the expensive one — suppression, using the surprisal to *clear* `is_anomaly` on lone routine-transition lines, which is the only lever that can reduce 94/194 incidents rather than reorder them. It moves every §4 number and owes the full camouflage suite including the 6.5h paced run, because a change that suppresses lone flagged lines is most likely to hurt `slow`, where the attack *is* a series of lone lines. 495 tests pass (`-m "not slow"`), plus both slow locks |
 | 2026-09-01 | **The 31 Aug review deck moved out of the repo to `~/presentation-2026-08-31/`** | The review is over, and the folder was 48MB of deck, screenshots and reference PDFs that no code imports and no result depends on — carrying it in the repo taxes every clone for a one-off artifact. It is kept whole, generators included (`build_pptx.py`, `make_diagrams.py`, `capture_screenshots.py`), so it can be rebuilt or moved back if a later review wants it; the earlier entries describing it stay as written, and the paths in them now refer to that directory. Nothing about detection, evaluation or the results in `results/` changed. Note the three dev dependencies the deck pulled in — `playwright`, `markdown`, `python-pptx` — were deliberately **not** removed here, because `pyproject.toml` had uncommitted Stage 3 work in it at the time; drop them whenever that work lands if nothing else has picked them up |
+| 2026-09-03 | **Alert suppression adopted at q0.90 and rejected at q0.99, on the full §4 suite. Loneness turned out to be the safety guard and the surprisal only the selectivity — the reverse of the intended design** | This is the first Stage 3 change that clears `is_anomaly`, so unlike the severity shift and the triage tiebreaker it moved every number §4 asks for, and it owed the whole suite rather than an argument. Three things were measured that overturned the plan the session started with. **The rule as specified is inert.** "Clear `is_anomaly` on lone flagged lines whose transition is *routine*" reads naturally as "at or below the fitted median", and at that threshold it suppresses **0 of 59** eligible rows on the synthetic corpus and 13 of 63 on the kill-point corpus. The cause is structural rather than a tuning miss: the flagged rows already *are* the anomalous tail, and a line the embedding detector found unusual almost never has a below-median template transition, because the two signals are positively correlated. The rule became "survives only if the transition is genuinely rare", using `rare_threshold` — a value the model already carried and the severity shift already used, so no new knob was invented to make the result work. **The guard doing the safety work is not the one the design was built around.** Restricted to flagged rows, the surprisal separates attack from benign at AUC **0.278** on the synthetic corpus and 0.645 on the kill-point corpus — at or below a coin flip, with attack lines scoring *lower* than benign ones — so suppressing on the surprisal alone would preferentially delete attacks. It reads 0.987 and 0.954 once restricted to lone rows, and the reason is worth stating plainly rather than banking: the lone attack lines that exist are impossible-travel hits, which the first guard removes from the pool anyway. So loneness and the travel exclusion are load-bearing and the threshold is not; any future change weakening the first two has to be re-measured from scratch, while relaxing the threshold is comparatively safe. Those AUCs are computed by the report rather than written into it, so they cannot drift from the code. **The threshold that measures best on clean data is the one that surrenders the camouflage margin, and both were run rather than one.** q0.99 is far the better-looking value on clean corpora — synthetic F1 0.446 → 0.624 and 94 → 44 incidents against q0.90's 0.456 and 90 — and under camouflage it costs `slow` **13.3pt of instance detection** (80.0% → 66.7%), drops its line rate from 0.824 to **0.266**, and removes 130 attack lines; it halves suite-wide alert volume (5,083 → 2,927 incidents) by deleting detections. That is the 2026-08-16 contamination lesson reproduced on a different knob, and the q0.99 arm was run *specifically* so the rejection would be a measurement instead of a claim of restraint. What was adopted, q0.90, leaves instance detection unchanged on all nine camouflage conditions and unchanged **seed by seed** — across 45 instance-firings it never removed the last surviving line of an instance — while cutting the kill-point corpus from 194 incidents to 147 and lifting its precision 0.206 → 0.248 with recall untouched at 0.570. **The cost is real, sub-instance, and exactly where it was predicted to be**: `slow` loses 8 attack lines (line rate 0.824 → 0.790) and `realistic-combo` 6 (0.776 → 0.741); every other condition loses none. The suppression rate carries the mechanism legibly — ~3% of flagged lines everywhere, rising to 4.3% and 5.0% on precisely the two timing-spread conditions — because spreading an attack in time is what makes its lines lone, and lone is what puts a line in the eligible pool. A +0.0pt row on the registered metric therefore does **not** mean nothing was paid, and the report prints the line rate beside it for that reason. Three design points are recorded in code because each is a silent failure otherwise. The model is fitted on a **separate benign-only corpus** at a disjoint seed (`logdet_eval/history.py`), never on the frame being scored (measured elsewhere at AUC 0.912 → 0.558) and never on ground-truth-selected benign rows, which is legitimate for a diagnostic but unavailable to a rule that must run at inference time. The **miner state travels with the model**, since cluster ids mean nothing across two independent miners; every condition mines from a restored copy so none mutates the state the next one loads, and mining continues rather than freezing so a genuinely new template gets an id the model does not know — which scores as silence, and silence never suppresses. And **suppression is batch-only**: loneness is not knowable at emit time, so applying it in `StreamProcessor` would withdraw alerts the batch path keeps and break the streamed-equals-batch lock, which is the only thing making streamed numbers comparable to `results/`. Making it work there means deferring by at least the incident window and re-verifying that lock — a separate piece of work, not a parameter. Two smaller decisions: `suppression` was added to the kill-point checkpoint resume guard, because a run half-suppressed and half-not would produce one reported differential describing neither system; and `ml_anomaly` is left untouched by a withdrawal, with the withdrawal recorded in its own `suppressed` column, so evaluation can still tell that a row was flagged and then retracted. The default flip is pinned by a test, so reverting it is a deliberate edit with a failing test attached. 527 tests pass (1 skipped), including both pinned regression locks — which stay green because neither the batch nor the stream path passes a sequence model, and suppression cannot fire without one. **This one is a detection change and must be written up as one**, unlike the triage tiebreaker: fewer lines are flagged and fewer incidents are grouped |

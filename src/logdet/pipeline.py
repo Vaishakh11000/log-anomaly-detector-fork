@@ -25,6 +25,7 @@ from logdet.config import (
     NARRATE_MIN_EVENTS,
     DEFAULT_INCIDENTS_PATH,
     DEFAULT_SEQUENCE_MODEL_PATH,
+    SEQUENCE_SUPPRESSION,
 )
 
 
@@ -71,17 +72,19 @@ def build_incident_entry(incident_id: int, incident: pd.DataFrame) -> dict:
 
 
 def run_pipeline(input_csv: str, output_json: str, use_llm: bool = True,
-                 narrate_all: bool = False, sequence_model_path: str | None = None):
+                 narrate_all: bool = False, sequence_model_path: str | None = None,
+                 suppress: bool = SEQUENCE_SUPPRESSION):
     df = pd.read_csv(input_csv, parse_dates=["timestamp"])
     print(f"Loaded {len(df)} parsed log rows")
 
     df = add_embeddings_to_df(df, template_col="template")
     print("Embeddings generated")
 
-    # Opt-in, and it re-tiers rather than re-flags: the same lines are flagged
-    # and the same incidents are grouped with it on or off, so every number in
-    # `results/` is comparable across the switch. What it changes is which
-    # incidents rank first and which get narrated.
+    # Opt-in. Without `--suppress` it re-ranks rather than re-flags: the same
+    # lines are flagged and the same incidents are grouped with it on or off,
+    # so every number in `results/` stays comparable across the switch, and
+    # what changes is which incidents rank first and which get narrated. With
+    # `--suppress` that stops being true by design -- see suppression.py.
     sequence_model = None
     if sequence_model_path:
         sequence_model = TransitionModel.load(sequence_model_path)
@@ -89,7 +92,11 @@ def run_pipeline(input_csv: str, output_json: str, use_llm: bool = True,
               f"routine <= {sequence_model.routine_threshold:.3f} nats, "
               f"rare >= {sequence_model.rare_threshold:.3f}")
 
-    scored = run_anomaly_detection(df, sequence_model=sequence_model)
+    scored = run_anomaly_detection(df, sequence_model=sequence_model,
+                                   suppress=suppress)
+    if suppress and "suppressed" in scored.columns:
+        print(f"Suppressed {int(scored['suppressed'].sum())} lone flagged rows "
+              "with an unremarkable template transition")
     print(f"Flagged {scored['is_anomaly'].sum()} anomalous rows out of {len(scored)} "
           f"({scored['impossible_travel'].sum()} via impossible-travel)")
 
@@ -135,11 +142,17 @@ def cli() -> None:
                         help="Adjust severity tiers with a fitted transition model over "
                              "template_id (input must be parsed with --drain3). Does not "
                              "change which lines are flagged or how they group.")
+    parser.add_argument("--suppress", action="store_true", default=SEQUENCE_SUPPRESSION,
+                        help="Clear is_anomaly on lone flagged lines whose template "
+                             "transition is not rare (needs --sequence-model). Unlike "
+                             "every other Stage 3 switch this one changes what is "
+                             "detected -- see logdet/suppression.py.")
     args = parser.parse_args()
 
     run_pipeline(args.input, args.output, use_llm=not args.no_llm,
                  narrate_all=args.narrate_all,
-                 sequence_model_path=args.sequence_model)
+                 sequence_model_path=args.sequence_model,
+                 suppress=args.suppress)
 
 
 if __name__ == "__main__":
