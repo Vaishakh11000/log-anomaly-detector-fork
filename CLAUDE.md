@@ -441,9 +441,9 @@ justified building that far.
 
 > **Agent: update this section at the end of every session.**
 
-**Current stage:** Stage 3 — detection depth (Stage 2b left open, see below)
+**Current stage:** Stage 4 — correlation & MITRE (Stage 2b left open, see below)
 **Stage 1 started:** 2026-08-18 → **kill-point deadline 2026-09-15** (4 weeks, §1b)
-**Last session:** 2026-09-03 (Stage 3: **alert suppression** — the first Stage 3 change that clears `is_anomaly`. Full §4 suite run: adopted at q0.90, rejected at q0.99)
+**Last session:** 2026-09-03 (Stage 4: **entity graph** replaces union-find grouping, verified partition-identical; impossible-travel evidence now carried. No §4 numbers moved)
 **Last commit:** _(see `git log`)_
 
 > ## ✅ Kill-point verdict: **CONTINUE** (31.1pt, 5 seeds, 2026-08-19)
@@ -1139,12 +1139,78 @@ justified building that far.
       precision. Even a Markov transition model over template IDs per user would help.
       Also: peer-group baselines (fixes cold start), score calibration so severity tiers
       mean something numeric, drift handling.
-- [ ] **Stage 4 — Correlation & MITRE.** Replace union-find grouping with an **entity
-      graph** (users/IPs/hosts/processes as nodes, events as edges, incidents as
-      temporally-decayed connected subgraphs) — this is what makes multi-source
-      correlation possible. Ingest the official **ATT&CK STIX bundle** instead of the
-      hand-written table; add tactic and kill-chain mapping; produce a **detection
-      coverage matrix** (which techniques can this system even see?).
+- [ ] **Stage 4 — Correlation & MITRE.** ▶ *in progress, started 2026-09-03.*
+
+      ✅ **The entity graph is in and grouping runs on it** —
+      `logdet/entity_graph.py`. Users, source IPs, hosts and processes are
+      nodes; events are edges bounded by the incident window;
+      `group_anomalies` is now `components()` over that graph rather than a
+      pairwise backward scan.
+
+      **The partition is the old partition, and that is asserted rather than
+      argued.** Chaining each entity's events consecutively is exact, not an
+      approximation: if two events on one entity are within the window, every
+      intermediate gap is too, and connectivity is transitive either way. The
+      pre-Stage-4 algorithm is kept in `tests/test_entity_graph.py` as an
+      oracle and the two are compared on 24 randomised frames and on a
+      transitive chain. It is also O(events) per entity instead of
+      O(events²).
+
+      **Host and process are nodes but not grouping links.** LogHub OpenSSH is
+      a single host (`LabSZ`) running `sshd`, so a host edge joins all 655,147
+      lines into one incident — an entity every event shares says nothing
+      about which events belong together.
+
+      ✅ **Impossible-travel evidence — the Known Issue carried since v1 is
+      closed.** The travel check compares a login with that user's previous
+      login; the previous one is benign, so it was never flagged, never
+      grouped and never shown, and the incident asserted "impossible travel"
+      while displaying one of the two logins the conclusion is about. The
+      graph retrieves it (`EntityGraph.preceding` over the user node) and it
+      is carried in a new `context_events` field — batch pipeline, stream, the
+      API's narrate call, the LLM prompt and the dashboard.
+
+      **Evidence is not a detection, and the separation is structural.**
+      `context_events` is not `events`: it does not count towards
+      `event_count`, severity or triage, and the bake-off's `ours_flagged`
+      walks `events`, so a benign line cannot be attributed to this detector
+      as a flagged line. The LLM prompt is **byte-identical** when there is no
+      evidence, which keeps the 592-token narration-latency measurement (§2c)
+      comparable across the change.
+
+      **§4: nothing detected changed, verified three ways.** The synthetic
+      corpus still reads 751 lines → 130 flagged → 94 incidents in both the
+      batch and the streamed path (both pinned locks green); all 94 incident
+      entries are identical to the previous run on every pre-existing field,
+      with `context_events` the only addition; and `is_anomaly` is untouched.
+      No camouflage re-run was owed. All 3 travel incidents now carry their
+      compared-against login, in batch and in the stream alike. 574 tests
+      pass (1 skipped).
+
+      **One stream-only defect found and fixed on the way.** Evidence was
+      retrieved from `self.history`, which `_remember` prunes relative to the
+      newest line *after* scoring — so a micro-batch spanning more than the
+      retention window dropped the very login the hit was compared against, in
+      the same call that detected it, and only 1 of 3 travel incidents carried
+      evidence. The snapshot now uses the frame the batch was actually scored
+      against, and evidence found once is kept when the incident grows.
+
+      **Still to do.** *Temporal decay* — components are currently window-based
+      (an edge exists or it does not), not decayed by age. *Multi-source
+      correlation* — the graph is the structure that makes it possible and
+      nothing yet feeds it a second source. Ingest the official **ATT&CK STIX
+      bundle** instead of the hand-written table; add tactic and kill-chain
+      mapping; produce a **detection coverage matrix** (which techniques can
+      this system even see?).
+
+      **And the one the graph was asked for: a better loneness test for
+      suppression.** `EntityGraph.neighbours`/`degree` answer the question
+      union-find could not — how much traffic, flagged *or benign*, an alert's
+      user and IP account for — which is the guard doing the safety work in
+      `suppression.py`. Consuming it **clears `is_anomaly`, so §4 applies in
+      full**: both clean corpora plus the 9-condition, 5-seed camouflage suite
+      (~12 min per arm), and `slow` is where it will break first. Not started;
+      it is the next session's work, not a parameter change.
 - [ ] **Stage 5 — LLM layer maturity.** Structured JSON output instead of free prose;
       model routing (small/fast for triage lines, larger for full narratives); retrieval
       over ATT&CK text; and **automated faithfulness evaluation** — does every claim in a
@@ -1171,10 +1237,11 @@ justified building that far.
 - **Scenario B (impossible travel) is detected entirely by the hand-written rule** —
   the embeddings contribute nothing, because both login legs are identical vectors after
   IP masking. Never claim "embedding-based detection catches impossible travel."
-- **Impossible-travel incidents show the conclusion without the evidence** — only the
-  arriving login is flagged and grouped; the earlier login it was compared against is
-  benign and never carried in. Display-layer bug, detection unaffected. Fix when the
-  entity graph lands (Stage 4) — it makes carrying the compared-against event natural.
+- ~~**Impossible-travel incidents show the conclusion without the evidence.**~~
+  **Fixed 2026-09-03** by the entity graph (Stage 4): the compared-against login
+  is retrieved via the user node and carried in `context_events`, kept out of
+  `events`/`event_count` so it is evidence and never a detection. Verified a
+  no-op on every measured number — 751 → 130 → 94 unchanged in batch and stream.
 - **The v1 rule baseline is near-oracle by construction** — the corpus is built from the
   same three attack templates the rules encode. Stage 1's third-party rulesets are the
   honest fix.
@@ -1621,3 +1688,4 @@ The frozen demo folder deliberately commits it instead — do not copy that choi
 | 2026-09-01 | **The sequence model over template ids re-ranks and never re-flags, so it landed without a camouflage re-run; and the consumption point was chosen by measurement, which rejected the obvious one.** The severity tier is out, the triage tiebreaker is in | The question this session had to answer was not "does a Markov model over template ids separate attacks" — it does, at AUC 0.912 on the kill-point OpenSSH corpus — but *where detection is allowed to spend that*, and the answer had to survive §4. Keying `is_anomaly` on a discrete cluster id was ruled out first and on principle: rewording a line moves it to a different cluster, which is precisely how Wazuh's rules break under `rephrase`, and that one mechanism is the entire kill-point result. So the model is confined to ranking, `is_anomaly` is untouched, and every §4 number is identical with it on or off — asserted by a unit test over `is_anomaly`/`ml_anomaly`/`impossible_travel` and by the 751 → 130 → 94 batch and stream locks, not by argument. Three design calls were then made against measurement rather than intuition, and two of them overturned the intuition. **Fitting the transition model on the frame it scores collapses it to AUC 0.558 on the real corpus** — a coin flip — because ambient brute force teaches it that brute force is routine; on the synthetic corpus the same mistake costs 0.856 → 0.692, so the effect is larger the more realistic the data. That is the sequence-model form of the discipline `fit.py` already enforces for the detector, with sharper consequences, and it is why the model is fitted in `logdet-fit` on history. **The two sequence keys go in precedence order, and the honest reason is simplicity rather than score.** The user key is much the stronger signal (0.958 alone on the kill-point corpus against source IP's 0.758), so the ranking of the keys is well supported; the *combining rule* is not, because taking the maximum across keys measures as a wash — 0.852 against precedence's 0.856 on synthetic, 0.923 against 0.912 on the kill-point corpus, i.e. each rule wins one. Precedence is kept for being the simpler rule and the claim in the artifact says exactly that rather than dressing a tie as a win. The fallback still earns its place: it is the only key with anything to say about account enumeration, which varies the username on every line by design, and the combined row sitting below user-alone is coverage bought at lower quality, not a regression. **The severity tier turned out to be the wrong place to spend the signal, and that is the session's real finding.** An incident takes the highest tier of any line in it, so demotion is inert — the notable set is bit-identical on both corpora — and promotion lifts a whole incident on one promoted line, growing the notable set 19 → 48 (synthetic) and 72 → 84 (OpenSSH) while never surfacing an attack the baseline missed. Thresholds were swept at p90/p95/p99 and none beats leaving it off, so this is a property of the aggregation and not a tuning problem; `SEQUENCE_SEVERITY_SHIFT = False`, with the numbers recorded in config beside it so nobody re-derives it. What *was* adopted is the modest thing the measurement supports: the surprisal as the **last tiebreaker** in `triage.py`, after event count and severity. Precision@5/@10/@20 is unchanged on both corpora and the rank by which an analyst has seen every attack instance moves 16 → 12 and 65 → 39. Ranking on surprisal alone is explicitly unsafe — it drops precision@5, because one lone line with a rare transition outranks a twenty-event brute force, and event count remains the stronger evidence. **This is a triage improvement and must never be written up as a detection one**: the same lines are flagged and the same incidents are grouped either way, and the report generator says so in the artifact rather than leaving it to the reader. Peer-group baselines were deferred rather than built: they fix cold start, which no number in `results/` measures, and since every detection change costs the same §4 measurement regardless of code size, the cheap-looking change is not the cheap change. The next step is the expensive one — suppression, using the surprisal to *clear* `is_anomaly` on lone routine-transition lines, which is the only lever that can reduce 94/194 incidents rather than reorder them. It moves every §4 number and owes the full camouflage suite including the 6.5h paced run, because a change that suppresses lone flagged lines is most likely to hurt `slow`, where the attack *is* a series of lone lines. 495 tests pass (`-m "not slow"`), plus both slow locks |
 | 2026-09-01 | **The 31 Aug review deck moved out of the repo to `~/presentation-2026-08-31/`** | The review is over, and the folder was 48MB of deck, screenshots and reference PDFs that no code imports and no result depends on — carrying it in the repo taxes every clone for a one-off artifact. It is kept whole, generators included (`build_pptx.py`, `make_diagrams.py`, `capture_screenshots.py`), so it can be rebuilt or moved back if a later review wants it; the earlier entries describing it stay as written, and the paths in them now refer to that directory. Nothing about detection, evaluation or the results in `results/` changed. Note the three dev dependencies the deck pulled in — `playwright`, `markdown`, `python-pptx` — were deliberately **not** removed here, because `pyproject.toml` had uncommitted Stage 3 work in it at the time; drop them whenever that work lands if nothing else has picked them up |
 | 2026-09-03 | **Alert suppression adopted at q0.90 and rejected at q0.99, on the full §4 suite. Loneness turned out to be the safety guard and the surprisal only the selectivity — the reverse of the intended design** | This is the first Stage 3 change that clears `is_anomaly`, so unlike the severity shift and the triage tiebreaker it moved every number §4 asks for, and it owed the whole suite rather than an argument. Three things were measured that overturned the plan the session started with. **The rule as specified is inert.** "Clear `is_anomaly` on lone flagged lines whose transition is *routine*" reads naturally as "at or below the fitted median", and at that threshold it suppresses **0 of 59** eligible rows on the synthetic corpus and 13 of 63 on the kill-point corpus. The cause is structural rather than a tuning miss: the flagged rows already *are* the anomalous tail, and a line the embedding detector found unusual almost never has a below-median template transition, because the two signals are positively correlated. The rule became "survives only if the transition is genuinely rare", using `rare_threshold` — a value the model already carried and the severity shift already used, so no new knob was invented to make the result work. **The guard doing the safety work is not the one the design was built around.** Restricted to flagged rows, the surprisal separates attack from benign at AUC **0.278** on the synthetic corpus and 0.645 on the kill-point corpus — at or below a coin flip, with attack lines scoring *lower* than benign ones — so suppressing on the surprisal alone would preferentially delete attacks. It reads 0.987 and 0.954 once restricted to lone rows, and the reason is worth stating plainly rather than banking: the lone attack lines that exist are impossible-travel hits, which the first guard removes from the pool anyway. So loneness and the travel exclusion are load-bearing and the threshold is not; any future change weakening the first two has to be re-measured from scratch, while relaxing the threshold is comparatively safe. Those AUCs are computed by the report rather than written into it, so they cannot drift from the code. **The threshold that measures best on clean data is the one that surrenders the camouflage margin, and both were run rather than one.** q0.99 is far the better-looking value on clean corpora — synthetic F1 0.446 → 0.624 and 94 → 44 incidents against q0.90's 0.456 and 90 — and under camouflage it costs `slow` **13.3pt of instance detection** (80.0% → 66.7%), drops its line rate from 0.824 to **0.266**, and removes 130 attack lines; it halves suite-wide alert volume (5,083 → 2,927 incidents) by deleting detections. That is the 2026-08-16 contamination lesson reproduced on a different knob, and the q0.99 arm was run *specifically* so the rejection would be a measurement instead of a claim of restraint. What was adopted, q0.90, leaves instance detection unchanged on all nine camouflage conditions and unchanged **seed by seed** — across 45 instance-firings it never removed the last surviving line of an instance — while cutting the kill-point corpus from 194 incidents to 147 and lifting its precision 0.206 → 0.248 with recall untouched at 0.570. **The cost is real, sub-instance, and exactly where it was predicted to be**: `slow` loses 8 attack lines (line rate 0.824 → 0.790) and `realistic-combo` 6 (0.776 → 0.741); every other condition loses none. The suppression rate carries the mechanism legibly — ~3% of flagged lines everywhere, rising to 4.3% and 5.0% on precisely the two timing-spread conditions — because spreading an attack in time is what makes its lines lone, and lone is what puts a line in the eligible pool. A +0.0pt row on the registered metric therefore does **not** mean nothing was paid, and the report prints the line rate beside it for that reason. Three design points are recorded in code because each is a silent failure otherwise. The model is fitted on a **separate benign-only corpus** at a disjoint seed (`logdet_eval/history.py`), never on the frame being scored (measured elsewhere at AUC 0.912 → 0.558) and never on ground-truth-selected benign rows, which is legitimate for a diagnostic but unavailable to a rule that must run at inference time. The **miner state travels with the model**, since cluster ids mean nothing across two independent miners; every condition mines from a restored copy so none mutates the state the next one loads, and mining continues rather than freezing so a genuinely new template gets an id the model does not know — which scores as silence, and silence never suppresses. And **suppression is batch-only**: loneness is not knowable at emit time, so applying it in `StreamProcessor` would withdraw alerts the batch path keeps and break the streamed-equals-batch lock, which is the only thing making streamed numbers comparable to `results/`. Making it work there means deferring by at least the incident window and re-verifying that lock — a separate piece of work, not a parameter. Two smaller decisions: `suppression` was added to the kill-point checkpoint resume guard, because a run half-suppressed and half-not would produce one reported differential describing neither system; and `ml_anomaly` is left untouched by a withdrawal, with the withdrawal recorded in its own `suppressed` column, so evaluation can still tell that a row was flagged and then retracted. The default flip is pinned by a test, so reverting it is a deliberate edit with a failing test attached. 527 tests pass (1 skipped), including both pinned regression locks — which stay green because neither the batch nor the stream path passes a sequence model, and suppression cannot fire without one. **This one is a detection change and must be written up as one**, unlike the triage tiebreaker: fewer lines are flagged and fewer incidents are grouped |
+| 2026-09-03 | **Grouping moved onto an entity graph, and the move was made a verified no-op rather than an improvement.** The first thing the retained structure buys is evidence: an impossible-travel incident now carries the benign login it was compared against, kept structurally out of the flagged set | The tempting version of Stage 4 is to build the graph *and* change what it groups, and it would have been unfalsifiable: incident count is one of the four numbers §4 asks for, so a grouping change and a structural change landing together leaves no way to say which moved it. So the link rule is untouched and the partition is asserted to be the old partition — the pre-Stage-4 pairwise scan is kept in the test file as an oracle and compared on 24 randomised frames, a transitive chain, and the two pinned corpora. The equivalence is exact rather than empirical, and the argument is worth recording because it is also why the graph is faster: two events on one entity that are within the window have every intermediate gap within the window too, so chaining an entity's events consecutively connects exactly what the all-pairs scan connected, at O(events) per entity instead of O(events²). Host and process are recorded as nodes but are **not** grouping links, and that is not caution — LogHub OpenSSH is one host running one process, so a host edge merges all 655,147 lines into a single incident; an entity every event shares carries no information about which events belong together. What the structure makes askable is the point of keeping it. Union-find only ever held the *flagged* rows, so "this alert is alone" could not distinguish an IP seen once from a busy known host that also logged one odd line, and `neighbours`/`degree` now answer that over the whole frame — which is the guard doing the safety work in suppression (Decision Log 2026-09-03, first entry) and the honest lever for pushing it harder, in place of the threshold that has already been measured and rejected. The first *consumption* is deliberately the one that moves no number: the travel check compares a login with that user's previous login, the previous login is benign, so it was flagged nowhere, grouped nowhere and shown nowhere, and the incident asserted "impossible travel" while displaying one of the two logins the conclusion is about — the least defensible thing an analyst can be handed, and a Known Issue since v1. It is retrieved by a graph query and carried in `context_events`. **Evidence must not become a detection, and the separation is structural rather than promised**: `context_events` is not `events`, so it cannot reach `event_count`, severity, triage, or the bake-off's `ours_flagged`, which walks `events` — putting a benign line there would have converted a display fix into a false positive nobody would have looked for. The prompt is byte-identical when there is no evidence, so the 592-token narration-latency baseline (§2c) still compares. §4 was satisfied by verification, not by re-running the suite: 751 → 130 → 94 in batch and in the stream, all 94 incident entries identical on every pre-existing field, `is_anomaly` untouched. One defect surfaced only because the live check was run rather than trusted — the stream carried evidence on 1 of 3 travel incidents, because `_remember` prunes history relative to the newest line *after* scoring, so a micro-batch spanning more than the retention window drops the compared-against login in the same call that detects the hit; the snapshot now uses the frame the batch was actually scored against, and evidence found once survives a later update to the same incident. 574 tests pass (1 skipped) |
