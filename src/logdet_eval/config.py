@@ -27,12 +27,18 @@ SYNTHETIC_YEAR = 2026                 # must match --year passed to preprocessin
 # Two temporal spreads on purpose, straddling INCIDENT_WINDOW_MINUTES (30): the
 # narrow one stays inside the grouping window, the wide one steps past it. The
 # pair is what shows the window is the thing doing the work.
-CAMOUFLAGE_MIN_GAP_MINUTES = 8
-CAMOUFLAGE_MAX_GAP_MINUTES = 20
-CAMOUFLAGE_SLOW_MIN_GAP_MINUTES = 35
-CAMOUFLAGE_SLOW_MAX_GAP_MINUTES = 90
-CAMOUFLAGE_NOISE_RATIO = 1.5   # benign noise lines injected per attack line
-CAMOUFLAGE_VOLUME_KEEP = 0.5   # share of repeated mid-sequence attack lines kept
+# Defined in camouflage.py, not here, and re-exported for backwards
+# compatibility. That module is stdlib-only so the Kali adversary box can
+# vendor it as a single file (CLAUDE.md section 2d); a knob it needs cannot
+# live in a config module Kali would then also have to carry.
+from logdet_eval.camouflage import (  # noqa: E402,F401
+    CAMOUFLAGE_MIN_GAP_MINUTES,
+    CAMOUFLAGE_MAX_GAP_MINUTES,
+    CAMOUFLAGE_SLOW_MIN_GAP_MINUTES,
+    CAMOUFLAGE_SLOW_MAX_GAP_MINUTES,
+    CAMOUFLAGE_NOISE_RATIO,
+    CAMOUFLAGE_VOLUME_KEEP,
+)
                                # ("low and slow": make less noise, not different noise)
 
 # --- Rule-based baseline (Phase 7 evaluation only) ---

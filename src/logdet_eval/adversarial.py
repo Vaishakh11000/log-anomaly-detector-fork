@@ -8,26 +8,13 @@ This is an evaluation track, not production pipeline code: it *calls* the real
 detection stack rather than reimplementing any of it, so the numbers describe
 the system that actually ships.
 
-Camouflage strategies:
-  temporal  - spread events 8-20 min apart (still inside the 30-min grouping window)
-  slow      - spread events 35-90 min apart (past the grouping window)
-  rephrase  - swap in novel but semantically-equivalent wording
-  mimicry   - rewrite attack lines to match the *dominant benign* templates
-  noise     - interleave benign log lines to dilute the attack pattern
-  volume    - drop half the repeated mid-sequence lines ("low and slow")
-  ip_rotate - give every attack line a different source IP
-
-`rephrase` and `mimicry` are deliberately both present and are opposites.
-Novel wording makes an attack *more* anomalous, because rare templates are
-exactly what an outlier detector looks for; real evasion means adopting the
-phrasing that already dominates benign traffic. Reporting only one of the two
-would misrepresent how the detector behaves.
-
-Method: camouflage is applied to the *event list* produced by generate_logs,
-not to the finished log file, so each attack line keeps its scenario/instance
-label through timestamp shuffling and noise injection. Both the original and
-the camouflaged corpus then go through the identical preprocess -> embed ->
-detect chain, and detection is measured only over ground-truth attack lines.
+The seven camouflage strategies themselves live in `camouflage.py`, which is
+stdlib-only so the Kali adversary box can vendor that one file and apply the
+identical transforms to real tool output (CLAUDE.md section 2d). This module
+re-exports them, so every existing `from logdet_eval.adversarial import ...`
+keeps working, and adds the evaluation around them: both the original and the
+camouflaged corpus go through the identical preprocess -> embed -> detect
+chain, and detection is measured only over ground-truth attack lines.
 
 Usage:
     python src/adversarial.py
@@ -54,16 +41,28 @@ from logdet.config import (
 )
 from logdet_eval.config import (
     SYNTHETIC_HOST,
-    CAMOUFLAGE_MIN_GAP_MINUTES,
-    CAMOUFLAGE_MAX_GAP_MINUTES,
-    CAMOUFLAGE_SLOW_MIN_GAP_MINUTES,
-    CAMOUFLAGE_SLOW_MAX_GAP_MINUTES,
-    CAMOUFLAGE_NOISE_RATIO,
-    CAMOUFLAGE_VOLUME_KEEP,
     SYNTHETIC_SEED,
     SYNTHETIC_YEAR,
     SYNTHETIC_USERS,
 )
+# Re-exported so existing importers of this module are unaffected by the split.
+from logdet_eval.camouflage import (  # noqa: F401
+    CamouflagePlan,
+    IP_RE,
+    MIMICRY_MAP,
+    NOISE_TEMPLATES,
+    REALISTIC_COMBO,
+    REPHRASE_MAP,
+    ROTATION_SUBNETS,
+    STRATEGIES,
+    make_noise_events,
+    mimic_message,
+    reduce_volume,
+    rephrase_message,
+    rotate_ip,
+    spread_timestamps,
+)
+from logdet_eval import camouflage as _camouflage
 from logdet_eval.generate_logs import build_dataset, write_outputs, next_pid
 from logdet_eval.history import HISTORY_SEED_OFFSET, synthetic_history
 from logdet.preprocessing import preprocess_file
@@ -76,175 +75,33 @@ from logdet.templating import TemplateMiner
 
 from datetime import timedelta
 
-# Alternate phrasings for the messages the scenarios actually emit. Kept
-# semantically equivalent on purpose: the question is whether the detector
-# generalises across wording, which a keyword rule cannot.
-REPHRASE_MAP = {
-    "Failed password for": ["Authentication failure for", "Invalid credentials for",
-                            "Login attempt rejected for"],
-    "Accepted password for": ["Authentication succeeded for", "Login accepted for",
-                              "Session established for"],
-    "COMMAND=/bin/su root": ["COMMAND=/bin/bash -l", "COMMAND=/usr/bin/sudo -i"],
-    "added new user": ["registered account", "provisioned account"],
-}
-
-# Benign-looking filler, as (process, message) so it formats like a real line.
-NOISE_TEMPLATES = [
-    ("CRON", "(root) CMD (run-parts /etc/cron.hourly)"),
-    ("CRON", "(root) CMD (/usr/lib/php/sessionclean)"),
-    ("systemd", "Started Session {n} of user {user}."),
-    ("systemd", "Reloading system manager configuration."),
-    ("systemd", "Starting Cleanup of Temporary Directories..."),
-]
-
-# Mimicry: rewrite the *distinctive* attack lines into the shape of the single
-# most common benign template in this corpus -- "pam_unix(sshd:session): session
-# opened for user <u> by (uid=<n>)". The brute-force and enumeration lines are
-# left alone because they are already textually identical to benign isolated
-# failed passwords; their only tell is structural (volume, one source IP), which
-# is what `volume` and `ip_rotate` attack instead.
-MIMICRY_MAP = {
-    "COMMAND=/bin/su root": "pam_unix(sudo:session): session opened for user root by (uid=0)",
-    "added new user": "pam_unix(sudo:session): session opened for user",
-}
-
-IP_RE = re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b")
-
-# Subnets an attacker could plausibly rotate through (RFC 5737 documentation
-# ranges, same convention as generate_logs.py -- never routable).
-ROTATION_SUBNETS = ["203.0.113.", "198.51.100.", "192.0.2."]
-
-STRATEGIES = ["temporal", "slow", "rephrase", "mimicry", "noise", "volume", "ip_rotate"]
-
-# The strongest *realistic* attacker: everything that does not require inventing
-# novel log wording (which we show backfires).
-REALISTIC_COMBO = ["slow", "mimicry", "noise", "volume", "ip_rotate"]
-
-
-# --- Camouflage strategies -------------------------------------------------
-
-def rephrase_message(message: str, rng: random.Random) -> str:
-    """Swap one known phrasing for an equivalent alternative.
-
-    Deliberately preserves the "for <user> from <ip>" shape so preprocessing
-    still extracts user and IP -- otherwise we would be measuring broken
-    parsing rather than evaded detection.
-    """
-    for original, alternatives in REPHRASE_MAP.items():
-        if original.lower() in message.lower():
-            return message.replace(original, rng.choice(alternatives))
-    return message
-
-
-def mimic_message(message: str, actor: str) -> str:
-    """Rewrite a distinctive attack line as the dominant benign template.
-
-    This is the textbook mimicry attack: rather than inventing new wording
-    (which makes a line rarer, and so easier to spot), adopt the wording the
-    detector has already learned to consider normal.
-    """
-    if "COMMAND=/bin/su root" in message:
-        return MIMICRY_MAP["COMMAND=/bin/su root"]
-    if "added new user" in message:
-        # keep the created account name, drop everything that reads as escalation
-        created = message.split("'")[1] if "'" in message else actor
-        return f"pam_unix(sudo:session): session opened for user {created} by (uid=0)"
-    return message
-
-
-def rotate_ip(message: str, rng: random.Random) -> str:
-    """Give this line its own source IP, breaking the source-IP grouping axis."""
-    subnet = rng.choice(ROTATION_SUBNETS)
-    return IP_RE.sub(f"{subnet}{rng.randint(2, 250)}", message, count=1)
-
-
-def reduce_volume(events: list[dict], rng: random.Random,
-                  keep: float = CAMOUFLAGE_VOLUME_KEEP) -> list[dict]:
-    """Drop a share of the repeated middle events, keeping first and last.
-
-    The pivotal lines (first probe, final escalation) are what make the sequence
-    an attack, so an evader thins the repetition rather than the payload.
-    """
-    events = sorted(events, key=lambda e: e["ts"])
-    if len(events) <= 2:
-        return events
-    middle = [e for e in events[1:-1] if rng.random() < keep]
-    return [events[0]] + middle + [events[-1]]
-
-
-def spread_timestamps(events: list[dict], rng: random.Random,
-                      min_gap: int = CAMOUFLAGE_MIN_GAP_MINUTES,
-                      max_gap: int = CAMOUFLAGE_MAX_GAP_MINUTES) -> list[dict]:
-    """Re-space one attack instance so its events no longer burst together."""
-    events = sorted(events, key=lambda e: e["ts"])
-    current = events[0]["ts"]
-    for event in events[1:]:
-        current = current + timedelta(minutes=rng.randint(min_gap, max_gap))
-        event["ts"] = current
-    return events
-
-
-def make_noise_events(attack_events: list[dict], rng: random.Random,
-                      ratio: float = CAMOUFLAGE_NOISE_RATIO) -> list[dict]:
-    """Benign filler spread across the attack's (post-spreading) time range."""
-    start = min(e["ts"] for e in attack_events)
-    end = max(e["ts"] for e in attack_events)
-    span_seconds = max(int((end - start).total_seconds()), 60)
-
-    noise = []
-    for _ in range(int(len(attack_events) * ratio)):
-        process, template = rng.choice(NOISE_TEMPLATES)
-        message = template.format(n=rng.randint(1, 254), user=rng.choice(SYNTHETIC_USERS))
-        noise.append({
-            "ts": start + timedelta(seconds=rng.randint(0, span_seconds)),
-            "process": process,
-            "pid": next_pid() if process != "systemd" else 1,
-            "message": message,
-            "scenario": None, "instance": None, "user": None, "description": None,
-        })
-    return noise
-
+# --- Camouflage ------------------------------------------------------------
 
 def camouflage_events(events: list[dict], strategies: list[str], seed: int) -> list[dict]:
-    """Apply the chosen strategies to every attack instance in an event list.
+    """Camouflage the synthetic corpus, bound to that corpus's own generators.
 
-    Benign events are left untouched -- an attacker controls their own traffic,
-    not the rest of the host's logs.
+    `camouflage.camouflage_events` is population-agnostic; this binds it to the
+    synthetic track's user list and PID counter. `next_pid` is passed rather
+    than left to default because it draws from generate_logs' counter and the
+    global `random` state the rest of that corpus was built from -- swapping it
+    for an independent one renumbers every noise PID and changes the corpus
+    byte for byte, which `tests/test_camouflage.py` pins.
     """
-    rng = random.Random(seed)
-    events = copy.deepcopy(events)
+    return _camouflage.camouflage_events(events, strategies, seed,
+                                         users=SYNTHETIC_USERS, pid_fn=next_pid)
 
-    attacks: dict[tuple, list[dict]] = {}
-    benign = []
-    for event in events:
-        if event.get("scenario"):
-            attacks.setdefault((event["scenario"], event["instance"]), []).append(event)
-        else:
-            benign.append(event)
 
-    result = list(benign)
-    for instance_events in attacks.values():
-        if "volume" in strategies:
-            instance_events = reduce_volume(instance_events, rng)
-        for event in instance_events:
-            if "rephrase" in strategies:
-                event["message"] = rephrase_message(event["message"], rng)
-            if "mimicry" in strategies:
-                event["message"] = mimic_message(event["message"], event.get("user") or "root")
-            if "ip_rotate" in strategies:
-                event["message"] = rotate_ip(event["message"], rng)
-        if "slow" in strategies:
-            instance_events = spread_timestamps(
-                instance_events, rng,
-                CAMOUFLAGE_SLOW_MIN_GAP_MINUTES, CAMOUFLAGE_SLOW_MAX_GAP_MINUTES)
-        elif "temporal" in strategies:
-            instance_events = spread_timestamps(instance_events, rng)
-        if "noise" in strategies:
-            result += make_noise_events(instance_events, rng)
-        result += instance_events
+def camouflage_plan_events(events: list[dict], plan: CamouflagePlan,
+                           seed: int) -> list[dict]:
+    """The same binding, for a searched plan rather than a fixed recipe.
 
-    result.sort(key=lambda e: e["ts"])
-    return result
+    Stage 6's adaptive adversary varies the magnitudes as well as the strategy
+    set, and it must reach the corpus through *this* binding -- same user list,
+    same PID counter, same global random state -- or its corpora would not be
+    comparable with the fixed-recipe ones it is being scored against.
+    """
+    return _camouflage.apply_plan(events, plan, seed,
+                                  users=SYNTHETIC_USERS, pid_fn=next_pid)
 
 
 # --- Evaluation ------------------------------------------------------------
@@ -348,7 +205,8 @@ def run_condition(name: str, strategies: list[str], base_events: list[dict],
                   suppress: bool = False,
                   suppression_threshold: float | None = None,
                   suppression_loneness: str = SUPPRESSION_LONENESS,
-                  suppression_share: float = SUPPRESSION_FLAGGED_SHARE) -> dict:
+                  suppression_share: float = SUPPRESSION_FLAGGED_SHARE,
+                  plan: CamouflagePlan | None = None) -> dict:
     """Build one camouflaged corpus, detect on it, and measure.
 
     `host` and `year` are parameters so the identical camouflage code can run
@@ -356,7 +214,17 @@ def run_condition(name: str, strategies: list[str], base_events: list[dict],
     synthetic one. Sharing this function is the point: the two evaluation tracks
     must apply the *same* transforms or their results are not comparable.
     """
-    events = base_events if not strategies else camouflage_events(base_events, strategies, seed)
+    if plan is not None:
+        # A searched plan overrides the strategy list. Deliberately the same
+        # function that scores the fixed recipes: the adaptive adversary's
+        # result is only comparable to `realistic-combo` if both were measured
+        # by identical code on identically built corpora.
+        events = camouflage_plan_events(base_events, plan, seed)
+        strategies = list(plan.sorted_strategies)
+    elif not strategies:
+        events = base_events
+    else:
+        events = camouflage_events(base_events, strategies, seed)
 
     log_path = work_dir / f"{name}.log"
     gt_path = work_dir / f"{name}_ground_truth.csv"
@@ -371,6 +239,8 @@ def run_condition(name: str, strategies: list[str], base_events: list[dict],
     result = measure(scored, pd.read_csv(gt_path), str(log_path))
     result["condition"] = name
     result["strategies"] = strategies
+    if plan is not None:
+        result["plan"] = plan.as_dict()
     return result
 
 

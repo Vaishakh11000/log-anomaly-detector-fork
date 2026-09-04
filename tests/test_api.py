@@ -470,3 +470,86 @@ def test_a_triage_line_does_not_satisfy_a_later_full_request(client, service,
     body = client.post("/incidents/1/narrate").json()
     assert body["narrative"] == "text from full"
     assert body["triage_line"] == "text from triage"
+
+
+# --- collector ingest (Stage 6) ---------------------------------------------
+
+
+@pytest.fixture
+def sink(tmp_path):
+    from logdet.api import CollectorSink
+    return CollectorSink(str(tmp_path / "collector.log"))
+
+
+@pytest.fixture
+def collector_client(service, sink) -> TestClient:
+    return TestClient(create_app(service, sink=sink))
+
+
+def test_ingest_ndjson_appends_lines(collector_client, sink):
+    body = ('{"line": "Jul 18 10:00:00 LabSZ sshd[1]: Failed password for admin from 203.0.113.9 port 1 ssh2"}\n'
+            '{"line": "Jul 18 10:00:01 LabSZ sshd[2]: Invalid user oracle from 203.0.113.9 port 2"}\n')
+    r = collector_client.post("/collector/ingest", content=body,
+                              headers={"content-type": "application/x-ndjson"})
+    assert r.status_code == 200
+    data = r.json()
+    assert data["received"] == 2 and data["written"] == 2
+    written = sink.path.read_text().splitlines()
+    assert written[0].endswith("port 1 ssh2")
+    assert "Invalid user oracle" in written[1]
+
+
+def test_ingest_accepts_plain_text_for_manual_use(collector_client, sink):
+    r = collector_client.post("/collector/ingest",
+                              content="a raw line\nanother line\n")
+    assert r.status_code == 200 and r.json()["written"] == 2
+    assert sink.path.read_text() == "a raw line\nanother line\n"
+
+
+def test_ingest_skips_blank_lines(collector_client, sink):
+    r = collector_client.post("/collector/ingest", content="real\n\n   \nalso real\n")
+    assert r.json()["written"] == 2
+    assert sink.path.read_text() == "real\nalso real\n"
+
+
+def test_ingest_is_append_only_across_calls(collector_client, sink):
+    collector_client.post("/collector/ingest", content='{"line": "one"}\n')
+    collector_client.post("/collector/ingest", content='{"line": "two"}\n')
+    assert sink.path.read_text() == "one\ntwo\n"
+    assert collector_client.get("/collector/status").json()["lines_written"] == 2
+
+
+def test_ingest_works_with_no_stream_running(collector_client, sink):
+    """The collector buffers to disk independently of the scoring stream."""
+    r = collector_client.post("/collector/ingest", content='{"line": "buffered"}\n')
+    assert r.status_code == 200
+    assert sink.path.exists()
+
+
+def test_shipped_lines_are_scored_by_a_stream_tailing_the_sink(
+        collector_client, sink, loadable_detector):
+    """End-to-end on one box: ship -> ingest -> a file stream tailing the sink
+    scores the lines. This is the loop the cabled demo will run, minus the
+    cable -- the shipper's HTTP target and the detector's source meet at the
+    collector file."""
+    # a stream tailing the collector file, reading from the start, replay-once
+    start = collector_client.post("/stream/start", json={
+        "source": "file", "path": str(sink.path),
+        "from_start": True, "once": True, "use_offset_store": False})
+    assert start.status_code == 200
+    collector_client.post("/stream/stop")
+
+    # ship attack lines into the sink over the real ingest endpoint
+    body = "".join(f'{{"line": {l!r}}}\n'.replace("'", '"') for l in BRUTE_FORCE)
+    r = collector_client.post("/collector/ingest", content=body,
+                              headers={"content-type": "application/x-ndjson"})
+    assert r.json()["written"] == len(BRUTE_FORCE)
+
+    # a fresh replay-once stream over the now-populated file finds the attack
+    collector_client.post("/stream/start", json={
+        "source": "file", "path": str(sink.path),
+        "from_start": True, "once": True, "use_offset_store": False})
+    assert wait_until(lambda: not collector_client.get("/stream/status").json()["running"])
+    incidents = collector_client.get("/incidents").json()["incidents"]
+    assert any(i["event_count"] >= 2 for i in incidents), \
+        "the shipped brute-force lines were not grouped into an incident"

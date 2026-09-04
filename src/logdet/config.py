@@ -389,5 +389,14 @@ API_PORT = 8000
 # rather than stalling the scoring thread -- the alert backlog is always
 # retrievable from GET /incidents, so dropping is recoverable and blocking the
 # detector is not.
+# Where POST /collector/ingest appends the lines a remote collector ships
+# (CLAUDE.md 2c/2d). One fixed path, never a client-supplied one: the endpoint
+# is unauthenticated, so letting a caller choose where bytes land would be an
+# arbitrary-file-write hole. The analyzer tails this same file with a normal
+# file stream, so ingestion and scoring stay decoupled -- the collector can
+# buffer to it before any stream is running, and a stream restart resumes from
+# its own offset into it.
+COLLECTOR_LOG_PATH = str(PROJECT_ROOT / "data" / "live" / "collector.log")
+
 API_EVENT_QUEUE_SIZE = 1000
 API_SSE_POLL_SECONDS = 0.25

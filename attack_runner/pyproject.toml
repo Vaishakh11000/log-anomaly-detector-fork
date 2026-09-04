@@ -1,0 +1,39 @@
+# attack_runner -- the Kali adversary component (CLAUDE.md section 2d).
+#
+# Deliberately its own project, not part of the logdet packages, because the
+# SSD that holds this repo can only be booted in one machine at a time
+# (CLAUDE.md section 2c). During a bake-off the SSD is in the analyzer laptop,
+# so this code has to run on the Kali box *without the repo checked out* -- it
+# is copied there standalone. That constraint drives two decisions:
+#
+#   * stdlib only. A bare Kali install has python3 but not necessarily any pip
+#     package, and adding a pip step is one more thing to fail in a demo room.
+#     HTTP shipping uses urllib, not requests.
+#   * camouflage.py is vendored (copied) rather than imported from logdet_eval,
+#     because logdet_eval is not present here. The copy is kept identical to
+#     the original by tests/test_camouflage_vendor.py, which fails on any drift
+#     -- so there is still one source of truth (CLAUDE.md section 2d).
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "attack-runner"
+version = "0.1.0"
+description = "Authentic attack generation + ground truth capture for the log-anomaly detector adversarial track"
+requires-python = ">=3.11"
+dependencies = []          # stdlib only, on purpose -- see the comment above
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+
+[project.scripts]
+attack-run = "attack_runner.cli:main"
+attack-linkcheck = "attack_runner.linkcheck:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["attack_runner*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

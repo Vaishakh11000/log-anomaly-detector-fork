@@ -1,0 +1,11 @@
+# attack_runner ships with zero third-party runtime dependencies -- see the
+# rationale in pyproject.toml. Everything it needs is in the Python 3.11+
+# standard library, so on a fresh Kali box:
+#
+#     python3 -m attack_runner.cli --help
+#
+# works with no `pip install` at all. This file exists only to say so
+# explicitly; `pip install -r requirements.txt` is a no-op.
+#
+# For development/testing:
+#     pytest>=7

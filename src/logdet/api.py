@@ -46,6 +46,9 @@ Usage:
          -H 'content-type: application/json' \\
          -d '{"source": "file", "path": "/var/log/auth.log"}'
     curl -N localhost:8000/events                # live feed
+    curl -X POST localhost:8000/collector/ingest \\
+         -H 'content-type: application/x-ndjson' \\
+         --data-binary @lines.ndjson            # remote collector -> tailed file
 """
 
 import argparse
@@ -56,6 +59,7 @@ import queue
 import threading
 import time
 from typing import Literal
+from pathlib import Path
 
 import pandas as pd
 from fastapi import Body, FastAPI, HTTPException, Query, Request
@@ -68,6 +72,7 @@ from logdet.config import (
     API_HOST,
     API_PORT,
     API_SSE_POLL_SECONDS,
+    COLLECTOR_LOG_PATH,
     DEFAULT_CURSOR_STORE,
     DEFAULT_DETECTOR_PATH,
     DEFAULT_OFFSET_STORE,
@@ -269,6 +274,77 @@ class StreamService:
 # --- request models ---------------------------------------------------------
 
 
+class CollectorSink:
+    """Append lines a remote collector ships to one on-disk file.
+
+    Deliberately independent of the stream (CLAUDE.md 2c/2d). Ingestion just
+    grows a file; a normal file-tail stream reads it. That decoupling is the
+    whole point: the collector on the Kali box can keep shipping into it while
+    the analyzer's stream is restarting, and the stream resumes from its own
+    byte offset with nothing lost -- the same durability the shipper has on its
+    own side, mirrored here.
+
+    The path is fixed at construction, never taken from the request. The
+    endpoint has no authentication, so a client-chosen path would be an
+    arbitrary-file-write primitive; one fixed sink is the safe shape.
+
+    A lock guards the append because HTTP handlers run concurrently and two
+    interleaved writes could split a line -- and half a log line parses as
+    garbage and drops an event.
+    """
+
+    def __init__(self, path: str = COLLECTOR_LOG_PATH):
+        self.path = Path(path)
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self._lock = threading.Lock()
+        self.lines_written = 0
+
+    def append(self, lines: list[str]) -> int:
+        """Append raw log lines, each terminated with a newline. Returns the
+        count written. A blank line is dropped rather than written, because a
+        blank line tails as an empty record."""
+        clean = [ln.rstrip("\n") for ln in lines if ln.strip()]
+        if not clean:
+            return 0
+        with self._lock:
+            with self.path.open("a") as f:
+                f.write("\n".join(clean) + "\n")
+            self.lines_written += len(clean)
+        return len(clean)
+
+    def status(self) -> dict:
+        size = self.path.stat().st_size if self.path.exists() else 0
+        return {"path": str(self.path), "lines_written": self.lines_written,
+                "bytes": size}
+
+
+def parse_ndjson_lines(body: bytes) -> list[str]:
+    """Pull raw log lines out of a shipped NDJSON body.
+
+    attack_runner/ship.py sends one JSON object per line, ``{"line": "..."}``.
+    This is lenient on purpose: a body line that is a JSON object yields its
+    ``line`` field, a body line that is not JSON is taken as a raw log line as
+    it stands. That way a curl of plain text works for a quick manual test and
+    the shipper's structured form works in production, with no separate route.
+    """
+    out: list[str] = []
+    for raw in body.decode("utf-8", "replace").splitlines():
+        if not raw.strip():
+            continue
+        try:
+            obj = json.loads(raw)
+        except json.JSONDecodeError:
+            out.append(raw)
+            continue
+        if isinstance(obj, dict) and "line" in obj:
+            out.append(str(obj["line"]))
+        elif isinstance(obj, str):
+            out.append(obj)
+        else:
+            out.append(raw)
+    return out
+
+
 class StreamStartRequest(BaseModel):
     """What to stream. Mirrors `logdet-stream`'s flags, one for one."""
 
@@ -357,14 +433,17 @@ async def event_stream(service: StreamService, disconnected,
 # --- app --------------------------------------------------------------------
 
 
-def create_app(service: StreamService | None = None) -> FastAPI:
+def create_app(service: StreamService | None = None,
+               sink: "CollectorSink | None" = None) -> FastAPI:
     """Build the app around a service instance.
 
     Taking the service as an argument is what makes the endpoints testable: a
     test hands in a service driven by a canned source and never starts a
-    thread over a real file.
+    thread over a real file. `sink` is the collector's on-disk buffer, taken
+    the same way so a test can point it at a tmp path.
     """
     service = service or StreamService()
+    sink = sink or CollectorSink()
     app = FastAPI(
         title="LLM Log Anomaly Detector",
         description="Live incidents from an embedding detector scoring a tailed "
@@ -372,6 +451,7 @@ def create_app(service: StreamService | None = None) -> FastAPI:
         version="0.1.0",
     )
     app.state.service = service
+    app.state.sink = sink
 
     @app.get("/health")
     def health() -> dict:
@@ -418,6 +498,31 @@ def create_app(service: StreamService | None = None) -> FastAPI:
             raise HTTPException(status_code=504,
                                 detail="stream did not stop within the timeout")
         return service.status()
+
+    @app.post("/collector/ingest")
+    async def collector_ingest(request: Request) -> dict:
+        """Receive log lines from a remote collector and append them to disk.
+
+        This is the analyzer side of attack_runner/ship.py (CLAUDE.md 2c/2d):
+        the Kali box POSTs newline-delimited JSON here, and each line lands in
+        the collector file the analyzer's stream tails. Ingestion does not
+        score anything and does not require a stream to be running -- it just
+        grows the file, so a collector can buffer into it before the stream
+        starts and across a stream restart.
+
+        The body is NDJSON of ``{"line": "..."}`` objects (what the shipper
+        sends); plain text lines are also accepted for manual testing. The
+        response echoes how many lines were written and the file's size, which
+        is the ack the shipper needs to advance its committed offset.
+        """
+        body = await request.body()
+        lines = parse_ndjson_lines(body)
+        written = sink.append(lines)
+        return {"received": len(lines), "written": written, **sink.status()}
+
+    @app.get("/collector/status")
+    def collector_status() -> dict:
+        return sink.status()
 
     @app.get("/incidents")
     def list_incidents(

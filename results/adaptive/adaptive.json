@@ -1,0 +1,3214 @@
+{
+  "queries": 135,
+  "seconds": 1016.0,
+  "search_seeds": [
+    42,
+    43
+  ],
+  "holdout_seeds": [
+    44,
+    45,
+    46,
+    47,
+    48
+  ],
+  "validity_rule": {
+    "min_lines": 3,
+    "min_share": 0.4
+  },
+  "rejected_plans": 22,
+  "best_plan": {
+    "strategies": [
+      "slow",
+      "mimicry"
+    ],
+    "gap_min_minutes": 8,
+    "gap_max_minutes": 20,
+    "slow_gap_min_minutes": 61,
+    "slow_gap_max_minutes": 90,
+    "noise_ratio": 1.5,
+    "volume_keep": 0.5
+  },
+  "best_on_search_seeds": {
+    "plan": {
+      "strategies": [
+        "slow",
+        "mimicry"
+      ],
+      "gap_min_minutes": 8,
+      "gap_max_minutes": 20,
+      "slow_gap_min_minutes": 61,
+      "slow_gap_max_minutes": 90,
+      "noise_ratio": 1.5,
+      "volume_keep": 0.5
+    },
+    "label": "slow+mimicry [slow_gap_min_minutes=61]",
+    "seeds": [
+      42,
+      43
+    ],
+    "instance_rate": 0.667,
+    "line_rate": 0.641,
+    "incidents": 246,
+    "attack_lines": 92,
+    "queries_after": 117
+  },
+  "budget_curve": [
+    [
+      1,
+      1.0,
+      0.867
+    ],
+    [
+      3,
+      0.778,
+      0.822
+    ],
+    [
+      16,
+      0.778,
+      0.711
+    ],
+    [
+      79,
+      0.778,
+      0.647
+    ],
+    [
+      117,
+      0.667,
+      0.641
+    ]
+  ],
+  "exhaustive": [
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "mimicry",
+          "noise",
+          "volume"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+mimicry+noise+volume",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 0.778,
+      "line_rate": 0.647,
+      "incidents": 148,
+      "attack_lines": 34,
+      "queries_after": 79
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "slow",
+          "mimicry",
+          "noise",
+          "volume"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+slow+mimicry+noise+volume",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 0.778,
+      "line_rate": 0.647,
+      "incidents": 148,
+      "attack_lines": 34,
+      "queries_after": 89
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "mimicry"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+mimicry",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 0.778,
+      "line_rate": 0.711,
+      "incidents": 114,
+      "attack_lines": 45,
+      "queries_after": 16
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "slow",
+          "mimicry"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+slow+mimicry",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 0.778,
+      "line_rate": 0.711,
+      "incidents": 114,
+      "attack_lines": 45,
+      "queries_after": 30
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "mimicry",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+mimicry+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 0.778,
+      "line_rate": 0.733,
+      "incidents": 115,
+      "attack_lines": 45,
+      "queries_after": 48
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "slow",
+          "mimicry",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+slow+mimicry+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 0.778,
+      "line_rate": 0.733,
+      "incidents": 115,
+      "attack_lines": 45,
+      "queries_after": 64
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "mimicry",
+          "noise",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+mimicry+noise+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 0.778,
+      "line_rate": 0.733,
+      "incidents": 160,
+      "attack_lines": 45,
+      "queries_after": 80
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "slow",
+          "mimicry",
+          "noise",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+slow+mimicry+noise+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 0.778,
+      "line_rate": 0.733,
+      "incidents": 160,
+      "attack_lines": 45,
+      "queries_after": 90
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "noise",
+          "volume"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+noise+volume",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 0.778,
+      "line_rate": 0.735,
+      "incidents": 139,
+      "attack_lines": 34,
+      "queries_after": 49
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "slow",
+          "noise",
+          "volume"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+slow+noise+volume",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 0.778,
+      "line_rate": 0.735,
+      "incidents": 139,
+      "attack_lines": 34,
+      "queries_after": 65
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "noise",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+noise+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 0.778,
+      "line_rate": 0.778,
+      "incidents": 151,
+      "attack_lines": 45,
+      "queries_after": 50
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "slow",
+          "noise",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+slow+noise+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 0.778,
+      "line_rate": 0.778,
+      "incidents": 151,
+      "attack_lines": 45,
+      "queries_after": 66
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "volume",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+volume+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 0.778,
+      "line_rate": 0.781,
+      "incidents": 104,
+      "attack_lines": 32,
+      "queries_after": 42
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "volume",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+volume+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 0.778,
+      "line_rate": 0.781,
+      "incidents": 110,
+      "attack_lines": 32,
+      "queries_after": 51
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "slow",
+          "volume",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+slow+volume+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 0.778,
+      "line_rate": 0.781,
+      "incidents": 110,
+      "attack_lines": 32,
+      "queries_after": 67
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "mimicry",
+          "volume",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+mimicry+volume+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 0.778,
+      "line_rate": 0.781,
+      "incidents": 109,
+      "attack_lines": 32,
+      "queries_after": 74
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "mimicry",
+          "volume",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+mimicry+volume+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 0.778,
+      "line_rate": 0.781,
+      "incidents": 112,
+      "attack_lines": 32,
+      "queries_after": 81
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "slow",
+          "mimicry",
+          "volume",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+slow+mimicry+volume+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 0.778,
+      "line_rate": 0.781,
+      "incidents": 112,
+      "attack_lines": 32,
+      "queries_after": 91
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 0.778,
+      "line_rate": 0.822,
+      "incidents": 117,
+      "attack_lines": 45,
+      "queries_after": 3
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "slow"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+slow",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 0.778,
+      "line_rate": 0.822,
+      "incidents": 117,
+      "attack_lines": 45,
+      "queries_after": 9
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 0.778,
+      "line_rate": 0.844,
+      "incidents": 118,
+      "attack_lines": 45,
+      "queries_after": 19
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "slow",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+slow+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 0.778,
+      "line_rate": 0.844,
+      "incidents": 118,
+      "attack_lines": 45,
+      "queries_after": 33
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "mimicry",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+mimicry+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 0.889,
+      "line_rate": 0.778,
+      "incidents": 112,
+      "attack_lines": 45,
+      "queries_after": 39
+    },
+    {
+      "plan": {
+        "strategies": [
+          "mimicry",
+          "noise",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "mimicry+noise+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 0.889,
+      "line_rate": 0.778,
+      "incidents": 122,
+      "attack_lines": 45,
+      "queries_after": 58
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 0.889,
+      "line_rate": 0.889,
+      "incidents": 111,
+      "attack_lines": 45,
+      "queries_after": 14
+    },
+    {
+      "plan": {
+        "strategies": [
+          "noise",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "noise+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 0.889,
+      "line_rate": 0.889,
+      "incidents": 121,
+      "attack_lines": 45,
+      "queries_after": 28
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "mimicry",
+          "volume"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+mimicry+volume",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.694,
+      "incidents": 100,
+      "attack_lines": 36,
+      "queries_after": 38
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "mimicry",
+          "volume"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+mimicry+volume",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.703,
+      "incidents": 110,
+      "attack_lines": 37,
+      "queries_after": 47
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "slow",
+          "mimicry",
+          "volume"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+slow+mimicry+volume",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.703,
+      "incidents": 110,
+      "attack_lines": 37,
+      "queries_after": 63
+    },
+    {
+      "plan": {
+        "strategies": [
+          "mimicry"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "mimicry",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.756,
+      "incidents": 97,
+      "attack_lines": 45,
+      "queries_after": 5
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "mimicry"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+mimicry",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.756,
+      "incidents": 98,
+      "attack_lines": 45,
+      "queries_after": 11
+    },
+    {
+      "plan": {
+        "strategies": [
+          "mimicry",
+          "noise"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "mimicry+noise",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.756,
+      "incidents": 103,
+      "attack_lines": 45,
+      "queries_after": 24
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "mimicry",
+          "noise"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+mimicry+noise",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.756,
+      "incidents": 138,
+      "attack_lines": 45,
+      "queries_after": 37
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "mimicry",
+          "noise"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+mimicry+noise",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.756,
+      "incidents": 150,
+      "attack_lines": 45,
+      "queries_after": 46
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "slow",
+          "mimicry",
+          "noise"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+slow+mimicry+noise",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.756,
+      "incidents": 150,
+      "attack_lines": 45,
+      "queries_after": 62
+    },
+    {
+      "plan": {
+        "strategies": [
+          "mimicry",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "mimicry+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.778,
+      "incidents": 113,
+      "attack_lines": 45,
+      "queries_after": 26
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "mimicry",
+          "noise",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+mimicry+noise+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.778,
+      "incidents": 153,
+      "attack_lines": 45,
+      "queries_after": 73
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "noise"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+noise",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.8,
+      "incidents": 142,
+      "attack_lines": 45,
+      "queries_after": 17
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "slow",
+          "noise"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+slow+noise",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.8,
+      "incidents": 142,
+      "attack_lines": 45,
+      "queries_after": 31
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "volume"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+volume",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.833,
+      "incidents": 96,
+      "attack_lines": 36,
+      "queries_after": 13
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "volume"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+volume",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.838,
+      "incidents": 112,
+      "attack_lines": 37,
+      "queries_after": 18
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "slow",
+          "volume"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+slow+volume",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.838,
+      "incidents": 112,
+      "attack_lines": 37,
+      "queries_after": 32
+    },
+    {
+      "plan": {
+        "strategies": [
+          "volume"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "volume",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.848,
+      "incidents": 94,
+      "attack_lines": 33,
+      "queries_after": 7
+    },
+    {
+      "plan": {
+        "strategies": [
+          "mimicry",
+          "volume"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "mimicry+volume",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.848,
+      "incidents": 98,
+      "attack_lines": 33,
+      "queries_after": 25
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "noise",
+          "volume"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+noise+volume",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.848,
+      "incidents": 132,
+      "attack_lines": 33,
+      "queries_after": 40
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "mimicry",
+          "noise",
+          "volume"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+mimicry+noise+volume",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.848,
+      "incidents": 134,
+      "attack_lines": 33,
+      "queries_after": 72
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "noise",
+          "volume",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+noise+volume+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.848,
+      "incidents": 141,
+      "attack_lines": 33,
+      "queries_after": 82
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "slow",
+          "noise",
+          "volume",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+slow+noise+volume+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.848,
+      "incidents": 141,
+      "attack_lines": 33,
+      "queries_after": 92
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "mimicry",
+          "noise",
+          "volume",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+mimicry+noise+volume+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.848,
+      "incidents": 144,
+      "attack_lines": 33,
+      "queries_after": 99
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "slow",
+          "mimicry",
+          "noise",
+          "volume",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+slow+mimicry+noise+volume+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.848,
+      "incidents": 144,
+      "attack_lines": 33,
+      "queries_after": 103
+    },
+    {
+      "plan": {
+        "strategies": [
+          "noise",
+          "volume"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "noise+volume",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.853,
+      "incidents": 129,
+      "attack_lines": 34,
+      "queries_after": 27
+    },
+    {
+      "plan": {
+        "strategies": [
+          "mimicry",
+          "noise",
+          "volume"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "mimicry+noise+volume",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.853,
+      "incidents": 133,
+      "attack_lines": 34,
+      "queries_after": 57
+    },
+    {
+      "plan": {
+        "strategies": [],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "baseline",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.867,
+      "incidents": 94,
+      "attack_lines": 45,
+      "queries_after": 1
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.867,
+      "incidents": 94,
+      "attack_lines": 45,
+      "queries_after": 2
+    },
+    {
+      "plan": {
+        "strategies": [
+          "noise"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "noise",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.867,
+      "incidents": 100,
+      "attack_lines": 45,
+      "queries_after": 6
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "noise"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+noise",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.867,
+      "incidents": 135,
+      "attack_lines": 45,
+      "queries_after": 12
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "noise",
+          "volume",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+noise+volume+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.871,
+      "incidents": 106,
+      "attack_lines": 31,
+      "queries_after": 75
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "mimicry",
+          "noise",
+          "volume",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+mimicry+noise+volume+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.871,
+      "incidents": 110,
+      "attack_lines": 31,
+      "queries_after": 96
+    },
+    {
+      "plan": {
+        "strategies": [
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.889,
+      "incidents": 112,
+      "attack_lines": 45,
+      "queries_after": 8
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "noise",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+noise+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.889,
+      "incidents": 152,
+      "attack_lines": 45,
+      "queries_after": 41
+    },
+    {
+      "plan": {
+        "strategies": [
+          "rephrase"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "rephrase",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.978,
+      "incidents": 94,
+      "attack_lines": 45,
+      "queries_after": 4
+    },
+    {
+      "plan": {
+        "strategies": [
+          "rephrase",
+          "mimicry"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "rephrase+mimicry",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.978,
+      "incidents": 94,
+      "attack_lines": 45,
+      "queries_after": 20
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "rephrase",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+rephrase+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.978,
+      "incidents": 111,
+      "attack_lines": 45,
+      "queries_after": 36
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "rephrase",
+          "mimicry",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+rephrase+mimicry+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.978,
+      "incidents": 111,
+      "attack_lines": 45,
+      "queries_after": 69
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "rephrase"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+rephrase",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 94,
+      "attack_lines": 45,
+      "queries_after": 10
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "rephrase"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+rephrase",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 123,
+      "attack_lines": 45,
+      "queries_after": 15
+    },
+    {
+      "plan": {
+        "strategies": [
+          "rephrase",
+          "noise"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "rephrase+noise",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 108,
+      "attack_lines": 45,
+      "queries_after": 21
+    },
+    {
+      "plan": {
+        "strategies": [
+          "rephrase",
+          "volume"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "rephrase+volume",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 94,
+      "attack_lines": 35,
+      "queries_after": 22
+    },
+    {
+      "plan": {
+        "strategies": [
+          "rephrase",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "rephrase+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 112,
+      "attack_lines": 45,
+      "queries_after": 23
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "slow",
+          "rephrase"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+slow+rephrase",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 123,
+      "attack_lines": 45,
+      "queries_after": 29
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "rephrase",
+          "mimicry"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+rephrase+mimicry",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 94,
+      "attack_lines": 45,
+      "queries_after": 34
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "rephrase",
+          "noise"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+rephrase+noise",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 72,
+      "attack_lines": 45,
+      "queries_after": 35
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "rephrase",
+          "mimicry"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+rephrase+mimicry",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 123,
+      "attack_lines": 45,
+      "queries_after": 43
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "rephrase",
+          "noise"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+rephrase+noise",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 116,
+      "attack_lines": 45,
+      "queries_after": 44
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "rephrase",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+rephrase+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 123,
+      "attack_lines": 45,
+      "queries_after": 45
+    },
+    {
+      "plan": {
+        "strategies": [
+          "rephrase",
+          "mimicry",
+          "noise"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "rephrase+mimicry+noise",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 108,
+      "attack_lines": 45,
+      "queries_after": 52
+    },
+    {
+      "plan": {
+        "strategies": [
+          "rephrase",
+          "mimicry",
+          "volume"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "rephrase+mimicry+volume",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 94,
+      "attack_lines": 35,
+      "queries_after": 53
+    },
+    {
+      "plan": {
+        "strategies": [
+          "rephrase",
+          "mimicry",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "rephrase+mimicry+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 112,
+      "attack_lines": 45,
+      "queries_after": 54
+    },
+    {
+      "plan": {
+        "strategies": [
+          "rephrase",
+          "noise",
+          "volume"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "rephrase+noise+volume",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 112,
+      "attack_lines": 31,
+      "queries_after": 55
+    },
+    {
+      "plan": {
+        "strategies": [
+          "rephrase",
+          "noise",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "rephrase+noise+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 135,
+      "attack_lines": 45,
+      "queries_after": 56
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "slow",
+          "rephrase",
+          "mimicry"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+slow+rephrase+mimicry",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 123,
+      "attack_lines": 45,
+      "queries_after": 59
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "slow",
+          "rephrase",
+          "noise"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+slow+rephrase+noise",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 116,
+      "attack_lines": 45,
+      "queries_after": 60
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "slow",
+          "rephrase",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+slow+rephrase+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 123,
+      "attack_lines": 45,
+      "queries_after": 61
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "rephrase",
+          "mimicry",
+          "noise"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+rephrase+mimicry+noise",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 72,
+      "attack_lines": 45,
+      "queries_after": 68
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "rephrase",
+          "noise",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+rephrase+noise+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 107,
+      "attack_lines": 45,
+      "queries_after": 70
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "rephrase",
+          "volume",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+rephrase+volume+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 106,
+      "attack_lines": 34,
+      "queries_after": 71
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "rephrase",
+          "mimicry",
+          "noise"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+rephrase+mimicry+noise",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 116,
+      "attack_lines": 45,
+      "queries_after": 76
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "rephrase",
+          "mimicry",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+rephrase+mimicry+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 123,
+      "attack_lines": 45,
+      "queries_after": 77
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "rephrase",
+          "noise",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+rephrase+noise+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 110,
+      "attack_lines": 45,
+      "queries_after": 78
+    },
+    {
+      "plan": {
+        "strategies": [
+          "rephrase",
+          "mimicry",
+          "noise",
+          "volume"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "rephrase+mimicry+noise+volume",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 112,
+      "attack_lines": 31,
+      "queries_after": 83
+    },
+    {
+      "plan": {
+        "strategies": [
+          "rephrase",
+          "mimicry",
+          "noise",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "rephrase+mimicry+noise+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 135,
+      "attack_lines": 45,
+      "queries_after": 84
+    },
+    {
+      "plan": {
+        "strategies": [
+          "rephrase",
+          "noise",
+          "volume",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "rephrase+noise+volume+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 96,
+      "attack_lines": 33,
+      "queries_after": 85
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "slow",
+          "rephrase",
+          "mimicry",
+          "noise"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+slow+rephrase+mimicry+noise",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 116,
+      "attack_lines": 45,
+      "queries_after": 86
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "slow",
+          "rephrase",
+          "mimicry",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+slow+rephrase+mimicry+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 123,
+      "attack_lines": 45,
+      "queries_after": 87
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "slow",
+          "rephrase",
+          "noise",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+slow+rephrase+noise+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 110,
+      "attack_lines": 45,
+      "queries_after": 88
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "rephrase",
+          "mimicry",
+          "noise",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+rephrase+mimicry+noise+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 107,
+      "attack_lines": 45,
+      "queries_after": 93
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "rephrase",
+          "mimicry",
+          "volume",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+rephrase+mimicry+volume+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 106,
+      "attack_lines": 34,
+      "queries_after": 94
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "rephrase",
+          "noise",
+          "volume",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+rephrase+noise+volume+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 125,
+      "attack_lines": 35,
+      "queries_after": 95
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "rephrase",
+          "mimicry",
+          "noise",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+rephrase+mimicry+noise+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 110,
+      "attack_lines": 45,
+      "queries_after": 97
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "rephrase",
+          "noise",
+          "volume",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+rephrase+noise+volume+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 110,
+      "attack_lines": 33,
+      "queries_after": 98
+    },
+    {
+      "plan": {
+        "strategies": [
+          "rephrase",
+          "mimicry",
+          "noise",
+          "volume",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "rephrase+mimicry+noise+volume+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 96,
+      "attack_lines": 33,
+      "queries_after": 100
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "slow",
+          "rephrase",
+          "mimicry",
+          "noise",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+slow+rephrase+mimicry+noise+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 110,
+      "attack_lines": 45,
+      "queries_after": 101
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "slow",
+          "rephrase",
+          "noise",
+          "volume",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+slow+rephrase+noise+volume+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 110,
+      "attack_lines": 33,
+      "queries_after": 102
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "rephrase",
+          "mimicry",
+          "noise",
+          "volume",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+rephrase+mimicry+noise+volume+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 125,
+      "attack_lines": 35,
+      "queries_after": 104
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "rephrase",
+          "mimicry",
+          "noise",
+          "volume",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+rephrase+mimicry+noise+volume+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 110,
+      "attack_lines": 33,
+      "queries_after": 105
+    },
+    {
+      "plan": {
+        "strategies": [
+          "temporal",
+          "slow",
+          "rephrase",
+          "mimicry",
+          "noise",
+          "volume",
+          "ip_rotate"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "temporal+slow+rephrase+mimicry+noise+volume+ip_rotate",
+      "seeds": [
+        42
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 1.0,
+      "incidents": 110,
+      "attack_lines": 33,
+      "queries_after": 106
+    }
+  ],
+  "climb": [
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "mimicry"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 31,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+mimicry [slow_gap_min_minutes=31]",
+      "seeds": [
+        42,
+        43
+      ],
+      "instance_rate": 0.778,
+      "line_rate": 0.685,
+      "incidents": 243,
+      "attack_lines": 92,
+      "queries_after": 113
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "mimicry"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 45,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+mimicry [slow_gap_min_minutes=45]",
+      "seeds": [
+        42,
+        43
+      ],
+      "instance_rate": 0.833,
+      "line_rate": 0.696,
+      "incidents": 245,
+      "attack_lines": 92,
+      "queries_after": 115
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "mimicry"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 61,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+mimicry [slow_gap_min_minutes=61]",
+      "seeds": [
+        42,
+        43
+      ],
+      "instance_rate": 0.667,
+      "line_rate": 0.641,
+      "incidents": 246,
+      "attack_lines": 92,
+      "queries_after": 117
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "mimicry"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 90,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+mimicry [slow_gap_min_minutes=90]",
+      "seeds": [
+        42,
+        43
+      ],
+      "instance_rate": 0.722,
+      "line_rate": 0.663,
+      "incidents": 246,
+      "attack_lines": 92,
+      "queries_after": 119
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "mimicry"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 45,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+mimicry [slow_gap_max_minutes=45]",
+      "seeds": [
+        42,
+        43
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.717,
+      "incidents": 249,
+      "attack_lines": 92,
+      "queries_after": 121
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "mimicry"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 60,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+mimicry [slow_gap_max_minutes=60]",
+      "seeds": [
+        42,
+        43
+      ],
+      "instance_rate": 1.0,
+      "line_rate": 0.728,
+      "incidents": 247,
+      "attack_lines": 92,
+      "queries_after": 123
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "mimicry"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 120,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+mimicry [slow_gap_max_minutes=120]",
+      "seeds": [
+        42,
+        43
+      ],
+      "instance_rate": 0.722,
+      "line_rate": 0.674,
+      "incidents": 245,
+      "attack_lines": 92,
+      "queries_after": 125
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "mimicry"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 180,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+mimicry [slow_gap_max_minutes=180]",
+      "seeds": [
+        42,
+        43
+      ],
+      "instance_rate": 0.722,
+      "line_rate": 0.641,
+      "incidents": 243,
+      "attack_lines": 92,
+      "queries_after": 127
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "mimicry"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 240,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+mimicry [slow_gap_max_minutes=240]",
+      "seeds": [
+        42,
+        43
+      ],
+      "instance_rate": 0.722,
+      "line_rate": 0.685,
+      "incidents": 249,
+      "attack_lines": 92,
+      "queries_after": 129
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "mimicry"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 31,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+mimicry [slow_gap_min_minutes=31]",
+      "seeds": [
+        42,
+        43
+      ],
+      "instance_rate": 0.778,
+      "line_rate": 0.685,
+      "incidents": 243,
+      "attack_lines": 92,
+      "queries_after": 129
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "mimicry"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 35,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+mimicry",
+      "seeds": [
+        42,
+        43
+      ],
+      "instance_rate": 0.778,
+      "line_rate": 0.674,
+      "incidents": 243,
+      "attack_lines": 92,
+      "queries_after": 129
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "mimicry"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 45,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+mimicry [slow_gap_min_minutes=45]",
+      "seeds": [
+        42,
+        43
+      ],
+      "instance_rate": 0.833,
+      "line_rate": 0.696,
+      "incidents": 245,
+      "attack_lines": 92,
+      "queries_after": 129
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "mimicry"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 90,
+        "slow_gap_max_minutes": 90,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+mimicry [slow_gap_min_minutes=90]",
+      "seeds": [
+        42,
+        43
+      ],
+      "instance_rate": 0.722,
+      "line_rate": 0.663,
+      "incidents": 246,
+      "attack_lines": 92,
+      "queries_after": 129
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "mimicry"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 61,
+        "slow_gap_max_minutes": 120,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+mimicry [slow_gap_min_minutes=61, slow_gap_max_minutes=120]",
+      "seeds": [
+        42,
+        43
+      ],
+      "instance_rate": 0.722,
+      "line_rate": 0.685,
+      "incidents": 246,
+      "attack_lines": 92,
+      "queries_after": 131
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "mimicry"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 61,
+        "slow_gap_max_minutes": 180,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+mimicry [slow_gap_min_minutes=61, slow_gap_max_minutes=180]",
+      "seeds": [
+        42,
+        43
+      ],
+      "instance_rate": 0.778,
+      "line_rate": 0.717,
+      "incidents": 246,
+      "attack_lines": 92,
+      "queries_after": 133
+    },
+    {
+      "plan": {
+        "strategies": [
+          "slow",
+          "mimicry"
+        ],
+        "gap_min_minutes": 8,
+        "gap_max_minutes": 20,
+        "slow_gap_min_minutes": 61,
+        "slow_gap_max_minutes": 240,
+        "noise_ratio": 1.5,
+        "volume_keep": 0.5
+      },
+      "label": "slow+mimicry [slow_gap_min_minutes=61, slow_gap_max_minutes=240]",
+      "seeds": [
+        42,
+        43
+      ],
+      "instance_rate": 0.833,
+      "line_rate": 0.674,
+      "incidents": 246,
+      "attack_lines": 92,
+      "queries_after": 135
+    }
+  ],
+  "holdout": [
+    {
+      "condition": "baseline",
+      "strategies": [],
+      "seeds": 5,
+      "overall": {
+        "attack_lines": 245,
+        "line_detection_rate": 0.82,
+        "instance_detection_rate": 1.0,
+        "instances": 45,
+        "instances_detected": 45,
+        "total_flagged_lines": 650,
+        "incidents": 473
+      },
+      "per_scenario": {
+        "A": {
+          "attack_lines": 106,
+          "lines_detected": 77,
+          "instances": 15,
+          "instances_detected": 15,
+          "impossible_travel_hits": 0,
+          "line_detection_rate": 0.726,
+          "instance_detection_rate": 1.0
+        },
+        "B": {
+          "attack_lines": 30,
+          "lines_detected": 15,
+          "instances": 15,
+          "instances_detected": 15,
+          "impossible_travel_hits": 15,
+          "line_detection_rate": 0.5,
+          "instance_detection_rate": 1.0
+        },
+        "C": {
+          "attack_lines": 109,
+          "lines_detected": 109,
+          "instances": 15,
+          "instances_detected": 15,
+          "impossible_travel_hits": 0,
+          "line_detection_rate": 1.0,
+          "instance_detection_rate": 1.0
+        }
+      },
+      "per_seed_instance_rate": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "condition": "realistic-combo",
+      "strategies": [
+        "slow",
+        "mimicry",
+        "noise",
+        "volume",
+        "ip_rotate"
+      ],
+      "seeds": 5,
+      "overall": {
+        "attack_lines": 167,
+        "line_detection_rate": 0.79,
+        "instance_detection_rate": 0.844,
+        "instances": 45,
+        "instances_detected": 38,
+        "total_flagged_lines": 644,
+        "incidents": 615
+      },
+      "per_scenario": {
+        "A": {
+          "attack_lines": 72,
+          "lines_detected": 58,
+          "instances": 15,
+          "instances_detected": 15,
+          "impossible_travel_hits": 1,
+          "line_detection_rate": 0.806,
+          "instance_detection_rate": 1.0
+        },
+        "B": {
+          "attack_lines": 30,
+          "lines_detected": 9,
+          "instances": 15,
+          "instances_detected": 8,
+          "impossible_travel_hits": 9,
+          "line_detection_rate": 0.3,
+          "instance_detection_rate": 0.533
+        },
+        "C": {
+          "attack_lines": 65,
+          "lines_detected": 65,
+          "instances": 15,
+          "instances_detected": 15,
+          "impossible_travel_hits": 0,
+          "line_detection_rate": 1.0,
+          "instance_detection_rate": 1.0
+        }
+      },
+      "per_seed_instance_rate": [
+        0.778,
+        1.0,
+        0.889,
+        0.778,
+        0.778
+      ]
+    },
+    {
+      "condition": "adaptive",
+      "strategies": [
+        "slow",
+        "mimicry"
+      ],
+      "seeds": 5,
+      "overall": {
+        "attack_lines": 245,
+        "line_detection_rate": 0.686,
+        "instance_detection_rate": 0.733,
+        "instances": 45,
+        "instances_detected": 33,
+        "total_flagged_lines": 620,
+        "incidents": 594
+      },
+      "per_scenario": {
+        "A": {
+          "attack_lines": 106,
+          "lines_detected": 69,
+          "instances": 15,
+          "instances_detected": 15,
+          "impossible_travel_hits": 4,
+          "line_detection_rate": 0.651,
+          "instance_detection_rate": 1.0
+        },
+        "B": {
+          "attack_lines": 30,
+          "lines_detected": 4,
+          "instances": 15,
+          "instances_detected": 3,
+          "impossible_travel_hits": 4,
+          "line_detection_rate": 0.133,
+          "instance_detection_rate": 0.2
+        },
+        "C": {
+          "attack_lines": 109,
+          "lines_detected": 95,
+          "instances": 15,
+          "instances_detected": 15,
+          "impossible_travel_hits": 0,
+          "line_detection_rate": 0.872,
+          "instance_detection_rate": 1.0
+        }
+      },
+      "per_seed_instance_rate": [
+        0.667,
+        0.667,
+        0.778,
+        0.778,
+        0.778
+      ]
+    }
+  ]
+}
