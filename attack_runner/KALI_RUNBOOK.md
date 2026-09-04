@@ -187,3 +187,48 @@ python3 -m attack_runner.linkcheck --peer http://10.10.10.2:8000
 - **hydra vs ssh.** If `hydra` is missing the brute force still works via an
   `ssh` loop, producing the same `Failed password` lines one at a time. The
   `_rec.json` says which tool ran.
+
+---
+
+## Continuing work on Kali via git
+
+`attack_runner` now also lives in its own private GitHub repo, so the Kali box can
+pull it directly instead of copying a tarball each time:
+
+    https://github.com/Vaishakh11000/log-anomaly-attack-runner  (private)
+
+On Kali, first time (needs a GitHub login on that box — `gh auth login`, or an
+HTTPS token):
+
+    git clone https://github.com/Vaishakh11000/log-anomaly-attack-runner.git
+    cd log-anomaly-attack-runner
+    python3 -m attack_runner.cli --help        # stdlib only, no install
+
+To pick up later changes on Kali:
+
+    git pull
+
+Running attacks needs only Python 3's standard library. `pytest` is optional and
+only needed if you want to run the test suite on Kali (`pip install pytest`); it
+is not needed to generate attacks.
+
+### Keeping the two copies in step (maintainer note — do this on the analyzer)
+
+This standalone repo is a **mirror** of the `attack_runner/` directory inside the
+private `log-anomaly-detector-fork`. The fork is the source of truth; the mirror
+is what Kali pulls. After changing anything under `attack_runner/` in the fork
+(and committing it there), push the update to the mirror:
+
+    git subtree push --prefix=attack_runner kali main
+
+`kali` is the git remote pointing at the standalone repo (added once with
+`git remote add kali https://github.com/Vaishakh11000/log-anomaly-attack-runner.git`).
+This never touches the fork's own `origin`.
+
+**The one thing that can silently rot:** `attack_runner/attack_runner/camouflage.py`
+is a vendored byte-for-byte copy of `src/logdet_eval/camouflage.py`. The drift
+test (`tests/test_camouflage_vendor.py`) guards it **only inside the fork**, where
+the original is present; on the standalone clone it skips. So whenever
+`src/logdet_eval/camouflage.py` changes: re-copy it into the vendored path, let
+the fork's drift test confirm they match, commit, **then** run the subtree push
+above. Do not edit the vendored copy directly.
