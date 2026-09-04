@@ -453,7 +453,7 @@ justified building that far.
 
 > **Agent: update this section at the end of every session.**
 
-**Current stage:** Stage 5 — LLM layer maturity (Stage 2b left open, see below; Stage 4 closed 2026-09-04)
+**Current stage:** Stage 6 — Adversarial platform (not started). **Stages 0, 1, 2, 4 and 5 are closed.** Two stages stay deliberately open and neither blocks Stage 6: **Stage 2b** is waiting on the Kali-generated attacks, which *are* Stage 6 — doing Stage 6 is what answers it; **Stage 3** still owes peer-group baselines, score calibration so the severity tiers mean something numeric, and drift handling, all deferred on measured grounds rather than forgotten.
 **Stage 1 started:** 2026-08-18 → **kill-point deadline 2026-09-15** (4 weeks, §1b)
 **Last session:** 2026-09-04 (Stage 5: **the three remaining items closed** -- the triage cap raised 80 -> 120 on a five-arm sweep (mid-sentence cuts 19.1% -> 1.1% for 5% more wall clock; the cap is a tail control, and the old 26% figure was ~6 lines of noise), a **dropped technique ID now shown to the analyst as a rejection**, and **ATT&CK text in the prompt declined at a measured +137% median prompt growth** in favour of rendering ATT&CK's own first sentence from the pinned index with no model involved. 751 -> 130 -> 94 unchanged, all 94 entries identical on every pre-existing field. Earlier the same day, Stage 5: **narration tiers and model routing** — a triage tier at 0.9s a line against a full narrative's 3.3-3.6s, 91/94 faithful with 0 invented technique IDs; and the enforcement claim measured against a second model for the first time, llama3 reading 0 invented IDs where phi3 reads 12 on the identical prose prompt. **Model size is not where the cost is** — llama3:8b is no slower than phi3 on the GPU and *faster* on the CPU floor, so what shipped is a token budget rather than a model swap. Earlier the same day, Stage 5: the **empty-match prompt rewording** and **structured JSON output**, each measured on both corpora — invented technique IDs 47/142 and 119/197 → **0 of 65 and 0 of 58**; the technique-*name* check finds nothing because the invention is whole-cloth. Earlier the same day, Stage 4: **ATT&CK STIX ingest pinned at 19.2**, kill-chain mapping on every incident, and the **detection coverage matrix** — 11 techniques mapped, 1 of 86 inside ATT&CK's own syslog-visible universe, 5 never observed. Enrichment only; 751 → 130 → 94 unchanged)
 **Last commit:** _(see `git log`)_
@@ -599,7 +599,7 @@ justified building that far.
       **Carried into Stage 2:** build the harness to run in streaming mode with an
       injector-driven ground-truth feed, not just batch-over-a-file — do that and
       Stage 2b falls out nearly free.
-- [ ] **Stage 2 — Live ingestion.** ▶ *in progress, started 2026-08-30.*
+- [x] **Stage 2 — Live ingestion.** ✅ 2026-08-30. (Stage 2b is tracked separately below.)
       ✅ **Fit/score split and detector persistence** — `PerUserAnomalyDetector.save`/
       `load`/`describe`, and `run_anomaly_detection(df, detector=...)` to score
       without refitting. Provenance is stamped and checked on load: a mismatched
@@ -1156,7 +1156,7 @@ justified building that far.
       precision. Even a Markov transition model over template IDs per user would help.
       Also: peer-group baselines (fixes cold start), score calibration so severity tiers
       mean something numeric, drift handling.
-- [ ] **Stage 4 — Correlation & MITRE.** ▶ *in progress, started 2026-09-03.*
+- [x] **Stage 4 — Correlation & MITRE.** ✅ closed 2026-09-04.
 
       ✅ **The entity graph is in and grouping runs on it** —
       `logdet/entity_graph.py`. Users, source IPs, hosts and processes are
@@ -1388,7 +1388,7 @@ justified building that far.
       neighbourhood counts stay as an instrument. `SUPPRESSION_LONENESS` stays
       `"incident"`, pinned by a test. 573 tests pass (`-m "not slow"`), and both
       pinned regression locks — batch and streamed 751 → 130 → 94 — stay green.
-- [ ] **Stage 5 — LLM layer maturity.** ▶ *in progress, started 2026-09-04.*
+- [x] **Stage 5 — LLM layer maturity.** ✅ closed 2026-09-04.
 
       ✅ **Automated faithfulness evaluation — `logdet-faithfulness`,
       `results/faithfulness/`.** The first measurement of the claim §2 makes.
