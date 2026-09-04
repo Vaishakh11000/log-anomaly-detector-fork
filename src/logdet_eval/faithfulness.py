@@ -82,7 +82,8 @@ from pathlib import Path
 import pandas as pd
 
 from logdet.anomaly_detection import run_anomaly_detection
-from logdet.config import LLM_MODEL, PROCESSED_DATA_DIR, RESULTS_DIR
+from logdet.config import (LLM_MODEL, LLM_TRIAGE_NUM_PREDICT, PROCESSED_DATA_DIR,
+                           RESULTS_DIR)
 from logdet.embedding import add_embeddings_to_df
 from logdet.entity_graph import normalise_identity
 from logdet.llm_narrative import (build_prompt, build_structured_prompt,
@@ -404,7 +405,8 @@ def score_and_group(input_csv: str
 
 def run(input_csv: str, model: str = LLM_MODEL, limit: int | None = None,
         narrate_all: bool = True, structured: bool = False,
-        triage: bool = False) -> list[Check]:
+        triage: bool = False, triage_num_predict: int | None = None,
+        triage_max_words: int | None = None) -> list[Check]:
     """Narrate, then check each narrative against the prompt that produced it.
 
     `structured` swaps in the JSON arm: the model's technique claim goes into a
@@ -433,14 +435,22 @@ def run(input_csv: str, model: str = LLM_MODEL, limit: int | None = None,
             build = build_triage_prompt
         else:
             build = build_structured_prompt if structured else build_prompt
-        prompt = build(incident, context_events=entry["context_events"])
+        if triage:
+            prompt = build(incident, context_events=entry["context_events"],
+                           max_words=triage_max_words)
+        else:
+            prompt = build(incident, context_events=entry["context_events"])
         started = time.time()
         dropped: list[str] = []
         parse_failed = False
         try:
             if triage:
-                result = generate_triage(incident, model=model,
-                                         context_events=entry["context_events"])
+                result = generate_triage(
+                    incident, model=model,
+                    context_events=entry["context_events"],
+                    num_predict=(LLM_TRIAGE_NUM_PREDICT if triage_num_predict is None
+                                 else triage_num_predict),
+                    max_words=triage_max_words)
                 narrative, dropped = result.line, result.dropped
             elif structured:
                 result = generate_structured(incident, model=model,
@@ -510,6 +520,18 @@ CLAIM_KINDS = ("technique", "technique_name", "ip", "user", "time",
                "quantity", "placeholder")
 
 
+# A line the token cap ended rather than the model ending it. Sentence-final
+# punctuation is the only signal available after the fact -- the generation
+# reason is not returned -- so this counts *unfinished* text, which is what a
+# reader sees, and not every cap hit (a model can stop exactly on a full stop).
+_UNFINISHED_RE = re.compile(r"""[.!?]["'\)\]]*\s*$""")
+
+
+def unfinished(text: str) -> bool:
+    """True when the text does not end on sentence-final punctuation."""
+    return not _UNFINISHED_RE.search(text.strip())
+
+
 def tally(checks: list[Check]) -> dict:
     """Counts per claim kind and per arm. Rates are recomputed from counts."""
     def kind_counts(subset: list[Check]) -> dict[str, dict[str, int]]:
@@ -539,6 +561,9 @@ def tally(checks: list[Check]) -> dict:
         "dropped_techniques": sum(len(c.dropped) for c in checks),
         "narratives_with_a_drop": sum(1 for c in checks if c.dropped),
         "parse_failures": sum(1 for c in checks if c.parse_failed),
+        "unfinished": sum(1 for c in checks if unfinished(c.narrative)),
+        "median_chars": (sorted(len(c.narrative) for c in checks)[len(checks) // 2]
+                         if checks else 0),
     }
 
 
@@ -589,6 +614,16 @@ def render(checks: list[Check], model: str, corpus: str,
             "the drop count is how often the enforcement fired, the invented",
             "count is what got past it -- through the prose fields, which are",
             "still prose.",
+        ]
+    if triage:
+        lines += [
+            f"- Lines the token cap **cut mid-sentence**: "
+            f"**{_rate(counts['unfinished'], counts['narratives'])}**",
+            f"- Median rendered length: {counts['median_chars']} characters",
+            "",
+            "A cut line still reads, but it stops mid-clause. The cap is what",
+            "makes the tier cheap, so this is the price of the setting rather",
+            "than a defect -- see results/routing/ for the sweep behind it.",
         ]
     lines += [
         "",
@@ -702,6 +737,16 @@ def cli() -> None:
     parser.add_argument("--triage", action="store_true",
                         help="the cheap tier: one sentence on LLM_TRIAGE_MODEL "
                              "with every technique ID stripped out of it")
+    parser.add_argument("--triage-num-predict", type=int, default=None,
+                        metavar="N",
+                        help="override the triage token cap for one run. The "
+                             "cap is what makes the tier cheap and it is also "
+                             "what cuts lines mid-sentence, so raising it is a "
+                             "measurement, not a free fix")
+    parser.add_argument("--triage-max-words", type=int, default=None,
+                        metavar="N",
+                        help="ask the model for a sentence under N words -- the "
+                             "alternative to paying for a larger cap")
     parser.add_argument("--narrate-policy", action="store_true",
                         help="narrate only what the pipeline would narrate "
                              "(default: every incident, for a wider sample)")
@@ -712,7 +757,9 @@ def cli() -> None:
     else:
         checks = run(args.input, model=args.model, limit=args.limit,
                      narrate_all=not args.narrate_policy,
-                     structured=args.structured, triage=args.triage)
+                     structured=args.structured, triage=args.triage,
+                     triage_num_predict=args.triage_num_predict,
+                     triage_max_words=args.triage_max_words)
     write_report(checks, args.output, args.model, args.input,
                  structured=args.structured, triage=args.triage)
 

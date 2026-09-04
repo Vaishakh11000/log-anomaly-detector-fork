@@ -19,7 +19,7 @@ from logdet.anomaly_detection import (run_anomaly_detection, highest_severity,
                                       travel_evidence)
 from logdet.sequence_grouping import group_anomalies, describe_incident
 from logdet.mitre_mapping import kill_chain_of, map_incident_to_mitre
-from logdet.llm_narrative import generate_narrative, generate_triage
+from logdet.llm_narrative import generate_narrative, generate_triage, narrate_detail
 from logdet.sequence_model import TransitionModel
 from logdet.config import (
     NARRATE_SEVERITIES,
@@ -92,7 +92,8 @@ def build_incident_entry(incident_id: int, incident: pd.DataFrame,
         "mitre_techniques": [
             {"technique_id": t["technique_id"], "technique_name": t["technique_name"],
              "tactic": t["tactic"], "tactics": t["tactics"],
-             "tactic_ids": t["tactic_ids"], "url": t["url"]}
+             "tactic_ids": t["tactic_ids"], "url": t["url"],
+             "description": t["description"]}
             for t in techniques
         ],
         # The tactics this incident touches, in ATT&CK matrix order -- the
@@ -161,9 +162,13 @@ def run_pipeline(input_csv: str, output_json: str, use_llm: bool = True,
             print(f"  [{n}/{len(targets)}] incident {entry['incident_id']} "
                   f"({entry['severity']}, {entry['event_count']} events)...", flush=True)
             try:
-                entry["narrative"] = generate_narrative(
-                    incidents[entry["incident_id"]],
+                entry["narrative"], dropped = narrate_detail(
+                    incidents[entry["incident_id"]], tier="full",
                     context_events=entry["context_events"])
+                entry["narrative_dropped"] = dropped
+                if dropped:
+                    print(f"      dropped {', '.join(dropped)} "
+                          f"(not in this incident's grounded list)")
             except Exception as e:
                 entry["narrative"] = f"[LLM narrative generation failed: {e}]"
 
@@ -183,6 +188,7 @@ def run_pipeline(input_csv: str, output_json: str, use_llm: bool = True,
                         incidents[entry["incident_id"]],
                         context_events=entry["context_events"])
                     entry["triage_line"] = result.line
+                    entry["narrative_dropped"] = result.dropped
                     if result.dropped:
                         print(f"  [{n}/{len(rest)}] incident {entry['incident_id']}: "
                               f"dropped {', '.join(result.dropped)}")
@@ -191,6 +197,14 @@ def run_pipeline(input_csv: str, output_json: str, use_llm: bool = True,
 
         for entry in results:
             entry.setdefault("triage_line", None)
+
+    # Every technique ID the model claimed and the enforcement removed, so a
+    # reader can tell an incident where that happened from one where it did
+    # not. Never merged into mitre_techniques: these are the IDs the grounded
+    # lookup did *not* hand over, and the whole point is that the system does
+    # not assert them.
+    for entry in results:
+        entry.setdefault("narrative_dropped", [])
 
     with open(output_json, "w") as f:
         json.dump(results, f, indent=2, default=str)

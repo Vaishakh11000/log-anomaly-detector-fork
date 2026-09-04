@@ -36,7 +36,8 @@ from logdet.mitre_mapping import map_incident_to_mitre
 from logdet.config import (OLLAMA_URL, LLM_MODEL, LLM_TIMEOUT_SECONDS, LLM_NUM_PREDICT,
                     LLM_TEMPERATURE, NARRATIVE_SENTENCE_RANGE, NARRATIVE_MAX_EVENTS,
                     LLM_STRUCTURED_OUTPUT, LLM_TRIAGE_MODEL, LLM_NARRATIVE_MODEL,
-                    LLM_TRIAGE_NUM_PREDICT, TRIAGE_SENTENCE_RANGE)
+                    LLM_TRIAGE_NUM_PREDICT, TRIAGE_SENTENCE_RANGE,
+                    TRIAGE_MAX_WORDS)
 
 TECHNIQUE_ID_RE = re.compile(r"\bT\d{4}(?:\.\d{3})?\b")
 
@@ -465,7 +466,7 @@ Matched MITRE ATT&CK techniques (grounded lookup):
 {mitre_matches}
 
 Write {sentences} sentence of plain English: who did what, from where, and
-whether it looks like an attack or like routine activity.
+whether it looks like an attack or like routine activity.{length}
 
 Name no technique IDs. The techniques are shown to the analyst from the
 grounded lookup, and any ID written here is removed before it is displayed.
@@ -512,14 +513,23 @@ def strip_technique_ids(text: str) -> tuple[str, list[str]]:
 
 
 def build_triage_prompt(incident_df: pd.DataFrame,
-                        context_events: list[dict] | None = None) -> str:
-    """The triage-tier prompt, built from the same blocks as the other two."""
+                        context_events: list[dict] | None = None,
+                        max_words: int | None = None) -> str:
+    """The triage-tier prompt, built from the same blocks as the other two.
+
+    `max_words` adds a length instruction. It exists because the token cap ends
+    generation rather than the model ending it, so a sentence the model has not
+    finished is cut mid-clause; asking for a shorter one is the alternative to
+    paying for a larger cap.
+    """
     events_str, mitre_str = format_incident_for_prompt(incident_df)
+    words = TRIAGE_MAX_WORDS if max_words is None else max_words
     prompt = TRIAGE_TEMPLATE.format(
         summary=summarise_incident(incident_df),
         events=events_str,
         mitre_matches=mitre_str,
         sentences=TRIAGE_SENTENCE_RANGE,
+        length=f" Keep it under {words} words." if words else "",
     )
     context_str = _context_lines(context_events)
     if context_str:
@@ -531,30 +541,58 @@ def build_triage_prompt(incident_df: pd.DataFrame,
 
 
 def generate_triage(incident_df: pd.DataFrame, model: str = LLM_TRIAGE_MODEL,
-                    context_events: list[dict] | None = None) -> TriageLine:
+                    context_events: list[dict] | None = None,
+                    num_predict: int = LLM_TRIAGE_NUM_PREDICT,
+                    max_words: int | None = None) -> TriageLine:
     """One sentence for the incident list, on the small model."""
-    text = _complete(build_triage_prompt(incident_df, context_events), model=model,
-                     num_predict=LLM_TRIAGE_NUM_PREDICT)
+    text = _complete(build_triage_prompt(incident_df, context_events,
+                                         max_words=max_words),
+                     model=model, num_predict=num_predict)
     line, found = strip_technique_ids(text)
     return TriageLine(line=line, dropped=found, raw=text)
+
+
+def narrate_detail(incident_df: pd.DataFrame, tier: str = "full",
+                   context_events: list[dict] | None = None,
+                   model: str | None = None) -> tuple[str, list[str]]:
+    """Route one incident to a tier: the text a reader sees, and what was cut.
+
+    The second element is every technique ID the model claimed and the
+    enforcement removed -- validated away in the full tier, stripped out of the
+    sentence in the triage one. It is returned rather than discarded because a
+    silent removal is invisible to the person reading the incident, who cannot
+    otherwise tell the model tried to cite a technique and was overruled.
+    """
+    if tier == "triage":
+        result = generate_triage(incident_df, model=model or LLM_TRIAGE_MODEL,
+                                 context_events=context_events)
+        # The triage tier strips *every* ID, grounded ones included, because a
+        # one-liner has no field to validate a claim in. So most of what it
+        # removes is correct and unremarkable, and reporting that as a rejected
+        # claim would cry wolf on every incident the model got right. Only the
+        # IDs the lookup did not hand over are worth a reader's attention --
+        # which is what `dropped` already means in the full tier.
+        grounded = {t["technique_id"] for t in map_incident_to_mitre(incident_df)}
+        return result.render(), [t for t in result.dropped if t not in grounded]
+    if tier != "full":
+        raise ValueError(f"unknown narration tier: {tier!r}")
+    model = model or LLM_NARRATIVE_MODEL
+    if LLM_STRUCTURED_OUTPUT:
+        result = generate_structured(incident_df, model=model,
+                                     context_events=context_events)
+        return result.render(map_incident_to_mitre(incident_df)), result.dropped
+    # Free prose has no enforcement to report: the technique claim is loose in
+    # the sentence, which is the arm structured output exists to replace.
+    return generate_narrative(incident_df, model=model,
+                              context_events=context_events), []
 
 
 def narrate(incident_df: pd.DataFrame, tier: str = "full",
             context_events: list[dict] | None = None,
             model: str | None = None) -> str:
-    """Route one incident to a tier and return the text a reader sees.
-
-    `tier="triage"` is one sentence on LLM_TRIAGE_MODEL; `tier="full"` is the
-    existing narrative on LLM_NARRATIVE_MODEL. Both models default to LLM_MODEL,
-    so routing is a token-budget split until a second model is measured.
-    """
-    if tier == "triage":
-        return generate_triage(incident_df, model=model or LLM_TRIAGE_MODEL,
-                               context_events=context_events).render()
-    if tier != "full":
-        raise ValueError(f"unknown narration tier: {tier!r}")
-    return generate_narrative(incident_df, model=model or LLM_NARRATIVE_MODEL,
-                              context_events=context_events)
+    """`narrate_detail` without the dropped list, for callers that only render."""
+    return narrate_detail(incident_df, tier=tier, context_events=context_events,
+                          model=model)[0]
 
 
 if __name__ == "__main__":

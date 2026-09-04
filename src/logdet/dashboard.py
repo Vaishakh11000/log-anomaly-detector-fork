@@ -69,6 +69,22 @@ def load_from_file(path: str) -> list[dict]:
         return json.load(f)
 
 
+def _show_dropped(incident: dict) -> None:
+    """Say when the model cited a technique the grounded lookup did not hand it.
+
+    Shown as a rejection and never as a technique -- the ID is named so the
+    claim is auditable, next to a sentence saying the system does not assert
+    it. Without this the enforcement is invisible: an incident where the model
+    tried to hallucinate a technique reads exactly like one where it did not.
+    """
+    dropped = incident.get("narrative_dropped") or []
+    if dropped:
+        st.caption(
+            f"⚠️ The model also cited {', '.join(dropped)}. "
+            "Not in this incident's grounded lookup, so it was removed and is "
+            "**not** claimed by the system.")
+
+
 client: ApiClient | None = None
 status: dict = {}
 
@@ -239,6 +255,14 @@ for incident in filtered:
                 f"`{t['technique_id']}` {t['technique_name']} ({t['tactic']})"
                 for t in techniques
             ))
+            # What each matched technique means, in ATT&CK's own words. Quoted
+            # from the pinned bundle rather than explained by the LLM: the text
+            # is fixed per technique, so a model could only paraphrase it, and
+            # paraphrasing is where invention gets in.
+            for t in techniques:
+                if t.get("description"):
+                    st.caption(f"`{t['technique_id']}` — {t['description']} "
+                               f"([ATT&CK]({t['url']}))")
             # The same techniques seen as a kill chain: which ATT&CK tactics
             # this incident touches, in matrix order. Descriptive only.
             chain = incident.get("kill_chain") or []
@@ -269,6 +293,7 @@ for incident in filtered:
             narrative = incident.get("narrative")
             if narrative:
                 st.write(narrative)
+                _show_dropped(incident)
             else:
                 # The cheap tier, when the pipeline or an earlier click made
                 # one: a single sentence, with the techniques stated by the
@@ -277,6 +302,7 @@ for incident in filtered:
                 if triage_line:
                     st.caption("Triage line (one sentence, small model)")
                     st.write(triage_line)
+                    _show_dropped(incident)
 
                 if client is not None:
                     # On demand, one incident at a time: a full narrative costs

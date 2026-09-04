@@ -283,8 +283,33 @@ LLM_STRUCTURED_OUTPUT = True
 # larger model is a config edit, not a code change.
 LLM_TRIAGE_MODEL = LLM_MODEL
 LLM_NARRATIVE_MODEL = LLM_MODEL
-LLM_TRIAGE_NUM_PREDICT = 80    # one sentence fits; 400 lets phi3 write five
+# The cap ends generation rather than the model ending it, so a sentence the
+# model has not finished is cut mid-clause. 80 was the first value tried and it
+# cut roughly a fifth of the lines; 120 is the swept one
+# (results/routing/cap_sweep/, 94 synthetic incidents, phi3, 4060):
+#
+#   cap    cut mid-sentence   94 lines took   median   fully faithful
+#   80     19.1% (18/94)      83.6s           0.89s    92/94
+#   120    1.1%  (1/94)       88.1s           0.90s    91/94
+#   160    3.2%  (3/94)       91.9s           0.90s    89/94
+#
+# The cap is a *tail* control, not a per-line cost: almost every line finishes
+# well inside 80 tokens and only the long ones ever reach the limit, so raising
+# it buys the tail for 5% of the wall clock and leaves the median untouched.
+# 160 buys nothing further. Two figures keep this honest -- cap 80 measured
+# 24/94 cut in the previous session and 18/94 here on identical settings, so
+# ~6 lines is run-to-run noise and only the 18 -> 1 step is real; and the extra
+# generation costs one mistyped source IP (10.00.1.102), which is why the
+# faithful column moves down as the cap moves up.
+LLM_TRIAGE_NUM_PREDICT = 120   # one sentence finishes; 400 lets phi3 write five
 TRIAGE_SENTENCE_RANGE = "1"
+
+# The other way to stop a line being cut: ask for one short enough to finish.
+# Measured and not adopted -- "under 25 words" cuts truncation about as well
+# (4.3%) and is faster, but it shortens the line 226 -> 178 characters and both
+# word-capped arms scored *below* the token-capped ones on faithfulness (89/94
+# and 87/94). It also changes the prompt, which raising the cap does not.
+TRIAGE_MAX_WORDS: int | None = None
 
 # Which incidents get an LLM narrative. phi3 costs ~40-60s per incident on this
 # CPU, so narrating all 94 would run about an hour -- unusable for a demo or an

@@ -83,6 +83,7 @@
   "techniques": {
     "T1021.004": {
       "deprecated": false,
+      "description": "Adversaries may use Valid Accounts to log into remote machines using Secure Shell (SSH).",
       "kill_chain": [
         10
       ],
@@ -115,6 +116,7 @@
     },
     "T1041": {
       "deprecated": false,
+      "description": "Adversaries may steal data by exfiltrating it over an existing command and control channel.",
       "kill_chain": [
         13
       ],
@@ -149,6 +151,7 @@
     },
     "T1046": {
       "deprecated": false,
+      "description": "Adversaries may attempt to get a listing of services running on remote hosts and local network infrastructure devices, including those that may be vulnerable to remote software exploitation.",
       "kill_chain": [
         9
       ],
@@ -183,6 +186,7 @@
     },
     "T1053": {
       "deprecated": false,
+      "description": "Adversaries may abuse task scheduling functionality to facilitate initial or recurring execution of malicious code.",
       "kill_chain": [
         3,
         4,
@@ -227,6 +231,7 @@
     },
     "T1070": {
       "deprecated": false,
+      "description": "Adversaries may selectively delete or modify artifacts generated to reduce indications of their presence and blend in with legitimate activity.",
       "kill_chain": [
         6
       ],
@@ -267,6 +272,7 @@
     },
     "T1078": {
       "deprecated": false,
+      "description": "Adversaries may obtain and abuse credentials of existing accounts as a means of gaining Initial Access, Persistence, Privilege Escalation, or Defense Evasion.",
       "kill_chain": [
         2,
         4,
@@ -314,6 +320,7 @@
     },
     "T1087": {
       "deprecated": false,
+      "description": "Adversaries may attempt to get a listing of valid accounts, usernames, or email addresses on a system or within a compromised environment.",
       "kill_chain": [
         9
       ],
@@ -354,6 +361,7 @@
     },
     "T1098": {
       "deprecated": false,
+      "description": "Adversaries may manipulate accounts to maintain and/or elevate access to victim systems.",
       "kill_chain": [
         4,
         5
@@ -396,6 +404,7 @@
     },
     "T1110": {
       "deprecated": false,
+      "description": "Adversaries may use brute force techniques to gain access to accounts when passwords are unknown or when password hashes are obtained.",
       "kill_chain": [
         8
       ],
@@ -432,6 +441,7 @@
     },
     "T1136": {
       "deprecated": false,
+      "description": "Adversaries may create an account to maintain access to victim systems.",
       "kill_chain": [
         4
       ],
@@ -469,6 +479,7 @@
     },
     "T1548": {
       "deprecated": false,
+      "description": "Adversaries may circumvent mechanisms designed to control privilege elevation to gain higher-level permissions.",
       "kill_chain": [
         5
       ],

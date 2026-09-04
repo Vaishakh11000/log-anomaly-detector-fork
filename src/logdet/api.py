@@ -494,14 +494,20 @@ def create_app(service: StreamService | None = None) -> FastAPI:
         if found.get(field):
             return found
 
-        from logdet.llm_narrative import narrate
+        from logdet.llm_narrative import narrate_detail
         try:
-            text = narrate(pd.DataFrame(found["events"]), tier=tier,
-                           context_events=found.get("context_events"))
+            text, dropped = narrate_detail(
+                pd.DataFrame(found["events"]), tier=tier,
+                context_events=found.get("context_events"))
         except Exception as exc:                          # noqa: BLE001
             raise HTTPException(status_code=503,
                                 detail=f"narrative generation failed: {exc}")
-        return service.annotate(incident_id, **{field: text}) or found
+        # The IDs the enforcement removed travel with the text. A client that
+        # only renders the prose cannot otherwise tell this incident from one
+        # where the model claimed nothing -- the drop is silent by design, and
+        # silent is exactly what makes it unauditable in the field.
+        return service.annotate(incident_id, **{field: text,
+                                                "narrative_dropped": dropped}) or found
 
     @app.get("/events")
     async def events(request: Request) -> StreamingResponse:

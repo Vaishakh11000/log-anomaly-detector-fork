@@ -440,8 +440,8 @@ def test_a_triage_request_stores_the_line_in_its_own_field(client, service,
     """A one-sentence triage line must never be mistaken for a narrative that
     was actually written, so the two live in different fields."""
     service._record(incident(1))
-    monkeypatch.setattr("logdet.llm_narrative.narrate",
-                        lambda df, tier="full", **kw: f"text from {tier}")
+    monkeypatch.setattr("logdet.llm_narrative.narrate_detail",
+                        lambda df, tier="full", **kw: (f"text from {tier}", []))
     body = client.post("/incidents/1/narrate", params={"tier": "triage"}).json()
     assert body["triage_line"] == "text from triage"
     assert not body.get("narrative")
@@ -449,8 +449,8 @@ def test_a_triage_request_stores_the_line_in_its_own_field(client, service,
 
 def test_the_default_tier_is_the_full_narrative(client, service, monkeypatch):
     service._record(incident(1))
-    monkeypatch.setattr("logdet.llm_narrative.narrate",
-                        lambda df, tier="full", **kw: f"text from {tier}")
+    monkeypatch.setattr("logdet.llm_narrative.narrate_detail",
+                        lambda df, tier="full", **kw: (f"text from {tier}", []))
     body = client.post("/incidents/1/narrate").json()
     assert body["narrative"] == "text from full"
     assert not body.get("triage_line")
@@ -464,8 +464,8 @@ def test_an_unknown_tier_is_refused_rather_than_narrated(client, service):
 def test_a_triage_line_does_not_satisfy_a_later_full_request(client, service,
                                                              monkeypatch):
     service._record(incident(1))
-    monkeypatch.setattr("logdet.llm_narrative.narrate",
-                        lambda df, tier="full", **kw: f"text from {tier}")
+    monkeypatch.setattr("logdet.llm_narrative.narrate_detail",
+                        lambda df, tier="full", **kw: (f"text from {tier}", []))
     client.post("/incidents/1/narrate", params={"tier": "triage"})
     body = client.post("/incidents/1/narrate").json()
     assert body["narrative"] == "text from full"

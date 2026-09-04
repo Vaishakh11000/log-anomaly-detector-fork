@@ -1,0 +1,1979 @@
+{
+  "corpus": "/home/shiva/log-anomaly-detector-fork/data/processed/parsed.csv",
+  "model": "phi3",
+  "structured": false,
+  "triage": true,
+  "summary": {
+    "narratives": 94,
+    "faithful": 89,
+    "by_kind": {
+      "technique": {
+        "claims": 0,
+        "ungrounded": 0
+      },
+      "technique_name": {
+        "claims": 0,
+        "ungrounded": 0
+      },
+      "ip": {
+        "claims": 49,
+        "ungrounded": 0
+      },
+      "user": {
+        "claims": 21,
+        "ungrounded": 0
+      },
+      "time": {
+        "claims": 50,
+        "ungrounded": 5
+      },
+      "quantity": {
+        "claims": 17,
+        "ungrounded": 0
+      },
+      "placeholder": {
+        "claims": 0,
+        "ungrounded": 0
+      }
+    },
+    "arms": {
+      "grounded": {
+        "narratives": 53,
+        "faithful": 48,
+        "by_kind": {
+          "technique": {
+            "claims": 0,
+            "ungrounded": 0
+          },
+          "technique_name": {
+            "claims": 0,
+            "ungrounded": 0
+          },
+          "ip": {
+            "claims": 49,
+            "ungrounded": 0
+          },
+          "user": {
+            "claims": 19,
+            "ungrounded": 0
+          },
+          "time": {
+            "claims": 33,
+            "ungrounded": 5
+          },
+          "quantity": {
+            "claims": 14,
+            "ungrounded": 0
+          },
+          "placeholder": {
+            "claims": 0,
+            "ungrounded": 0
+          }
+        }
+      },
+      "no_technique": {
+        "narratives": 41,
+        "faithful": 41,
+        "by_kind": {
+          "technique": {
+            "claims": 0,
+            "ungrounded": 0
+          },
+          "technique_name": {
+            "claims": 0,
+            "ungrounded": 0
+          },
+          "ip": {
+            "claims": 0,
+            "ungrounded": 0
+          },
+          "user": {
+            "claims": 2,
+            "ungrounded": 0
+          },
+          "time": {
+            "claims": 17,
+            "ungrounded": 0
+          },
+          "quantity": {
+            "claims": 3,
+            "ungrounded": 0
+          },
+          "placeholder": {
+            "claims": 0,
+            "ungrounded": 0
+          }
+        }
+      }
+    },
+    "median_seconds": 0.7343478202819824,
+    "dropped_techniques": 20,
+    "narratives_with_a_drop": 20,
+    "parse_failures": 0,
+    "unfinished": 4,
+    "median_chars": 178
+  },
+  "checks": [
+    {
+      "incident_id": 0,
+      "grounded_arm": false,
+      "seconds": 0.77,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [],
+      "ungrounded": [],
+      "narrative": "At 00:39:0 end of day on July 14th, system manager configuration was reloaded without distinct usernames or source IPs involved; appears to be routine activity as no MITRE ATT&CK techniques were matched."
+    },
+    {
+      "incident_id": 1,
+      "grounded_arm": true,
+      "seconds": 1.19,
+      "faithful": false,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "203.0.113.212",
+          "quote": "From a single source IP (203.0.113.212) between July 14th at 01:51 a"
+        },
+        {
+          "kind": "time",
+          "value": "01:51",
+          "quote": "113.212) between July 14th at 01:51 and 01:56, seven distinct use"
+        },
+        {
+          "kind": "time",
+          "value": "01:56",
+          "quote": "etween July 14th at 01:51 and 01:56, seven distinct usernames att"
+        },
+        {
+          "kind": "quantity",
+          "value": "7",
+          "quote": "July 14th at 01:51 and 01:56, seven distinct usernames attempted to log in with fail"
+        }
+      ],
+      "ungrounded": [
+        {
+          "kind": "time",
+          "value": "01:56",
+          "quote": "etween July 14th at 01:51 and 01:56, seven distinct usernames att"
+        }
+      ],
+      "narrative": "From a single source IP (203.0.113.212) between July 14th at 01:51 and 01:56, seven distinct usernames attempted to log in with failed passwords using SSH brute force technique indicative of an attack attempt on the network's credentials access (Credential Access)."
+    },
+    {
+      "incident_id": 2,
+      "grounded_arm": true,
+      "seconds": 1.12,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "quantity",
+          "value": "2",
+          "quote": "ed unauthorized SSH logins on two distinct IPs within a short timeframe, sug"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Alice attempted unauthorized SSH logins on two distinct IPs within a short timeframe, suggesting potential credential access attempts rather than routine activity. She also created new users with elevated privileges and switched to root user post-login, indicating privilege escalation tactics consistent with an attack scenario."
+    },
+    {
+      "incident_id": 3,
+      "grounded_arm": false,
+      "seconds": 0.55,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [],
+      "ungrounded": [],
+      "narrative": "Alice initiated Session 91 at an unspecified source IP without indications of malicious activity as per MITRE ATT&CK techniques analysis."
+    },
+    {
+      "incident_id": 4,
+      "grounded_arm": false,
+      "seconds": 0.53,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [],
+      "ungrounded": [],
+      "narrative": "Dave initiated Session 38 at an unspecified source IP without matching ATT&CK techniques indicating routine activity on July 14, 2026."
+    },
+    {
+      "incident_id": 5,
+      "grounded_arm": false,
+      "seconds": 0.55,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "quantity",
+          "value": "31",
+          "quote": "Dave initiated Session 31 of his user account at a single source IP"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Dave initiated Session 31 of his user account at a single source IP without distinct anomalous behavior indicative of an attack on July 14, 2026."
+    },
+    {
+      "incident_id": 6,
+      "grounded_arm": true,
+      "seconds": 0.63,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.0.142",
+          "quote": "own account using IP address 10.0.0.142 at exactly one timestamped ev"
+        },
+        {
+          "kind": "quantity",
+          "value": "1",
+          "quote": "address 10.0.0.142 at exactly one timestamped event with failed credentials indic"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Alice attempted a brute force SSH login on her own account using IP address 10.0.0.142 at exactly one timestamped event with failed credentials indicating potential unauthorized access activity."
+    },
+    {
+      "incident_id": 7,
+      "grounded_arm": false,
+      "seconds": 0.69,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "08:21",
+          "quote": "At 08:21 on July 14, 2026, a system ma"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At 08:21 on July 14, 2026, a system manager configuration was reloaded without distinct usernames or source IPs involved; this appears to be routine activity as it matches no known attack techniques."
+    },
+    {
+      "incident_id": 8,
+      "grounded_arm": true,
+      "seconds": 0.82,
+      "faithful": true,
+      "dropped": [
+        "T1110"
+      ],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.1.126",
+          "quote": "rce SSH login on host with IP 10.0.1.126 at 09:26:00 on July 14, 2026,"
+        },
+        {
+          "kind": "time",
+          "value": "09:26:00",
+          "quote": "on host with IP 10.0.1.126 at 09:26:00 on July 14, 2026, indicating"
+        },
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "User bob attempted a brute force SSH l"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "User bob attempted a brute force SSH login on host with IP 10.0.1.126 at 09:26:00 on July 14, 2026, indicating an attack attempt using technique (Brute Force)."
+    },
+    {
+      "incident_id": 9,
+      "grounded_arm": true,
+      "seconds": 0.91,
+      "faithful": true,
+      "dropped": [
+        "T1110"
+      ],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.0.148",
+          "quote": "on user alice from source IP 10.0.0.148 at exactly 2026-07-14 09:59:0"
+        },
+        {
+          "kind": "time",
+          "value": "2026-07-14 09:59:00",
+          "quote": "urce IP 10.0.0.148 at exactly 2026-07-14 09:59:00, indicating an attack attempt"
+        },
+        {
+          "kind": "user",
+          "value": "alice",
+          "quote": "as (Brute Force) technique on user alice from source IP 10.0.0.148 at"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Alice attempted a brute force login as (Brute Force) technique on user alice from source IP 10.0.0.148 at exactly 2026-07-14 09:59:00, indicating an attack attempt rather than routine activity."
+    },
+    {
+      "incident_id": 10,
+      "grounded_arm": true,
+      "seconds": 0.84,
+      "faithful": true,
+      "dropped": [
+        "T1110"
+      ],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.1.229",
+          "quote": "e force login on host with IP 10.0.1.229 at timestamp 2026-07-14 11:07"
+        },
+        {
+          "kind": "time",
+          "value": "2026-07-14 11:07:00",
+          "quote": "th IP 10.0.1.229 at timestamp 2026-07-14 11:07:00, indicating an attack attempt"
+        },
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "User bob attempted a brute force login"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "User bob attempted a brute force login on host with IP 10.0.1.229 at timestamp 2026-07-14 11:07:00, indicating an attack attempt rather than routine activity."
+    },
+    {
+      "incident_id": 11,
+      "grounded_arm": true,
+      "seconds": 1.02,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.3.71",
+          "quote": "access tactics from source IP 10.0.3.71 at exactly one timestamped ev"
+        },
+        {
+          "kind": "quantity",
+          "value": "1",
+          "quote": "ource IP 10.0.3.71 at exactly one timestamped event detected by SOC analysts. Thi"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Dave attempted a brute force login on ssh2 using credential access tactics from source IP 10.0.3.71 at exactly one timestamped event detected by SOC analysts. This appears to be an attack rather than routine activity due to the distinct username and single-event nature of detection, suggesting a targeted attempt as opposed to multiple failed attempts over time"
+    },
+    {
+      "incident_id": 12,
+      "grounded_arm": false,
+      "seconds": 0.51,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [],
+      "ungrounded": [],
+      "narrative": "Admin user initiated session 38 at an unspecified source IP; activity appears routine with no immediate attack indicators based on ATT&CK techniques grounding."
+    },
+    {
+      "incident_id": 13,
+      "grounded_arm": true,
+      "seconds": 0.88,
+      "faithful": true,
+      "dropped": [
+        "T1110"
+      ],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.2.26",
+          "quote": "rce SSH login on host with IP 10.0.2.26 using technique (Brute Force)"
+        },
+        {
+          "kind": "time",
+          "value": "14:07",
+          "quote": "mpt from July 14th to 14th at 14:07 UTC, involving one username a"
+        },
+        {
+          "kind": "quantity",
+          "value": "1",
+          "quote": "14th at 14:07 UTC, involving one username and source IP address."
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Carol attempted a brute force SSH login on host with IP 10.0.2.26 using technique (Brute Force), indicating an attack attempt from July 14th to 14th at 14:07 UTC, involving one username and source IP address."
+    },
+    {
+      "incident_id": 14,
+      "grounded_arm": true,
+      "seconds": 0.8,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.2.171",
+          "quote": "ute force login on user carol@10.0.2.171 from IP address 10.0.2.171 at"
+        },
+        {
+          "kind": "ip",
+          "value": "10.0.2.171",
+          "quote": "ol@10.0.2.171 from IP address 10.0.2.171 at 16:20:00 UTC, indicating p"
+        },
+        {
+          "kind": "time",
+          "value": "16:20:00",
+          "quote": "from IP address 10.0.2.171 at 16:20:00 UTC, indicating potential Cre"
+        },
+        {
+          "kind": "user",
+          "value": "carol",
+          "quote": "empted a brute force login on user carol@10.0.2.171 from IP address 10"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Carol attempted a brute force login on user carol@10.0.2.171 from IP address 10.0.2.171 at 16:20:00 UTC, indicating potential Credential Access attack activity."
+    },
+    {
+      "incident_id": 15,
+      "grounded_arm": false,
+      "seconds": 0.56,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [],
+      "ungrounded": [],
+      "narrative": "Carol initiated Session 56 at a single source IP without distinct anomalous behavior or techniques indicative of an attack on July 14, 2 end time."
+    },
+    {
+      "incident_id": 16,
+      "grounded_arm": true,
+      "seconds": 0.55,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.3.141",
+          "quote": "rce SSH login on host with IP 10.0.3.141 as an indicator of potential"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Dave attempted a brute force SSH login on host with IP 10.0.3.141 as an indicator of potential Credential Access attack activity."
+    },
+    {
+      "incident_id": 17,
+      "grounded_arm": true,
+      "seconds": 0.59,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.0.58",
+          "quote": "own account using IP address 10.0.0.58 at exactly one instance in ti"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Alice attempted a brute force SSH login on her own account using IP address 10.0.0.58 at exactly one instance in time which indicates an attack activity."
+    },
+    {
+      "incident_id": 18,
+      "grounded_arm": false,
+      "seconds": 0.5,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [],
+      "ungrounded": [],
+      "narrative": "Dave initiated Session 58 at a single source IP without distinct patterns suggesting an attack on July 14, 2026."
+    },
+    {
+      "incident_id": 19,
+      "grounded_arm": false,
+      "seconds": 0.71,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "11:46 PM",
+          "quote": "At 11:46 PM on July 14th, a system admini"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At 11:46 PM on July 14th, a system administrator reloaded the manager configuration; this appears to be routine activity as there are no distinct usernames or source IPs involved and no ATT&CK techniques matched."
+    },
+    {
+      "incident_id": 20,
+      "grounded_arm": false,
+      "seconds": 0.56,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [],
+      "ungrounded": [],
+      "narrative": "Carol initiated Session 51 at an unspecified source IP without matching ATT&CK techniques indicating routine activity on July 15, 2026."
+    },
+    {
+      "incident_id": 21,
+      "grounded_arm": false,
+      "seconds": 0.8,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "04:32",
+          "quote": "At 04:32 on July 15, 2026, a system ma"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At 04:32 on July 15, 2026, a system manager configuration was reloaded from an unspecified source without distinct usernames or IPs involved; this appears to be routine activity as no ATT&CK techniques matched the incident."
+    },
+    {
+      "incident_id": 22,
+      "grounded_arm": false,
+      "seconds": 0.67,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "05:47",
+          "quote": "At 05:47 on July 15, 2026, a system ma"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At 05:47 on July 15, 2026, a system manager configuration was reloaded without distinct usernames or source IPs involved, resembling routine activity rather than an attack."
+    },
+    {
+      "incident_id": 23,
+      "grounded_arm": false,
+      "seconds": 0.67,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "05:55",
+          "quote": "At 05:55 on July 15, 2026, a system ma"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At 05:55 on July 15, 2026, a system manager configuration was reloaded without distinct usernames or source IPs involved, suggesting routine activity rather than an attack."
+    },
+    {
+      "incident_id": 24,
+      "grounded_arm": true,
+      "seconds": 0.68,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.2.78",
+          "quote": "ly 15, 2026, using IP address 10.0.2.78; this activity resembles an a"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Carol attempted a brute force login on July 15, 2026, using IP address 10.0.2.78; this activity resembles an attack rather than routine behavior."
+    },
+    {
+      "incident_id": 25,
+      "grounded_arm": true,
+      "seconds": 0.85,
+      "faithful": true,
+      "dropped": [
+        "T1110"
+      ],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.1.44",
+          "quote": "e force login on host with IP 10.0.1.44 at 2026-07-15 08:03:00, indic"
+        },
+        {
+          "kind": "time",
+          "value": "2026-07-15 08:03:00",
+          "quote": "on host with IP 10.0.1.44 at 2026-07-15 08:03:00, indicating an attack attempt"
+        },
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "User bob attempted a brute force login"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "User bob attempted a brute force login on host with IP 10.0.1.44 at 2026-07-15 08:03:00, indicating an attack attempt rather than routine activity."
+    },
+    {
+      "incident_id": 26,
+      "grounded_arm": true,
+      "seconds": 0.94,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [],
+      "ungrounded": [],
+      "narrative": "On July 15, 2026, admin's account was successfully authenticated via SSH from an implausible source IP and then failed to log in shortly after with a different user; this pattern suggests potential credential misuse or brute force attack rather than routine activity."
+    },
+    {
+      "incident_id": 27,
+      "grounded_arm": true,
+      "seconds": 1.0,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "10:17 AM",
+          "quote": "Between July 15th at 10:17 AM and 26 seconds, six users (ft"
+        },
+        {
+          "kind": "quantity",
+          "value": "26",
+          "quote": "een July 15th at 10:17 AM and 26 seconds, six users (ftpuser to suppor"
+        },
+        {
+          "kind": "quantity",
+          "value": "6",
+          "quote": "h at 10:17 AM and 26 seconds, six users (ftpuser to support) on a sin"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Between July 15th at 10:17 AM and 26 seconds, six users (ftpuser to support) on a single source IP attempted failed password entries for various accounts via SSH brute force technique indicative of an attack attempt against credential access."
+    },
+    {
+      "incident_id": 28,
+      "grounded_arm": false,
+      "seconds": 0.74,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "10:36 AM",
+          "quote": "At 10:36 AM on July 15th, a system manage"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At 10:36 AM on July 15th, a system manager configuration was reloaded with no distinct usernames or source IPs involved and without matching ATT&CK techniques indicating routine activity."
+    },
+    {
+      "incident_id": 29,
+      "grounded_arm": true,
+      "seconds": 0.67,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.3.88",
+          "quote": "rce SSH login on host with IP 10.0.3.88 using username 'dave', indica"
+        },
+        {
+          "kind": "user",
+          "value": "dave",
+          "quote": "host with IP 10.0.3.88 using username 'dave', indicating potential Credent"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Dave attempted a brute force SSH login on host with IP 10.0.3.88 using username 'dave', indicating potential Credential Access attack behavior as per MITRE ATT&CK framework."
+    },
+    {
+      "incident_id": 30,
+      "grounded_arm": false,
+      "seconds": 0.57,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "1:21 PM",
+          "quote": "At 1:21 PM on July 15th, a system manage"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At 1:21 PM on July 15th, a system manager configuration was reloaded without distinct usernames or source IPs involved, suggesting routine activity rather than an attack."
+    },
+    {
+      "incident_id": 31,
+      "grounded_arm": true,
+      "seconds": 0.82,
+      "faithful": false,
+      "dropped": [
+        "T1110"
+      ],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.0.167",
+          "quote": "her account using IP address 10.0.0.167 between 2:07 and 2:07 PM on J"
+        },
+        {
+          "kind": "time",
+          "value": "2:07",
+          "quote": "IP address 10.0.0.167 between 2:07 and 2:07 PM on July 15th, ind"
+        },
+        {
+          "kind": "time",
+          "value": "2:07 PM",
+          "quote": "s 10.0.0.167 between 2:07 and 2:07 PM on July 15th, indicating an a"
+        }
+      ],
+      "ungrounded": [
+        {
+          "kind": "time",
+          "value": "2:07",
+          "quote": "IP address 10.0.0.167 between 2:07 and 2:07 PM on July 15th, ind"
+        }
+      ],
+      "narrative": "Alice attempted a brute force login on her account using IP address 10.0.0.167 between 2:07 and 2:07 PM on July 15th, indicating an attack attempt based on technique (Brute Force)."
+    },
+    {
+      "incident_id": 32,
+      "grounded_arm": true,
+      "seconds": 0.72,
+      "faithful": true,
+      "dropped": [
+        "T1110"
+      ],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.3.188",
+          "quote": "brute force SSH login on host 10.0.3.188 at 15:08:00 using technique ("
+        },
+        {
+          "kind": "time",
+          "value": "15:08:00",
+          "quote": "H login on host 10.0.3.188 at 15:08:00 using technique (Brute Force)"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Dave attempted a brute force SSH login on host 10.0.3.188 at 15:08:00 using technique (Brute Force), indicating an attack attempt rather than routine activity."
+    },
+    {
+      "incident_id": 33,
+      "grounded_arm": false,
+      "seconds": 0.75,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [],
+      "ungrounded": [],
+      "narrative": "At 15:09:0 end of day on July 15th, system manager configuration was reloaded without distinct usernames or source IPs involved; appears to be routine activity as it matched no ATT&CK techniques for an attack."
+    },
+    {
+      "incident_id": 34,
+      "grounded_arm": true,
+      "seconds": 0.92,
+      "faithful": true,
+      "dropped": [
+        "T1110"
+      ],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.1.143",
+          "quote": "login on host with IP address 10.0.1.143 between July 15th from 3:11 P"
+        },
+        {
+          "kind": "time",
+          "value": "3:11 PM",
+          "quote": ".1.143 between July 15th from 3:11 PM to 3:25 PM; this activity ali"
+        },
+        {
+          "kind": "time",
+          "value": "3:25 PM",
+          "quote": "een July 15th from 3:11 PM to 3:25 PM; this activity aligns with MI"
+        },
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "User bob attempted a brute force login"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "User bob attempted a brute force login on host with IP address 10.0.1.143 between July 15th from 3:11 PM to 3:25 PM; this activity aligns with MITRE ATT&CK technique (Brute Force)."
+    },
+    {
+      "incident_id": 35,
+      "grounded_arm": true,
+      "seconds": 0.73,
+      "faithful": false,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.2.171",
+          "quote": "ol's account using IP address 10.0.2.171 at exactly 5:44 AM EDT on Jul"
+        },
+        {
+          "kind": "time",
+          "value": "5:44 AM",
+          "quote": "address 10.0.2.171 at exactly 5:44 AM EDT on July 15th, indicating"
+        }
+      ],
+      "ungrounded": [
+        {
+          "kind": "time",
+          "value": "5:44 AM",
+          "quote": "address 10.0.2.171 at exactly 5:44 AM EDT on July 15th, indicating"
+        }
+      ],
+      "narrative": "Carol attempted a brute force login on Carol's account using IP address 10.0.2.171 at exactly 5:44 AM EDT on July 15th, indicating potential Credential Access attack activity."
+    },
+    {
+      "incident_id": 36,
+      "grounded_arm": false,
+      "seconds": 0.75,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "18:30",
+          "quote": "Dave initiated session 53 at 18:30 on July 15th, 2026; this appe"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Dave initiated session 53 at 18:30 on July 15th, 2026; this appears to be routine activity as there are no matching MITRE ATT&CK techniques and source IPs were not distinctive."
+    },
+    {
+      "incident_id": 37,
+      "grounded_arm": true,
+      "seconds": 1.04,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "203.0.113.116",
+          "quote": "gged into SSH on host with IP 203.0.113.116 from a geographically implaus"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Admin user successfully logged into SSH on host with IP 203.0.113.116 from a geographically implausible location within minutes of prior login attempt; appears to be an attack based on impossible-travel physics check and MITRE ATT&CK techniques indicative of lateral movement and privilege escalation."
+    },
+    {
+      "incident_id": 38,
+      "grounded_arm": false,
+      "seconds": 0.73,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "On July 15, 2026, user bob initiated Session 9 without d"
+        },
+        {
+          "kind": "quantity",
+          "value": "9",
+          "quote": "6, user bob initiated Session 9 without distinct source IPs from a single device; act"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "On July 15, 2026, user bob initiated Session 9 without distinct source IPs from a single device; activity appears routine with no immediate attack indicators based on MITRE ATT&CK techniques grounding lookup."
+    },
+    {
+      "incident_id": 39,
+      "grounded_arm": true,
+      "seconds": 3.0,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "172.16.5.22",
+          "quote": "port 64013 ssh2 at source IP 172.16.5.22 between July 16th and 20th, 2"
+        },
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "User bob attempted failed password bru"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "User bob attempted failed password brute force on port 64013 ssh2 at source IP 172.16.5.22 between July 16th and 20th, 2026; this indicates a credential access attack attempt with subsequent privilege escalation actions suggesting malicious intent beyond routine activity."
+    },
+    {
+      "incident_id": 40,
+      "grounded_arm": false,
+      "seconds": 2.4,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "04:34 AM",
+          "quote": "At 04:34 AM on July 16th, a system manage"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At 04:34 AM on July 16th, a system manager configuration was reloaded without distinct usernames or source IPs involved, suggesting routine activity rather than an attack."
+    },
+    {
+      "incident_id": 41,
+      "grounded_arm": false,
+      "seconds": 2.55,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "User bob initiated session 35 at an un"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "User bob initiated session 35 at an unspecified source IP without matching ATT&CK techniques indicating routine activity on July 16, 2026."
+    },
+    {
+      "incident_id": 42,
+      "grounded_arm": false,
+      "seconds": 0.63,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [],
+      "ungrounded": [],
+      "narrative": "At 05:52:0 end of day on July 16th, system manager configuration was reloaded without distinct usernames or source IPs involved, resembling routine activity rather than an attack."
+    },
+    {
+      "incident_id": 43,
+      "grounded_arm": false,
+      "seconds": 0.73,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "06:39",
+          "quote": "At 06:39 on July 16, 2026, an anomalou"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At 06:39 on July 16, 2026, an anomalous reload of system manager configuration occurred without distinct usernames or source IPs involved and does not appear to be malicious activity based solely on this incident summary."
+    },
+    {
+      "incident_id": 44,
+      "grounded_arm": true,
+      "seconds": 1.02,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "203.0.113.118",
+          "quote": "pt on port 58201 at source IP 203.0.113.118 from a geographically implaus"
+        },
+        {
+          "kind": "quantity",
+          "value": "58201",
+          "quote": "an SSH login attempt on port 58201 at source IP 203.0.113.118 from a geogr"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Carol accepted her password for an SSH login attempt on port 58201 at source IP 203.0.113.118 from a geographically implausible location within minutes of prior access, suggesting potential lateral movement and privilege escalation in an attack scenario based on impossible-travel physics checks."
+    },
+    {
+      "incident_id": 45,
+      "grounded_arm": true,
+      "seconds": 0.87,
+      "faithful": true,
+      "dropped": [
+        "T1110"
+      ],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.1.153",
+          "quote": "e force login on host with IP 10.0.1.153 using SSH and was unsuccessfu"
+        },
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "User bob attempted a brute force login"
+        },
+        {
+          "kind": "quantity",
+          "value": "1",
+          "quote": "H and was unsuccessful within one minute of activity. This appears to"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "User bob attempted a brute force login on host with IP 10.0.1.153 using SSH and was unsuccessful within one minute of activity. This appears to be an attack rather than routine behavior due to the distinct username involved in repeated failed attempts."
+    },
+    {
+      "incident_id": 46,
+      "grounded_arm": true,
+      "seconds": 0.85,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.2.159",
+          "quote": "e force login on host with IP 10.0.2.159 using SSH but was unsuccessfu"
+        },
+        {
+          "kind": "time",
+          "value": "09:25:00",
+          "quote": "within one failed attempt at 09:25:00 on July 16, 2026, suggesting"
+        },
+        {
+          "kind": "quantity",
+          "value": "1",
+          "quote": "H but was unsuccessful within one failed attempt at 09:25:00 on July 1"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Carol attempted a brute force login on host with IP 10.0.2.159 using SSH but was unsuccessful within one failed attempt at 09:25:00 on July 16, 2026, suggesting potential credential access attack behavior."
+    },
+    {
+      "incident_id": 47,
+      "grounded_arm": false,
+      "seconds": 0.54,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [],
+      "ungrounded": [],
+      "narrative": "Alice initiated Session 26 at an unspecified source IP without matching ATT&CK techniques indicating routine activity on July 16, 2026."
+    },
+    {
+      "incident_id": 48,
+      "grounded_arm": true,
+      "seconds": 0.62,
+      "faithful": true,
+      "dropped": [
+        "T1110"
+      ],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.2.70",
+          "quote": "login on host with IP address 10.0.2.70 using technique (Brute Force)"
+        },
+        {
+          "kind": "user",
+          "value": "Carol",
+          "quote": "User Carol attempted a brute force SSH l"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "User Carol attempted a brute force SSH login on host with IP address 10.0.2.70 using technique (Brute Force), indicating potential Credential Access attack activity."
+    },
+    {
+      "incident_id": 49,
+      "grounded_arm": true,
+      "seconds": 0.5,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.10.71",
+          "quote": "ted SSH login on host with IP 10.0.10.71 using brute force method; lik"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Admin user attempted SSH login on host with IP 10.0.10.71 using brute force method; likely a credential access attack."
+    },
+    {
+      "incident_id": 50,
+      "grounded_arm": false,
+      "seconds": 0.58,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [],
+      "ungrounded": [],
+      "narrative": "On July 16, 2026, multiple users simultaneously reloaded system manager configuration without distinct source IPs or usernames involved, which may indicate routine activity rather than an attack."
+    },
+    {
+      "incident_id": 51,
+      "grounded_arm": false,
+      "seconds": 0.54,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [],
+      "ungrounded": [],
+      "narrative": "Carol initiated Session 57 at an unspecified source IP without matching ATT&CK techniques indicating routine activity on July 16, 2026."
+    },
+    {
+      "incident_id": 52,
+      "grounded_arm": true,
+      "seconds": 0.75,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.3.186",
+          "quote": "login on host with IP address 10.0.3.186 using SSH protocol at exactly"
+        },
+        {
+          "kind": "user",
+          "value": "dave",
+          "quote": "User dave attempted a brute force login"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "User dave attempted a brute force login on host with IP address 10.0.3.186 using SSH protocol at exactly one timestamp and was likely engaging in Credential Access activity as per MITRE ATT&CK framework guidelines."
+    },
+    {
+      "incident_id": 53,
+      "grounded_arm": false,
+      "seconds": 0.71,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "17:34",
+          "quote": "At 17:34 on July 16, 2026, a system ma"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At 17:34 on July 16, 2026, a system manager configuration was reloaded from an unspecified location with unknown user involvement and source IPs; this appears routine as it matches no known attack patterns."
+    },
+    {
+      "incident_id": 54,
+      "grounded_arm": false,
+      "seconds": 0.53,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [],
+      "ungrounded": [],
+      "narrative": "Carol initiated Session 42 at an unspecified source IP without matching ATT&CK techniques indicating routine activity on July 16, 2026."
+    },
+    {
+      "incident_id": 55,
+      "grounded_arm": true,
+      "seconds": 0.84,
+      "faithful": true,
+      "dropped": [
+        "T1110"
+      ],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.3.190",
+          "quote": "ogin on ssh2 using IP address 10.0.3.190 at exactly one timestamped ev"
+        },
+        {
+          "kind": "quantity",
+          "value": "1",
+          "quote": "address 10.0.3.190 at exactly one timestamped event; this behavior aligns with (B"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Dave attempted a brute force login on ssh2 using IP address 10.0.3.190 at exactly one timestamped event; this behavior aligns with (Brute Force) - Credential Access technique indicative of an attack attempt, not routine activity."
+    },
+    {
+      "incident_id": 56,
+      "grounded_arm": true,
+      "seconds": 0.75,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.2.37",
+          "quote": "her account using IP address 10.0.2.37 at exactly 19:09:00 on July 1"
+        },
+        {
+          "kind": "time",
+          "value": "19:09:00",
+          "quote": "address 10.0.2.37 at exactly 19:09:00 on July 16, 2026, indicating"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Carol attempted a brute force login on her account using IP address 10.0.2.37 at exactly 19:09:00 on July 16, 2026, indicating potential credential access attack activity."
+    },
+    {
+      "incident_id": 57,
+      "grounded_arm": true,
+      "seconds": 0.71,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.1.133",
+          "quote": "login on host with IP address 10.0.1.133 using SSH but was unsuccessfu"
+        },
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "User bob attempted brute force login o"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "User bob attempted brute force login on host with IP address 10.0.1.133 using SSH but was unsuccessful; this behavior aligns more closely with routine activity than an attack based solely on these events."
+    },
+    {
+      "incident_id": 58,
+      "grounded_arm": false,
+      "seconds": 0.62,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "05:46",
+          "quote": "At 05:46 on July 17, 2026, system mana"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At 05:46 on July 17, 2026, system manager configuration was reloaded without distinct usernames or source IPs involved, suggesting routine activity rather than an attack."
+    },
+    {
+      "incident_id": 59,
+      "grounded_arm": false,
+      "seconds": 0.54,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [],
+      "ungrounded": [],
+      "narrative": "Dave initiated session 22 at an unspecified source IP without matching ATT&CK techniques indicating routine activity on July 17, 2026."
+    },
+    {
+      "incident_id": 60,
+      "grounded_arm": true,
+      "seconds": 0.98,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.10.115",
+          "quote": "ted SSH login on host with IP 10.0.10.115 using brute force technique b"
+        },
+        {
+          "kind": "time",
+          "value": "2026-07-17 09:04:00",
+          "quote": "brute force technique between 2026-07-17 09:04:00 and 2026-07-17 09:04:00, indi"
+        },
+        {
+          "kind": "time",
+          "value": "2026-07-17 09:04:00",
+          "quote": "tween 2026-07-17 09:04:00 and 2026-07-17 09:04:00, indicating a credential acce"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Admin user attempted SSH login on host with IP 10.0.10.115 using brute force technique between 2026-07-17 09:04:00 and 2026-07-17 09:04:00, indicating a credential access attack attempt."
+    },
+    {
+      "incident_id": 61,
+      "grounded_arm": false,
+      "seconds": 0.75,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "09:38",
+          "quote": "At 09:38 on July 17, 2026, an anomalou"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At 09:38 on July 17, 2026, an anomalous reload of system manager configuration occurred without distinct usernames or source IPs involved and did not match any ATT&CK techniques; it appears to be routine activity."
+    },
+    {
+      "incident_id": 62,
+      "grounded_arm": true,
+      "seconds": 0.87,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.10.131",
+          "quote": "e force login from IP address 10.0.10.131 to SSH port 59919 and was lik"
+        },
+        {
+          "kind": "user",
+          "value": "admin",
+          "quote": "On July 17, 2026, user \"admin\" attempted a brute force login"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "On July 17, 2026, user \"admin\" attempted a brute force login from IP address 10.0.10.131 to SSH port 59919 and was likely targeting Credential Access as per MITRE ATT&CK techniques."
+    },
+    {
+      "incident_id": 63,
+      "grounded_arm": true,
+      "seconds": 1.02,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.3.87",
+          "quote": "login on host with IP address 10.0.3.87 between 2026-07-17 12:26:00 a"
+        },
+        {
+          "kind": "time",
+          "value": "2026-07-17 12:26:00",
+          "quote": "IP address 10.0.3.87 between 2026-07-17 12:26:00 and 2026-07-17 12:26:00, indi"
+        },
+        {
+          "kind": "time",
+          "value": "2026-07-17 12:26:00",
+          "quote": "tween 2026-07-17 12:26:00 and 2026-07-17 12:26:00, indicating a potential Crede"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Dave attempted a brute force SSH login on host with IP address 10.0.3.87 between 2026-07-17 12:26:00 and 2026-07-17 12:26:00, indicating a potential Credential Access attack using technique T111"
+    },
+    {
+      "incident_id": 64,
+      "grounded_arm": true,
+      "seconds": 0.78,
+      "faithful": true,
+      "dropped": [
+        "T1110"
+      ],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.1.101",
+          "quote": "rce SSH login on host with IP 10.0.1.101 from unauthorized source at t"
+        },
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "User bob attempted a brute force SSH l"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "User bob attempted a brute force SSH login on host with IP 10.0.1.101 from unauthorized source at that time slot. This looks like an attack activity rather than routine use of the system."
+    },
+    {
+      "incident_id": 65,
+      "grounded_arm": true,
+      "seconds": 0.82,
+      "faithful": true,
+      "dropped": [
+        "T1110"
+      ],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.10.144",
+          "quote": "tempted SSH brute force on IP 10.0.10.144 with failed password for admi"
+        },
+        {
+          "kind": "time",
+          "value": "2026-07-17 13:26:00",
+          "quote": "failed password for admin at 2026-07-17 13:26:00 indicating a potential Creden"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Admin user attempted SSH brute force on IP 10.0.10.144 with failed password for admin at 2026-07-17 13:26:00 indicating a potential Credential Access attack using technique."
+    },
+    {
+      "incident_id": 66,
+      "grounded_arm": false,
+      "seconds": 0.63,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "2:22 PM",
+          "quote": "ssion 25 on July 17, 2026, at 2:22 PM from an unspecified source; a"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Carol initiated session 25 on July 17, 2026, at 2:22 PM from an unspecified source; activity appears routine without matching ATT&CK techniques."
+    },
+    {
+      "incident_id": 67,
+      "grounded_arm": false,
+      "seconds": 0.69,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "14:43",
+          "quote": "At 14:43 on July 17, 2026, an anomaly"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At 14:43 on July 17, 2026, an anomaly occurred when a system manager configuration was reloaded without distinct usernames or source IPs involved, suggesting routine activity rather than an attack."
+    },
+    {
+      "incident_id": 68,
+      "grounded_arm": false,
+      "seconds": 0.56,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [],
+      "ungrounded": [],
+      "narrative": "Dave initiated Session 58 at a single source IP with no distinct anomalies or ATT&CK techniques indicating an attack; appears to be routine activity."
+    },
+    {
+      "incident_id": 69,
+      "grounded_arm": true,
+      "seconds": 0.77,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.2.71",
+          "quote": "rce SSH login on host with IP 10.0.2.71 from her own account between"
+        },
+        {
+          "kind": "time",
+          "value": "3:45pm",
+          "quote": "from her own account between 3:45pm and 3:45pm; this is indicativ"
+        },
+        {
+          "kind": "time",
+          "value": "3:45pm",
+          "quote": "wn account between 3:45pm and 3:45pm; this is indicative of an att"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Carol attempted a brute force SSH login on host with IP 10.0.2.71 from her own account between 3:45pm and 3:45pm; this is indicative of an attack, not routine activity."
+    },
+    {
+      "incident_id": 70,
+      "grounded_arm": true,
+      "seconds": 0.86,
+      "faithful": true,
+      "dropped": [
+        "T1110"
+      ],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.10.84",
+          "quote": "gin using brute force on host 10.0.10.84 at 17:12:00 JUL-17-2026 (Tech"
+        },
+        {
+          "kind": "time",
+          "value": "17:12:00",
+          "quote": "e force on host 10.0.10.84 at 17:12:00 JUL-17-2026 (Technique. Looks"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Admin user attempted SSH login using brute force on host 10.0.10.84 at 17:12:00 JUL-17-2026 (Technique. Looks like an attack, not routine activity."
+    },
+    {
+      "incident_id": 71,
+      "grounded_arm": true,
+      "seconds": 0.71,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.2.93",
+          "quote": "rute force login on source IP 10.0.2.93 at exactly one point in time"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Carol attempted a brute force login on source IP 10.0.2.93 at exactly one point in time during normal business hours without immediate follow-up actions suggesting routine activity or escalation of threat level."
+    },
+    {
+      "incident_id": 72,
+      "grounded_arm": false,
+      "seconds": 0.55,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [],
+      "ungrounded": [],
+      "narrative": "Carol initiated Session 85 at an unspecified source IP without matching ATT&CK techniques indicating routine activity on July 17, 2026."
+    },
+    {
+      "incident_id": 73,
+      "grounded_arm": false,
+      "seconds": 0.76,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [],
+      "ungrounded": [],
+      "narrative": "Admin user initiated session 42 at an unspecified source IP on July 17, 2026; without a grounded ATT&CK match or distinctive behavior to suggest routine activity, this requires further investigation for potential anomalous intent."
+    },
+    {
+      "incident_id": 74,
+      "grounded_arm": false,
+      "seconds": 0.68,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [],
+      "ungrounded": [],
+      "narrative": "At 00:31:0 end of day on July 18th, multiple users reloaded system manager configuration from an unspecified source; grounded techniques inconclusive for attack or routine activity assessment."
+    },
+    {
+      "incident_id": 75,
+      "grounded_arm": false,
+      "seconds": 0.6,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "quantity",
+          "value": "7",
+          "quote": "Bob initiated Session 7 of his user account at a single source IP"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Bob initiated Session 7 of his user account at a single source IP without indications of an attack technique from MITRE ATT&CK grounded lookup; appears to be routine activity."
+    },
+    {
+      "incident_id": 76,
+      "grounded_arm": false,
+      "seconds": 0.8,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [],
+      "ungrounded": [],
+      "narrative": "At 03:44:0 end of day on July 18, 2026, an anomalous event occurred where system manager configuration was reloaded without distinct usernames or source IPs involved, resembling routine activity rather than a security incident."
+    },
+    {
+      "incident_id": 77,
+      "grounded_arm": true,
+      "seconds": 0.54,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "quantity",
+          "value": "2",
+          "quote": "ed SSH brute force attacks on two different source IPs within a short timeframe,"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Carol attempted SSH brute force attacks on two different source IPs within a short timeframe, indicating suspicious activity potentially related to credential access attempts."
+    },
+    {
+      "incident_id": 78,
+      "grounded_arm": true,
+      "seconds": 0.67,
+      "faithful": true,
+      "dropped": [
+        "T1110"
+      ],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.10.247",
+          "quote": "SSH brute force on IP address 10.0.10.247 using technique (Brute Force)"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Admin user attempted SSH brute force on IP address 10.0.10.247 using technique (Brute Force). This looks like an attack rather than routine activity."
+    },
+    {
+      "incident_id": 79,
+      "grounded_arm": true,
+      "seconds": 0.8,
+      "faithful": true,
+      "dropped": [
+        "T1110"
+      ],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.3.113",
+          "quote": "e force login on host with IP 10.0.3.113 from outside the network at 1"
+        },
+        {
+          "kind": "time",
+          "value": "10:17 AM",
+          "quote": "3 from outside the network at 10:17 AM local time. This behavior sug"
+        },
+        {
+          "kind": "user",
+          "value": "dave",
+          "quote": "User dave attempted a brute force login"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "User dave attempted a brute force login on host with IP 10.0.3.113 from outside the network at 10:17 AM local time. This behavior suggests an attack rather than routine activity."
+    },
+    {
+      "incident_id": 80,
+      "grounded_arm": true,
+      "seconds": 0.73,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.1.224",
+          "quote": "login on host with IP address 10.0.1.224 at exactly 10:57 AM and faile"
+        },
+        {
+          "kind": "time",
+          "value": "10:57 AM",
+          "quote": "address 10.0.1.224 at exactly 10:57 AM and failed; this behavior is"
+        },
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "User bob attempted a brute force SSH l"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "User bob attempted a brute force SSH login on host with IP address 10.0.1.224 at exactly 10:57 AM and failed; this behavior is indicative of an attack rather than routine activity."
+    },
+    {
+      "incident_id": 81,
+      "grounded_arm": true,
+      "seconds": 0.83,
+      "faithful": true,
+      "dropped": [
+        "T1110"
+      ],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.1.241",
+          "quote": "rce SSH login on host with IP 10.0.1.241 at timestamp 2026-07-18 13:41"
+        },
+        {
+          "kind": "time",
+          "value": "2026-07-18 13:41:00",
+          "quote": "th IP 10.0.1.241 at timestamp 2026-07-18 13:41:00 using technique (Brute Force)"
+        },
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "User bob attempted a brute force SSH l"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "User bob attempted a brute force SSH login on host with IP 10.0.1.241 at timestamp 2026-07-18 13:41:00 using technique (Brute Force)."
+    },
+    {
+      "incident_id": 82,
+      "grounded_arm": true,
+      "seconds": 1.05,
+      "faithful": false,
+      "dropped": [
+        "T1110"
+      ],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.0.149",
+          "quote": "login on host with IP address 10.0.0.149 using username alice at preci"
+        },
+        {
+          "kind": "time",
+          "value": "2:37:00 PM",
+          "quote": "g username alice at precisely 2:37:00 PM local time on July 18th, whic"
+        },
+        {
+          "kind": "user",
+          "value": "alice",
+          "quote": "h IP address 10.0.0.149 using username alice at precisely 2:37:00 PM local"
+        }
+      ],
+      "ungrounded": [
+        {
+          "kind": "time",
+          "value": "2:37:00 PM",
+          "quote": "g username alice at precisely 2:37:00 PM local time on July 18th, whic"
+        }
+      ],
+      "narrative": "Alice attempted a brute force SSH login on host with IP address 10.0.0.149 using username alice at precisely 2:37:00 PM local time on July 18th, which aligns with MITRE ATT&CK technique (Brute Force) - Credential Access indicative of an attack"
+    },
+    {
+      "incident_id": 83,
+      "grounded_arm": false,
+      "seconds": 0.78,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "14:31",
+          "quote": "At 14:31 on July 18, 2026, a system ma"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At 14:31 on July 18, 2026, a system manager configuration was reloaded from an unspecified location by unknown users or entities; this activity appears routine without clear indicators of malicious intent based solely on the provided log."
+    },
+    {
+      "incident_id": 84,
+      "grounded_arm": true,
+      "seconds": 0.73,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.0.216",
+          "quote": "her account using IP address 10.0.0.216 at exactly 3:02 PM UTC on Jul"
+        },
+        {
+          "kind": "time",
+          "value": "3:02 PM",
+          "quote": "address 10.0.0.216 at exactly 3:02 PM UTC on July 18, 2026, indicat"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Alice attempted a brute force login on her account using IP address 10.0.0.216 at exactly 3:02 PM UTC on July 18, 2026, indicating potential credential access attack activity."
+    },
+    {
+      "incident_id": 85,
+      "grounded_arm": true,
+      "seconds": 0.68,
+      "faithful": true,
+      "dropped": [
+        "T1110"
+      ],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.1.102",
+          "quote": "rce SSH login on host with IP 10.0.1.102 from location at that timesta"
+        },
+        {
+          "kind": "user",
+          "value": "bob",
+          "quote": "User bob attempted a brute force SSH l"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "User bob attempted a brute force SSH login on host with IP 10.0.1.102 from location at that timestamp without further context indicating routine activity or attack certainty."
+    },
+    {
+      "incident_id": 86,
+      "grounded_arm": true,
+      "seconds": 0.69,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.0.180",
+          "quote": "her account using IP address 10.0.0.180 at exactly 3:52 PM UTC on Jul"
+        },
+        {
+          "kind": "time",
+          "value": "3:52 PM",
+          "quote": "address 10.0.0.180 at exactly 3:52 PM UTC on July 18th, indicating"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Alice attempted a brute force login on her account using IP address 10.0.0.180 at exactly 3:52 PM UTC on July 18th, indicating potential credential access attack behavior."
+    },
+    {
+      "incident_id": 87,
+      "grounded_arm": false,
+      "seconds": 0.74,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "time",
+          "value": "16:28",
+          "quote": "At 16:28 on July 18, 2026, a system ma"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "At 16:28 on July 18, 2026, a system manager configuration was reloaded with no distinct usernames or source IPs involved and without matching ATT&CK techniques indicating routine activity rather than an attack."
+    },
+    {
+      "incident_id": 88,
+      "grounded_arm": true,
+      "seconds": 0.51,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.10.166",
+          "quote": "ted SSH login on host with IP 10.0.10.166 using brute force technique;"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Admin user attempted SSH login on host with IP 10.0.10.166 using brute force technique; likely a credential access attack."
+    },
+    {
+      "incident_id": 89,
+      "grounded_arm": true,
+      "seconds": 0.48,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [],
+      "ungrounded": [],
+      "narrative": "Dave experienced failed SSH brute force login attempts on both IPs within a short timeframe, indicating an attack attempt rather than routine activity."
+    },
+    {
+      "incident_id": 90,
+      "grounded_arm": true,
+      "seconds": 0.74,
+      "faithful": true,
+      "dropped": [
+        "T1110"
+      ],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.10.213",
+          "quote": "SSH brute force on IP address 10.0.10.213 at exactly one timestamp; thi"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Admin user attempted SSH brute force on IP address 10.0.10.213 at exactly one timestamp; this looks like an attack activity based on MITRE ATT&CK technique (Brute Force)."
+    },
+    {
+      "incident_id": 91,
+      "grounded_arm": true,
+      "seconds": 1.21,
+      "faithful": false,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "203.0.113.224",
+          "quote": "20:22 on host with IP address 203.0.113.224, eight users (backup, deploy,"
+        },
+        {
+          "kind": "time",
+          "value": "20:19",
+          "quote": "Between July 18th at 20:19-20:22 on host with IP address"
+        },
+        {
+          "kind": "time",
+          "value": "20:22",
+          "quote": "Between July 18th at 20:19-20:22 on host with IP address 203.0"
+        },
+        {
+          "kind": "quantity",
+          "value": "8",
+          "quote": "ith IP address 203.0.113.224, eight users (backup, deploy, ftpuser, gue"
+        }
+      ],
+      "ungrounded": [
+        {
+          "kind": "time",
+          "value": "20:22",
+          "quote": "Between July 18th at 20:19-20:22 on host with IP address 203.0"
+        }
+      ],
+      "narrative": "Between July 18th at 20:19-20:22 on host with IP address 203.0.113.224, eight users (backup, deploy, ftpuser, guest, oracle, postgres, root, test) attempted to log in via SSH and failed; this pattern suggests a brute force"
+    },
+    {
+      "incident_id": 92,
+      "grounded_arm": true,
+      "seconds": 0.66,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [
+        {
+          "kind": "ip",
+          "value": "10.0.0.197",
+          "quote": "own account using IP address 10.0.0.197 at exactly one timestamped ev"
+        },
+        {
+          "kind": "quantity",
+          "value": "1",
+          "quote": "address 10.0.0.197 at exactly one timestamped event without further suspicious ac"
+        }
+      ],
+      "ungrounded": [],
+      "narrative": "Alice attempted a brute force SSH login on her own account using IP address 10.0.0.197 at exactly one timestamped event without further suspicious activity indicating an attack attempt."
+    },
+    {
+      "incident_id": 93,
+      "grounded_arm": false,
+      "seconds": 0.79,
+      "faithful": true,
+      "dropped": [],
+      "parse_failed": false,
+      "claims": [],
+      "ungrounded": [],
+      "narrative": "On July 18, 2026, at 21:57:0 end-users reloaded system manager configurations from an unspecified location; this behavior is not immediately indicative of a cyberattack based on MITRE ATT&CK techniques."
+    }
+  ]
+}

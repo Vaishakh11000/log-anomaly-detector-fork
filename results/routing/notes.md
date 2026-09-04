@@ -132,13 +132,52 @@ with the VRAM it costs nothing in speed. Anyone who wants it changes one line
 (`LLM_MODEL`, or just the full tier via `LLM_NARRATIVE_MODEL`) — and then owes
 section 2c a re-measure, because the figures there are phi3's.
 
-## 6. Known cost of the 80-token cap
+## 6. Known cost of the 80-token cap (superseded — see 6b)
 
 **24 of 94 triage lines (26%) are cut mid-sentence**, because the cap ends
 generation rather than the model ending it. A cut line still reads, but it
 stops mid-clause and an analyst scanning the list will see it. Raising the cap
 raises the cost proportionally, which is the whole point of the tier — so this
 is recorded as a measured cost of the setting rather than quietly fixed.
+
+## 6b. The cap was raised, on the sweep in `cap_sweep/`
+
+The 26% above is superseded. Sweeping the cap (`cap_sweep/notes.md`, five arms,
+94 incidents each) reads **19.1% cut at cap 80 and 1.1% at cap 120, for 5% more
+wall clock and no change to the median per-line time**, because the cap is a
+tail control: almost every line finishes well inside 80 tokens and only the long
+ones ever reach it. `LLM_TRIAGE_NUM_PREDICT` is now **120**.
+
+Two things from that sweep belong here rather than only there. Cap 80 measured
+24/94 cut in this session and **18/94 in the sweep on identical settings**, so
+~6 lines is run-to-run noise and the 26% was never a stable figure. And asking
+for a shorter sentence instead ("under 25 words") truncates about as little and
+is faster, but shortens the line 226 → 178 characters and scored below both
+token-capped arms — measured, plumbed (`--triage-max-words`), not adopted.
+
+## 6c. A dropped technique ID is now shown to the analyst
+
+The limit recorded in `results/faithfulness/arms/notes.md` — *"a dropped ID is
+invisible to the reader"* — is closed. `narrate_detail` returns what the
+enforcement removed alongside the text; the pipeline and the API store it as
+`narrative_dropped`, and the dashboard renders it as a rejection:
+
+> ⚠️ The model also cited T1047. Not in this incident's grounded lookup, so it
+> was removed and is **not** claimed by the system.
+
+Named so the claim is auditable, and worded so it can never read as a technique
+the system asserts.
+
+**The two tiers had to be made to mean the same thing first, and the sweep is
+what exposed it.** The triage tier strips *every* ID including grounded ones, so
+its raw `dropped` list is mostly correct IDs — 30 to 37 lines per arm, all
+`T1110`, all grounded. Surfacing that verbatim would have put a warning on every
+incident the model got *right*. `narrate_detail` therefore reports only IDs the
+grounded lookup did not hand over, which is what `dropped` already meant in the
+full tier. Across all five sweep arms that filter leaves **nothing to show**,
+which is the correct outcome and also why this had to be built rather than
+waited for: without it, a future model that does invent one would go unnoticed
+in production exactly as phi3's prose did before the harness existed.
 
 ## 7. What this does not measure
 

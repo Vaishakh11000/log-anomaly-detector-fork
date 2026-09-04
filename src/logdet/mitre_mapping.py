@@ -124,6 +124,11 @@ def describe(technique_id: str, **extra) -> dict:
         "tactic_ids": list(entry.tactic_ids),
         "kill_chain": list(entry.kill_chain),
         "url": entry.url,
+        # ATT&CK's own sentence about the technique, carried so an analyst can
+        # read what a matched ID means without leaving the incident and without
+        # a network. Retrieval, like everything else here: it is quoted from the
+        # pinned bundle, never written by the model.
+        "description": entry.description,
         **extra,
     }
 

@@ -32,6 +32,7 @@ Refresh with `logdet-attack --refresh` after bumping ATTACK_VERSION.
 
 import hashlib
 import json
+import re
 import urllib.request
 from dataclasses import dataclass
 from functools import lru_cache
@@ -82,12 +83,33 @@ class Technique:
     deprecated: bool
     revoked: bool
     url: str
+    description: str = ""            # ATT&CK's own first sentence, not ours
 
     @property
     def tactic(self) -> str:
         """The single display string the incident record and the LLM prompt
         carry. Same shape as the hand-typed strings it replaces, now derived."""
         return " / ".join(self.tactics)
+
+
+_CITATION_RE = re.compile(r"\(Citation:[^)]*\)")
+_MARKDOWN_LINK_RE = re.compile(r"\[([^\]]+)\]\([^)]*\)")
+_SENTENCE_END_RE = re.compile(r"(?<=[.!?])\s+")
+
+
+def summarise(description: str) -> str:
+    """ATT&CK's first sentence, with its citation and link markup removed.
+
+    One sentence rather than the whole description: the full text runs to
+    ~1,600 characters for T1110 alone, and this is displayed beside an
+    incident, not read as documentation -- the technique's `url` is there for
+    that. It is stored verbatim from the bundle and never paraphrased, which is
+    the whole reason it can be shown at all: a model asked to explain a
+    technique in its own words is a model given room to invent one.
+    """
+    text = _MARKDOWN_LINK_RE.sub(r"\1", _CITATION_RE.sub("", description or ""))
+    text = re.sub(r"\s+", " ", text).strip()
+    return _SENTENCE_END_RE.split(text)[0] if text else ""
 
 
 def sha256_of(path: Path) -> str:
@@ -201,6 +223,7 @@ def parse_bundle(bundle_path: Path | None = None) -> dict:
             "deprecated": bool(obj.get("x_mitre_deprecated", False)),
             "revoked": bool(obj.get("revoked", False)),
             "url": _external_url(obj),
+            "description": summarise(obj.get("description", "")),
         }
 
     return {
@@ -277,6 +300,7 @@ def technique(technique_id: str) -> Technique:
         log_sources=tuple(entry["log_sources"]),
         deprecated=entry["deprecated"],
         revoked=entry["revoked"],
+        description=entry.get("description", ""),
         url=entry["url"],
     )
 

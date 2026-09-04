@@ -239,3 +239,63 @@ def test_both_tiers_default_to_one_model_until_a_second_is_measured():
     from logdet.config import LLM_MODEL
     assert LLM_TRIAGE_MODEL == LLM_MODEL
     assert LLM_NARRATIVE_MODEL == LLM_MODEL
+
+
+# --- what the enforcement removed, surfaced to the reader --------------------
+#
+# A dropped ID was recorded in the dataclasses and nowhere else, so an incident
+# where the model tried to cite a technique read exactly like one where it did
+# not. These pin the meaning the dashboard and the API now display: the field
+# holds the IDs the *grounded lookup did not hand over*, in either tier.
+
+def test_narrate_detail_reports_an_id_the_full_tier_validated_away(monkeypatch):
+    monkeypatch.setattr(
+        llm_narrative, "_complete",
+        lambda *a, **k: '{"what_happened": "Repeated failures.", '
+                        '"techniques": ["T1110", "T1047"]}')
+    text, dropped = llm_narrative.narrate_detail(MATCHED, tier="full")
+    assert dropped == ["T1047"]          # T1110 is grounded for this incident
+    assert "T1047" not in text
+
+
+def test_a_grounded_id_stripped_from_a_triage_line_is_not_reported(monkeypatch):
+    """The triage tier strips every ID, so most removals are of correct ones.
+    Reporting those as rejected claims would cry wolf on every incident the
+    model got right."""
+    monkeypatch.setattr(
+        llm_narrative, "_complete",
+        lambda *a, **k: "Repeated failed logins for alice, consistent with T1110.")
+    text, dropped = llm_narrative.narrate_detail(MATCHED, tier="triage")
+    assert "T1110" not in text
+    assert dropped == []
+
+
+def test_an_invented_id_in_a_triage_line_is_reported(monkeypatch):
+    monkeypatch.setattr(
+        llm_narrative, "_complete",
+        lambda *a, **k: "Looks like T1047 activity for alice.")
+    _, dropped = llm_narrative.narrate_detail(MATCHED, tier="triage")
+    assert dropped == ["T1047"]
+
+
+def test_narrate_still_returns_only_text():
+    """Existing callers render a string; the detail form is additive."""
+    assert llm_narrative.narrate.__doc__
+
+
+def test_the_triage_cap_is_the_swept_value_not_the_first_one_tried():
+    """80 cut 19% of lines mid-sentence, 120 cuts 1% for 5% more wall clock
+    (results/routing/cap_sweep/). Lowering it back is a deliberate edit."""
+    assert LLM_TRIAGE_NUM_PREDICT == 120
+
+
+def test_the_word_limit_is_off_because_it_measured_worse():
+    """Measured alternative to raising the cap: it truncates about as little
+    but shortens the line and scored below the token-capped arms."""
+    from logdet.config import TRIAGE_MAX_WORDS
+    assert TRIAGE_MAX_WORDS is None
+
+
+def test_a_word_limit_reaches_the_prompt_only_when_asked_for():
+    assert "words" not in build_triage_prompt(MATCHED)
+    assert "under 25 words" in build_triage_prompt(MATCHED, max_words=25)
