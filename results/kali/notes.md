@@ -75,7 +75,16 @@ generator emits a clean burst of 15–25 `Failed password` lines. So authentic
 brute force presents *less* of the signal the detector keys on — a finding worth
 keeping regardless of the baseline issue.
 
-## The comparable measurement (next step, not done here)
+## The comparable measurement — DONE, see `injected_notes.md`
+
+**Run 2026-09-04, after this file was written: instance detection is 100%
+(15/15) on both scenarios once the captured lines are injected into the real
+OpenSSH benign background.** The reading below predicted the cause correctly and
+the standalone 0%/33% must not be quoted as this detector's score on authentic
+attacks. Full result and its limits: `results/kali/injected_notes.md`, generated
+tables in `results/kali/injected/`.
+
+## The comparable measurement (as it was planned here)
 
 Inject these **authentic captured attack lines** into the real OpenSSH benign
 background — exactly what `corpus_openssh.build_killpoint_corpus` does with

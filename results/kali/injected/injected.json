@@ -1,0 +1,461 @@
+{
+  "seeds": [
+    42,
+    43,
+    44,
+    45,
+    46
+  ],
+  "ambient_ratio": 0.05,
+  "elapsed_seconds": 248.2,
+  "captures": [
+    {
+      "scenario": "A",
+      "instance": 1,
+      "lines": 5,
+      "span_seconds": 5.0,
+      "description": "brute force, 20 attempts via hydra",
+      "source": "/home/shiva/log-anomaly-detector-fork/results/kali/capture/A_1.log"
+    },
+    {
+      "scenario": "A",
+      "instance": 2,
+      "lines": 5,
+      "span_seconds": 5.0,
+      "description": "brute force, 20 attempts via hydra",
+      "source": "/home/shiva/log-anomaly-detector-fork/results/kali/capture/A_2.log"
+    },
+    {
+      "scenario": "A",
+      "instance": 3,
+      "lines": 5,
+      "span_seconds": 4.0,
+      "description": "brute force, 20 attempts via hydra",
+      "source": "/home/shiva/log-anomaly-detector-fork/results/kali/capture/A_3.log"
+    },
+    {
+      "scenario": "C",
+      "instance": 1,
+      "lines": 10,
+      "span_seconds": 0.0,
+      "description": "enumeration of 6 candidate users",
+      "source": "/home/shiva/log-anomaly-detector-fork/results/kali/capture/C_1.log"
+    },
+    {
+      "scenario": "C",
+      "instance": 2,
+      "lines": 6,
+      "span_seconds": 0.0,
+      "description": "enumeration of 6 candidate users",
+      "source": "/home/shiva/log-anomaly-detector-fork/results/kali/capture/C_2.log"
+    },
+    {
+      "scenario": "C",
+      "instance": 3,
+      "lines": 3,
+      "span_seconds": 0.0,
+      "description": "enumeration of 6 candidate users",
+      "source": "/home/shiva/log-anomaly-detector-fork/results/kali/capture/C_3.log"
+    }
+  ],
+  "corpus_lines": {
+    "authentic": 2517,
+    "synthetic": 2602
+  },
+  "pooled": {
+    "authentic": {
+      "overall": {
+        "attack_lines": 170,
+        "line_detection_rate": 0.788,
+        "instance_detection_rate": 1.0,
+        "instances": 30,
+        "instances_detected": 30,
+        "total_flagged_lines": 1247,
+        "alerts": 1247,
+        "seeds": 5
+      },
+      "per_scenario": {
+        "A": {
+          "attack_lines": 75,
+          "lines_detected": 45,
+          "instances": 15,
+          "instances_detected": 15,
+          "line_detection_rate": 0.6,
+          "instance_detection_rate": 1.0
+        },
+        "C": {
+          "attack_lines": 95,
+          "lines_detected": 89,
+          "instances": 15,
+          "instances_detected": 15,
+          "line_detection_rate": 0.937,
+          "instance_detection_rate": 1.0
+        }
+      }
+    },
+    "synthetic": {
+      "overall": {
+        "attack_lines": 537,
+        "line_detection_rate": 0.466,
+        "instance_detection_rate": 1.0,
+        "instances": 45,
+        "instances_detected": 45,
+        "total_flagged_lines": 1375,
+        "alerts": 1375,
+        "seeds": 5
+      },
+      "per_scenario": {
+        "A": {
+          "attack_lines": 343,
+          "lines_detected": 91,
+          "instances": 15,
+          "instances_detected": 15,
+          "line_detection_rate": 0.265,
+          "instance_detection_rate": 1.0
+        },
+        "B": {
+          "attack_lines": 30,
+          "lines_detected": 18,
+          "instances": 15,
+          "instances_detected": 15,
+          "line_detection_rate": 0.6,
+          "instance_detection_rate": 1.0
+        },
+        "C": {
+          "attack_lines": 164,
+          "lines_detected": 141,
+          "instances": 15,
+          "instances_detected": 15,
+          "line_detection_rate": 0.86,
+          "instance_detection_rate": 1.0
+        }
+      }
+    }
+  },
+  "per_seed": {
+    "authentic": [
+      {
+        "overall": {
+          "attack_lines": 34,
+          "line_detection_rate": 0.765,
+          "instance_detection_rate": 1.0,
+          "total_flagged_lines": 246,
+          "total_lines": 2517,
+          "alerts": 246
+        },
+        "per_scenario": {
+          "A": {
+            "attack_lines": 15,
+            "lines_detected": 9,
+            "line_detection_rate": 0.6,
+            "instances": 3,
+            "instances_detected": 3,
+            "instance_detection_rate": 1.0
+          },
+          "C": {
+            "attack_lines": 19,
+            "lines_detected": 17,
+            "line_detection_rate": 0.895,
+            "instances": 3,
+            "instances_detected": 3,
+            "instance_detection_rate": 1.0
+          }
+        }
+      },
+      {
+        "overall": {
+          "attack_lines": 34,
+          "line_detection_rate": 0.824,
+          "instance_detection_rate": 1.0,
+          "total_flagged_lines": 251,
+          "total_lines": 2517,
+          "alerts": 251
+        },
+        "per_scenario": {
+          "A": {
+            "attack_lines": 15,
+            "lines_detected": 9,
+            "line_detection_rate": 0.6,
+            "instances": 3,
+            "instances_detected": 3,
+            "instance_detection_rate": 1.0
+          },
+          "C": {
+            "attack_lines": 19,
+            "lines_detected": 19,
+            "line_detection_rate": 1.0,
+            "instances": 3,
+            "instances_detected": 3,
+            "instance_detection_rate": 1.0
+          }
+        }
+      },
+      {
+        "overall": {
+          "attack_lines": 34,
+          "line_detection_rate": 0.765,
+          "instance_detection_rate": 1.0,
+          "total_flagged_lines": 245,
+          "total_lines": 2517,
+          "alerts": 245
+        },
+        "per_scenario": {
+          "A": {
+            "attack_lines": 15,
+            "lines_detected": 9,
+            "line_detection_rate": 0.6,
+            "instances": 3,
+            "instances_detected": 3,
+            "instance_detection_rate": 1.0
+          },
+          "C": {
+            "attack_lines": 19,
+            "lines_detected": 17,
+            "line_detection_rate": 0.895,
+            "instances": 3,
+            "instances_detected": 3,
+            "instance_detection_rate": 1.0
+          }
+        }
+      },
+      {
+        "overall": {
+          "attack_lines": 34,
+          "line_detection_rate": 0.765,
+          "instance_detection_rate": 1.0,
+          "total_flagged_lines": 249,
+          "total_lines": 2517,
+          "alerts": 249
+        },
+        "per_scenario": {
+          "A": {
+            "attack_lines": 15,
+            "lines_detected": 9,
+            "line_detection_rate": 0.6,
+            "instances": 3,
+            "instances_detected": 3,
+            "instance_detection_rate": 1.0
+          },
+          "C": {
+            "attack_lines": 19,
+            "lines_detected": 17,
+            "line_detection_rate": 0.895,
+            "instances": 3,
+            "instances_detected": 3,
+            "instance_detection_rate": 1.0
+          }
+        }
+      },
+      {
+        "overall": {
+          "attack_lines": 34,
+          "line_detection_rate": 0.824,
+          "instance_detection_rate": 1.0,
+          "total_flagged_lines": 256,
+          "total_lines": 2517,
+          "alerts": 256
+        },
+        "per_scenario": {
+          "A": {
+            "attack_lines": 15,
+            "lines_detected": 9,
+            "line_detection_rate": 0.6,
+            "instances": 3,
+            "instances_detected": 3,
+            "instance_detection_rate": 1.0
+          },
+          "C": {
+            "attack_lines": 19,
+            "lines_detected": 19,
+            "line_detection_rate": 1.0,
+            "instances": 3,
+            "instances_detected": 3,
+            "instance_detection_rate": 1.0
+          }
+        }
+      }
+    ],
+    "synthetic": [
+      {
+        "overall": {
+          "attack_lines": 119,
+          "line_detection_rate": 0.319,
+          "instance_detection_rate": 1.0,
+          "total_flagged_lines": 258,
+          "total_lines": 2602,
+          "alerts": 258
+        },
+        "per_scenario": {
+          "A": {
+            "attack_lines": 80,
+            "lines_detected": 8,
+            "line_detection_rate": 0.1,
+            "instances": 3,
+            "instances_detected": 3,
+            "instance_detection_rate": 1.0
+          },
+          "B": {
+            "attack_lines": 6,
+            "lines_detected": 3,
+            "line_detection_rate": 0.5,
+            "instances": 3,
+            "instances_detected": 3,
+            "instance_detection_rate": 1.0
+          },
+          "C": {
+            "attack_lines": 33,
+            "lines_detected": 27,
+            "line_detection_rate": 0.818,
+            "instances": 3,
+            "instances_detected": 3,
+            "instance_detection_rate": 1.0
+          }
+        }
+      },
+      {
+        "overall": {
+          "attack_lines": 101,
+          "line_detection_rate": 0.782,
+          "instance_detection_rate": 1.0,
+          "total_flagged_lines": 299,
+          "total_lines": 2584,
+          "alerts": 299
+        },
+        "per_scenario": {
+          "A": {
+            "attack_lines": 63,
+            "lines_detected": 44,
+            "line_detection_rate": 0.698,
+            "instances": 3,
+            "instances_detected": 3,
+            "instance_detection_rate": 1.0
+          },
+          "B": {
+            "attack_lines": 6,
+            "lines_detected": 4,
+            "line_detection_rate": 0.667,
+            "instances": 3,
+            "instances_detected": 3,
+            "instance_detection_rate": 1.0
+          },
+          "C": {
+            "attack_lines": 32,
+            "lines_detected": 31,
+            "line_detection_rate": 0.969,
+            "instances": 3,
+            "instances_detected": 3,
+            "instance_detection_rate": 1.0
+          }
+        }
+      },
+      {
+        "overall": {
+          "attack_lines": 116,
+          "line_detection_rate": 0.293,
+          "instance_detection_rate": 1.0,
+          "total_flagged_lines": 254,
+          "total_lines": 2599,
+          "alerts": 254
+        },
+        "per_scenario": {
+          "A": {
+            "attack_lines": 75,
+            "lines_detected": 7,
+            "line_detection_rate": 0.093,
+            "instances": 3,
+            "instances_detected": 3,
+            "instance_detection_rate": 1.0
+          },
+          "B": {
+            "attack_lines": 6,
+            "lines_detected": 4,
+            "line_detection_rate": 0.667,
+            "instances": 3,
+            "instances_detected": 3,
+            "instance_detection_rate": 1.0
+          },
+          "C": {
+            "attack_lines": 35,
+            "lines_detected": 23,
+            "line_detection_rate": 0.657,
+            "instances": 3,
+            "instances_detected": 3,
+            "instance_detection_rate": 1.0
+          }
+        }
+      },
+      {
+        "overall": {
+          "attack_lines": 98,
+          "line_detection_rate": 0.592,
+          "instance_detection_rate": 1.0,
+          "total_flagged_lines": 294,
+          "total_lines": 2581,
+          "alerts": 294
+        },
+        "per_scenario": {
+          "A": {
+            "attack_lines": 60,
+            "lines_detected": 25,
+            "line_detection_rate": 0.417,
+            "instances": 3,
+            "instances_detected": 3,
+            "instance_detection_rate": 1.0
+          },
+          "B": {
+            "attack_lines": 6,
+            "lines_detected": 3,
+            "line_detection_rate": 0.5,
+            "instances": 3,
+            "instances_detected": 3,
+            "instance_detection_rate": 1.0
+          },
+          "C": {
+            "attack_lines": 32,
+            "lines_detected": 30,
+            "line_detection_rate": 0.938,
+            "instances": 3,
+            "instances_detected": 3,
+            "instance_detection_rate": 1.0
+          }
+        }
+      },
+      {
+        "overall": {
+          "attack_lines": 103,
+          "line_detection_rate": 0.398,
+          "instance_detection_rate": 1.0,
+          "total_flagged_lines": 270,
+          "total_lines": 2586,
+          "alerts": 270
+        },
+        "per_scenario": {
+          "A": {
+            "attack_lines": 65,
+            "lines_detected": 7,
+            "line_detection_rate": 0.108,
+            "instances": 3,
+            "instances_detected": 3,
+            "instance_detection_rate": 1.0
+          },
+          "B": {
+            "attack_lines": 6,
+            "lines_detected": 4,
+            "line_detection_rate": 0.667,
+            "instances": 3,
+            "instances_detected": 3,
+            "instance_detection_rate": 1.0
+          },
+          "C": {
+            "attack_lines": 32,
+            "lines_detected": 30,
+            "line_detection_rate": 0.938,
+            "instances": 3,
+            "instances_detected": 3,
+            "instance_detection_rate": 1.0
+          }
+        }
+      }
+    ]
+  }
+}
