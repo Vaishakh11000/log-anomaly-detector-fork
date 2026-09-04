@@ -204,6 +204,17 @@ class Oracle:
         self._cache[cache_key] = result
         return result
 
+    def pool_runs(self, runs: list[dict], plan: CamouflagePlan) -> dict:
+        """Pool per-seed results into one `overall` block.
+
+        A hook rather than a call so a subclass scoring a different system can
+        pool through that system's scorer while reusing every other part of the
+        search. `alerts` is this system's volume: incidents for ours, alerts for
+        a SIEM.
+        """
+        pooled = pool([{**r, "condition": plan.label()} for r in runs])["overall"]
+        return {**pooled, "alerts": pooled["incidents"]}
+
     def evaluate(self, plan: CamouflagePlan,
                  seeds: tuple[int, ...] = SEARCH_SEEDS) -> Evaluation:
         """Score one plan over several seeds, pooled from summed counts.
@@ -214,12 +225,12 @@ class Oracle:
         corpus.
         """
         runs = [self._run(plan, seed) for seed in seeds]
-        pooled = pool([{**r, "condition": plan.label()} for r in runs])["overall"]
+        pooled = self.pool_runs(runs, plan)
         evaluation = Evaluation(
             plan=plan, seeds=tuple(seeds),
             instance_rate=pooled["instance_detection_rate"],
             line_rate=pooled["line_detection_rate"],
-            incidents=pooled["incidents"], attack_lines=pooled["attack_lines"],
+            incidents=pooled["alerts"], attack_lines=pooled["attack_lines"],
             queries_after=self.queries)
         self.trace.append(evaluation)
         if self.verbose:
@@ -240,25 +251,34 @@ class SearchResult:
     seeds_searched: tuple[int, ...] = ()
 
 
-def subsets_of_strategies() -> list[tuple[str, ...]]:
-    """All 2^7 = 128 combinations, shortest first.
+def subsets_of_strategies(universe: tuple[str, ...] = tuple(STRATEGIES)
+                         ) -> list[tuple[str, ...]]:
+    """All 2^n combinations of the universe, shortest first.
 
-    The published suite tests 8 of these. Enumerating the rest is the cheapest
-    honest thing an adaptive adversary can do, and it is itself a result: it
-    says whether the hand-picked `realistic-combo` was actually the strongest
-    fixed recipe or merely a plausible one.
+    The published suite tests 8 of the 128 available here. Enumerating the rest
+    is the cheapest honest thing an adaptive adversary can do, and it is itself
+    a result: it says whether the hand-picked `realistic-combo` was actually the
+    strongest fixed recipe or merely a plausible one.
+
+    `universe` is a parameter because a *smaller* space is sometimes forced by
+    the instrument rather than chosen: batch replay cannot measure timing-based
+    camouflage against an arrival-time-keyed SIEM (Decision Log 2026-08-18), so
+    a search that compares the two systems must exclude `slow` and `temporal`
+    from both sides or it would be optimising an artefact.
     """
     combos: list[tuple[str, ...]] = []
-    for size in range(len(STRATEGIES) + 1):
-        combos.extend(itertools.combinations(STRATEGIES, size))
+    universe = tuple(s for s in STRATEGIES if s in universe)
+    for size in range(len(universe) + 1):
+        combos.extend(itertools.combinations(universe, size))
     return combos
 
 
 def exhaustive_stage(oracle: Oracle, rule: ValidityRule, seed: int,
-                     result: SearchResult) -> list[Evaluation]:
+                     result: SearchResult,
+                     universe: tuple[str, ...] = tuple(STRATEGIES)) -> list[Evaluation]:
     """Every strategy subset at published magnitudes, on one search seed."""
     evaluations = []
-    for combo in subsets_of_strategies():
+    for combo in subsets_of_strategies(universe):
         plan = CamouflagePlan(strategies=combo)
         ok, why = rule.check(oracle.base_events(seed), plan, seed)
         if not ok:
@@ -336,13 +356,15 @@ def hill_climb(oracle: Oracle, rule: ValidityRule, start: Evaluation,
 
 
 def search(oracle: Oracle, rule: ValidityRule | None = None,
-           seeds: tuple[int, ...] = SEARCH_SEEDS, top_k: int = 5) -> SearchResult:
+           seeds: tuple[int, ...] = SEARCH_SEEDS, top_k: int = 5,
+           universe: tuple[str, ...] = tuple(STRATEGIES)) -> SearchResult:
     """Exhaustive over strategy subsets, then hill climb the magnitudes."""
     rule = rule or ValidityRule()
     result = SearchResult(best=None, seeds_searched=tuple(seeds))  # type: ignore[arg-type]
 
-    print(f"Stage A: all {len(subsets_of_strategies())} strategy subsets on seed {seeds[0]}")
-    result.exhaustive = exhaustive_stage(oracle, rule, seeds[0], result)
+    print(f"Stage A: all {len(subsets_of_strategies(universe))} strategy subsets "
+          f"on seed {seeds[0]}")
+    result.exhaustive = exhaustive_stage(oracle, rule, seeds[0], result, universe)
     if not result.exhaustive:
         raise RuntimeError("no valid plan was evaluated")
     ranked = sorted(result.exhaustive, key=lambda e: e.key)
