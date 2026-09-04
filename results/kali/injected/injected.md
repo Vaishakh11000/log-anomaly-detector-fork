@@ -1,49 +1,85 @@
-# Authentic Kali attacks injected into the real OpenSSH background
+# Authentic Kali attacks under camouflage, in the real OpenSSH background
 
-Seeds: [42, 43, 44, 45, 46]  |  ambient ratio: 0.05  |  248.2s
+Seeds: [42, 43, 44, 45, 46]  |  ambient ratio: 0.05  |  2163.9s
 
-Both arms use the identical background, ambient ratio, seeds and scorer.
-Only the origin of the attack lines differs.
+Both arms use the identical background, ambient ratio, seeds and scorer,
+and the identical camouflage transforms (`logdet_eval.camouflage`)
+applied to the attack lines only. Only the origin of the attack lines
+differs: authentic captured hydra/ssh output, or the synthetic scenario
+generators.
 
-## Pooled over seeds (rates recomputed from summed counts)
+## Instance detection, pooled over seeds (rates from summed counts)
 
-| arm | scenario | instance detection | line detection | attack lines |
+| arm | condition | instance detection | line detection | attack lines |
 |---|---|---|---|---|
-| authentic | A | 100.0% (15/15) | 60.0% (45/75) | 75 |
-| authentic | C | 100.0% (15/15) | 93.7% (89/95) | 95 |
-| authentic | **all** | **100.0%** | **78.8%** | 170 |
-| synthetic | A | 100.0% (15/15) | 26.5% (91/343) | 343 |
-| synthetic | B | 100.0% (15/15) | 60.0% (18/30) | 30 |
-| synthetic | C | 100.0% (15/15) | 86.0% (141/164) | 164 |
-| synthetic | **all** | **100.0%** | **46.6%** | 537 |
+| authentic | baseline | 100.0% (30/30) | 78.8% | 170 |
+| authentic | temporal | 100.0% (+0.0) (30/30) | 79.4% (+0.6) | 170 |
+| authentic | slow | 100.0% (+0.0) (30/30) | 79.4% (+0.6) | 170 |
+| authentic | rephrase | 100.0% (+0.0) (30/30) | 88.2% (+9.4) | 170 |
+| authentic | mimicry | 100.0% (+0.0) (30/30) | 78.8% (+0.0) | 170 |
+| authentic | noise | 100.0% (+0.0) (30/30) | 78.8% (+0.0) | 170 |
+| authentic | volume | 100.0% (+0.0) (30/30) | 84.3% (+5.5) | 121 |
+| authentic | ip_rotate | 100.0% (+0.0) (30/30) | 78.8% (+0.0) | 170 |
+| authentic | realistic-combo | 100.0% (+0.0) (30/30) | 84.5% (+5.7) | 110 |
+| synthetic | baseline | 100.0% (45/45) | 59.3% | 543 |
+| synthetic | temporal | 100.0% (+0.0) (45/45) | 59.5% (+0.2) | 543 |
+| synthetic | slow | 84.4% (-15.6) (38/45) | 58.0% (-1.3) | 543 |
+| synthetic | rephrase | 97.8% (-2.2) (44/45) | 73.1% (+13.8) | 543 |
+| synthetic | mimicry | 100.0% (+0.0) (45/45) | 59.1% (-0.2) | 543 |
+| synthetic | noise | 100.0% (+0.0) (45/45) | 49.0% (-10.3) | 543 |
+| synthetic | volume | 100.0% (+0.0) (45/45) | 75.3% (+16.0) | 320 |
+| synthetic | ip_rotate | 91.1% (-8.9) (41/45) | 58.4% (-0.9) | 543 |
+| synthetic | realistic-combo | 82.2% (-17.8) (37/45) | 70.3% (+11.0) | 310 |
+
+## Per scenario (instance detection, pooled)
+
+| arm | condition | A brute force | C enumeration |
+|---|---|---|---|
+| authentic | baseline | 100% (15/15) | 100% (15/15) |
+| authentic | temporal | 100% (15/15) | 100% (15/15) |
+| authentic | slow | 100% (15/15) | 100% (15/15) |
+| authentic | rephrase | 100% (15/15) | 100% (15/15) |
+| authentic | mimicry | 100% (15/15) | 100% (15/15) |
+| authentic | noise | 100% (15/15) | 100% (15/15) |
+| authentic | volume | 100% (15/15) | 100% (15/15) |
+| authentic | ip_rotate | 100% (15/15) | 100% (15/15) |
+| authentic | realistic-combo | 100% (15/15) | 100% (15/15) |
+| synthetic | baseline | 100% (15/15) | 100% (15/15) |
+| synthetic | temporal | 100% (15/15) | 100% (15/15) |
+| synthetic | slow | 100% (15/15) | 100% (15/15) |
+| synthetic | rephrase | 100% (15/15) | 100% (15/15) |
+| synthetic | mimicry | 100% (15/15) | 100% (15/15) |
+| synthetic | noise | 100% (15/15) | 100% (15/15) |
+| synthetic | volume | 100% (15/15) | 100% (15/15) |
+| synthetic | ip_rotate | 100% (15/15) | 100% (15/15) |
+| synthetic | realistic-combo | 100% (15/15) | 100% (15/15) |
 
 Scenario B (impossible travel) appears in the synthetic arm only: its
 distant leg needs a second geographic IP and stays synthetic by
-necessity (CLAUDE.md section 2d), so no authentic capture exists for
-it. Compare A against A and C against C; the `all` rows differ in
-composition as well as in origin.
+necessity (CLAUDE.md section 2d), so no authentic capture exists for it.
 
-## Alert volume
+## Alert volume (mean flagged lines over seeds)
 
-| arm | corpus lines | flagged lines (mean over seeds) |
-|---|---|---|
-| authentic | 2517 | 249 |
-| synthetic | 2602 | 275 |
-
-## Per seed
-
-| arm | seed | instance | line | flagged |
-|---|---|---|---|---|
-| authentic | 42 | 100.0% | 76.5% | 246 |
-| authentic | 43 | 100.0% | 82.4% | 251 |
-| authentic | 44 | 100.0% | 76.5% | 245 |
-| authentic | 45 | 100.0% | 76.5% | 249 |
-| authentic | 46 | 100.0% | 82.4% | 256 |
-| synthetic | 42 | 100.0% | 31.9% | 258 |
-| synthetic | 43 | 100.0% | 78.2% | 299 |
-| synthetic | 44 | 100.0% | 29.3% | 254 |
-| synthetic | 45 | 100.0% | 59.2% | 294 |
-| synthetic | 46 | 100.0% | 39.8% | 270 |
+| arm | condition | flagged lines | corpus lines |
+|---|---|---|---|
+| authentic | baseline | 249 | 2517 |
+| authentic | temporal | 250 | 2517 |
+| authentic | slow | 250 | 2517 |
+| authentic | rephrase | 252 | 2517 |
+| authentic | mimicry | 249 | 2517 |
+| authentic | noise | 296 | 2566 |
+| authentic | volume | 244 | 2507 |
+| authentic | ip_rotate | 249 | 2517 |
+| authentic | realistic-combo | 271 | 2537 |
+| synthetic | baseline | 290 | 2592 |
+| synthetic | temporal | 291 | 2592 |
+| synthetic | slow | 289 | 2592 |
+| synthetic | rephrase | 298 | 2592 |
+| synthetic | mimicry | 293 | 2592 |
+| synthetic | noise | 427 | 2753 |
+| synthetic | volume | 266 | 2547 |
+| synthetic | ip_rotate | 289 | 2592 |
+| synthetic | realistic-combo | 348 | 2637 |
 
 The captured instances injected:
 

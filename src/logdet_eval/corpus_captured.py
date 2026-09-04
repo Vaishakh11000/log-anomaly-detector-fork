@@ -243,6 +243,10 @@ def build_captured_corpus(captures: list[CapturedInstance],
         "corpus": "loghub-openssh + authentic-kali-capture",
         "benign_lines": len(benign),
         "attacker_lines": len(attacker),
+        # The real corpus user population, so a camouflage arm's noise filler
+        # (camouflage.make_noise_events) names accounts this background actually
+        # contains rather than the synthetic corpus's alice/bob/carol.
+        "real_users": _users,
         "ambient_ratio": ambient_ratio,
         "background_lines": len(background),
         "attack_lines": len(attacks),

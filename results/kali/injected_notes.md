@@ -128,3 +128,94 @@ rate on this corpus, not an effect of the attack origin.
    well as in origin; compare A against A and C against C.
 4. **This is one background at one ambient ratio.** The ambient sensitivity
    sweep that was run for the kill point has not been repeated here.
+
+---
+
+# §4 item 3 — the same authentic attacks under camouflage
+
+Run: 2026-09-04, 2164s (~36 min), 5 seeds, ambient ratio 0.05, all 9 conditions.
+Command: `uv run python results/kali/injected_run.py --seeds 5`
+
+This closes limit #2 above. The seven camouflage transforms plus
+`realistic-combo` are applied to the attack lines of **both** arms by the same
+shared `logdet_eval.camouflage` code the fixed recipes and the adaptive
+adversary use — a runner change, no transform authored here. Benign background
+is untouched; only the attack lines are disguised.
+
+## The headline
+
+| condition | authentic instance | synthetic instance |
+|---|---|---|
+| baseline | 100% (30/30) | 100% (45/45) |
+| temporal | 100% | 100% |
+| slow | **100%** | **84.4% (−15.6)** |
+| rephrase | **100%** | 97.8% (−2.2) |
+| mimicry | 100% | 100% |
+| noise | 100% | 100% |
+| volume | 100% | 100% |
+| ip_rotate | **100%** | 91.1% (−8.9) |
+| realistic-combo | **100%** | **82.2% (−17.8)** |
+
+**Authentic attacks resist every camouflage condition; the synthetic arm loses
+instances on four of them.** Read this as a statement about attack *shape*, not
+about the detector being more robust on real traffic in general. Three things
+must travel with it.
+
+## 1. The transforms genuinely bite — on the synthetic arm
+
+The synthetic-injected arm reproduces the *direction* of the known camouflage
+losses (`slow`, `ip_rotate`, `realistic-combo` all drop; the tracker's pure-
+synthetic suite reads 80.0 / 84.4 / 91.1, this OpenSSH-injected one 84.4 / 91.1
+/ 82.2 — different corpus and instance count, same shape). So the camouflage is
+being applied with real effect. Authentic's flat 100% is a genuine contrast, not
+the transforms silently doing nothing to both arms.
+
+## 2. Why the transforms have little purchase on authentic lines
+
+The camouflage library was authored around the *synthetic* attack shape: a
+homogeneous burst of near-identical `Failed password` lines on a freshly-drawn
+corpus user. Authentic instances are the opposite shape, and each losing
+transform fails on that difference:
+
+- **rephrase** (synthetic −2.2): `REPHRASE_MAP` rewords `Failed password` and
+  `Accepted password`. An authentic A instance has **one** such line; its other
+  four (a disconnect, a `pam_unix` auth failure, a connection close) are not
+  rephrase-able, and authentic C (`Invalid user …`) has **nothing** in the map.
+  So rewording cannot remove an authentic instance's last flagged line. A
+  synthetic instance is all `Failed password`, so rephrasing shifts every line's
+  template together and can push one instance under. Same mechanism as the kill
+  point — heterogeneity is simply what protects the authentic side.
+- **slow** (synthetic −15.6): spreading events past the 30-min grouping / 60-min
+  travel windows makes an isolated synthetic `Failed password` blend into ambient
+  brute force. Authentic instances carry individually-rare lines that stay
+  outliers even when isolated, and `root` has a real per-user baseline for a lone
+  anomaly to stand against.
+- **ip_rotate** (synthetic −8.9): `template_message` masks the IP before
+  embedding, so this only attacks the source-IP grouping axis. A/C group on the
+  user, not the IP, and never use impossible travel, so it is near-inert on the
+  authentic shape.
+- **volume**: thins repeated middle lines. Authentic instances are already
+  3–5 lines (170 → 121 attack lines), so there is little repetition to thin;
+  both arms stay 100% at instance level.
+
+## 3. The line rate carries the real mechanism, and it agrees across arms
+
+Instance detection saturates; the line rate is where the transforms show. Novel
+wording makes lines *more* anomalous on both arms — `rephrase` line rate
+authentic +9.4, synthetic +13.8 — and `volume` raises the rate on both by
+deleting the self-similar inliers and leaving the rare lines. `noise` dilutes
+the flagged proportion (synthetic line rate −10.3) and inflates alert volume
+(synthetic 290 → 427, authentic 249 → 296). These are the documented behaviours,
+reproduced on authentic lines.
+
+## Limits specific to this arm
+
+- **Still three captures per scenario, placed five ways.** Authentic 30/30 can
+  move in 1/30 steps and does not, so the stability is real — but it rests on
+  three underlying heterogeneous attacks, where the synthetic 45/45 rests on
+  fresh draws per seed. The honest claim is "these three real attack shapes
+  resist these transforms", not "authentic attacks are robust". More captures,
+  and more attack *variety*, is the fix.
+- **The contrast is attack-shape vs the detector, not us vs a SIEM.** Nothing
+  here re-tests the kill point; it says the shipped camouflage recipes were
+  tuned to a synthetic shape and have less grip on the authentic one.
