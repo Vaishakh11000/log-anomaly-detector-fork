@@ -1,0 +1,12 @@
+Sep 04 22:30:31 kali sshd-session[286662]: Accepted publickey for shiva from 10.10.10.2 port 38504 ssh2: ED25519 SHA256:l1dNuM/6kb7gLZQSwQPMIvYeY0v4u73SB15J0FdCdeY
+Sep 04 22:30:31 kali sshd-session[286662]: pam_unix(sshd:session): session opened for user shiva(uid=1000) by shiva(uid=0)
+Sep 04 22:30:31 kali sshd-session[286677]: Invalid user admin from 127.0.0.11 port 54411
+Sep 04 22:30:32 kali sshd-session[286677]: Connection closed by invalid user admin 127.0.0.11 port 54411 [preauth]
+Sep 04 22:30:32 kali sshd-session[286680]: Invalid user test from 127.0.0.11 port 45009
+Sep 04 22:30:32 kali sshd-session[286680]: Connection closed by invalid user test 127.0.0.11 port 45009 [preauth]
+Sep 04 22:30:32 kali sshd-session[286683]: Invalid user oracle from 127.0.0.11 port 44471
+Sep 04 22:30:32 kali sshd-session[286683]: Connection closed by invalid user oracle 127.0.0.11 port 44471 [preauth]
+Sep 04 22:30:32 kali sshd-session[286686]: Connection closed by authenticating user postgres 127.0.0.11 port 42195 [preauth]
+Sep 04 22:30:32 kali sshd[155771]: srclimit_penalise: 127.0.0.11/32: activating ipv4 penalty of 15.622 seconds for penalty: connections without attempting authentication
+Sep 04 22:30:32 kali sshd[155771]: drop connection #0 from [127.0.0.11]:46831 on [127.0.0.1]:22 penalty: connections without attempting authentication
+Sep 04 22:30:32 kali sshd[155771]: PerSourcePenalties logging rate-limited: additional 3 connections dropped

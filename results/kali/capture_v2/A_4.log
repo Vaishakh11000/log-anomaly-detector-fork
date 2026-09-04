@@ -1,0 +1,65 @@
+Sep 04 22:26:43 kali sshd-session[285077]: Received disconnect from 127.0.0.1 port 54110:11: Bye Bye [preauth]
+Sep 04 22:26:43 kali sshd-session[285077]: Disconnected from authenticating user postgres 127.0.0.1 port 54110 [preauth]
+Sep 04 22:26:44 kali sshd-session[285085]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=127.0.0.1  user=postgres
+Sep 04 22:26:44 kali sshd-session[285085]: pam_winbind(sshd:auth): getting password (0x00000388)
+Sep 04 22:26:44 kali sshd-session[285085]: pam_winbind(sshd:auth): pam_get_item returned a password
+Sep 04 22:26:44 kali sshd-session[285085]: pam_winbind(sshd:auth): request wbcLogonUser failed: WBC_ERR_WINBIND_NOT_AVAILABLE, PAM error: PAM_AUTHINFO_UNAVAIL (9)!
+Sep 04 22:26:44 kali sshd-session[285085]: pam_winbind(sshd:auth): internal module error (retval = PAM_AUTHINFO_UNAVAIL(9), user = 'postgres')
+Sep 04 22:26:44 kali sshd-session[285084]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=127.0.0.1  user=postgres
+Sep 04 22:26:44 kali sshd-session[285083]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=127.0.0.1  user=postgres
+Sep 04 22:26:44 kali sshd-session[285084]: pam_winbind(sshd:auth): getting password (0x00000388)
+Sep 04 22:26:44 kali sshd-session[285084]: pam_winbind(sshd:auth): pam_get_item returned a password
+Sep 04 22:26:44 kali sshd-session[285083]: pam_winbind(sshd:auth): getting password (0x00000388)
+Sep 04 22:26:44 kali sshd-session[285083]: pam_winbind(sshd:auth): pam_get_item returned a password
+Sep 04 22:26:44 kali sshd-session[285084]: pam_winbind(sshd:auth): request wbcLogonUser failed: WBC_ERR_WINBIND_NOT_AVAILABLE, PAM error: PAM_AUTHINFO_UNAVAIL (9)!
+Sep 04 22:26:44 kali sshd-session[285084]: pam_winbind(sshd:auth): internal module error (retval = PAM_AUTHINFO_UNAVAIL(9), user = 'postgres')
+Sep 04 22:26:44 kali sshd-session[285083]: pam_winbind(sshd:auth): request wbcLogonUser failed: WBC_ERR_WINBIND_NOT_AVAILABLE, PAM error: PAM_AUTHINFO_UNAVAIL (9)!
+Sep 04 22:26:44 kali sshd-session[285083]: pam_winbind(sshd:auth): internal module error (retval = PAM_AUTHINFO_UNAVAIL(9), user = 'postgres')
+Sep 04 22:26:44 kali sshd-session[285086]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=127.0.0.1  user=postgres
+Sep 04 22:26:44 kali sshd-session[285086]: pam_winbind(sshd:auth): getting password (0x00000388)
+Sep 04 22:26:44 kali sshd-session[285086]: pam_winbind(sshd:auth): pam_get_item returned a password
+Sep 04 22:26:44 kali sshd-session[285086]: pam_winbind(sshd:auth): request wbcLogonUser failed: WBC_ERR_WINBIND_NOT_AVAILABLE, PAM error: PAM_AUTHINFO_UNAVAIL (9)!
+Sep 04 22:26:44 kali sshd-session[285086]: pam_winbind(sshd:auth): internal module error (retval = PAM_AUTHINFO_UNAVAIL(9), user = 'postgres')
+Sep 04 22:26:45 kali sshd-session[285083]: Failed password for postgres from 127.0.0.1 port 54118 ssh2
+Sep 04 22:26:45 kali sshd-session[285085]: Failed password for postgres from 127.0.0.1 port 54116 ssh2
+Sep 04 22:26:46 kali sshd-session[285086]: Failed password for postgres from 127.0.0.1 port 54138 ssh2
+Sep 04 22:26:46 kali sshd-session[285084]: Failed password for postgres from 127.0.0.1 port 54120 ssh2
+Sep 04 22:26:47 kali sshd-session[285085]: pam_winbind(sshd:auth): getting password (0x00000388)
+Sep 04 22:26:47 kali sshd-session[285085]: pam_winbind(sshd:auth): pam_get_item returned a password
+Sep 04 22:26:47 kali sshd-session[285085]: pam_winbind(sshd:auth): request wbcLogonUser failed: WBC_ERR_WINBIND_NOT_AVAILABLE, PAM error: PAM_AUTHINFO_UNAVAIL (9)!
+Sep 04 22:26:47 kali sshd-session[285085]: pam_winbind(sshd:auth): internal module error (retval = PAM_AUTHINFO_UNAVAIL(9), user = 'postgres')
+Sep 04 22:26:47 kali sshd-session[285086]: pam_winbind(sshd:auth): getting password (0x00000388)
+Sep 04 22:26:47 kali sshd-session[285086]: pam_winbind(sshd:auth): pam_get_item returned a password
+Sep 04 22:26:47 kali sshd-session[285086]: pam_winbind(sshd:auth): request wbcLogonUser failed: WBC_ERR_WINBIND_NOT_AVAILABLE, PAM error: PAM_AUTHINFO_UNAVAIL (9)!
+Sep 04 22:26:47 kali sshd-session[285086]: pam_winbind(sshd:auth): internal module error (retval = PAM_AUTHINFO_UNAVAIL(9), user = 'postgres')
+Sep 04 22:26:47 kali sshd-session[285083]: pam_winbind(sshd:auth): getting password (0x00000388)
+Sep 04 22:26:47 kali sshd-session[285084]: pam_winbind(sshd:auth): getting password (0x00000388)
+Sep 04 22:26:47 kali sshd-session[285083]: pam_winbind(sshd:auth): pam_get_item returned a password
+Sep 04 22:26:47 kali sshd-session[285084]: pam_winbind(sshd:auth): pam_get_item returned a password
+Sep 04 22:26:47 kali sshd-session[285083]: pam_winbind(sshd:auth): request wbcLogonUser failed: WBC_ERR_WINBIND_NOT_AVAILABLE, PAM error: PAM_AUTHINFO_UNAVAIL (9)!
+Sep 04 22:26:47 kali sshd-session[285083]: pam_winbind(sshd:auth): internal module error (retval = PAM_AUTHINFO_UNAVAIL(9), user = 'postgres')
+Sep 04 22:26:47 kali sshd-session[285084]: pam_winbind(sshd:auth): request wbcLogonUser failed: WBC_ERR_WINBIND_NOT_AVAILABLE, PAM error: PAM_AUTHINFO_UNAVAIL (9)!
+Sep 04 22:26:47 kali sshd-session[285084]: pam_winbind(sshd:auth): internal module error (retval = PAM_AUTHINFO_UNAVAIL(9), user = 'postgres')
+Sep 04 22:26:48 kali sshd-session[285083]: Failed password for postgres from 127.0.0.1 port 54118 ssh2
+Sep 04 22:26:49 kali sshd-session[285085]: Failed password for postgres from 127.0.0.1 port 54116 ssh2
+Sep 04 22:26:49 kali sshd-session[285084]: Failed password for postgres from 127.0.0.1 port 54120 ssh2
+Sep 04 22:26:49 kali sshd-session[285086]: Failed password for postgres from 127.0.0.1 port 54138 ssh2
+Sep 04 22:26:50 kali sshd-session[285085]: pam_winbind(sshd:auth): getting password (0x00000388)
+Sep 04 22:26:50 kali sshd-session[285085]: pam_winbind(sshd:auth): pam_get_item returned a password
+Sep 04 22:26:50 kali sshd-session[285085]: pam_winbind(sshd:auth): request wbcLogonUser failed: WBC_ERR_WINBIND_NOT_AVAILABLE, PAM error: PAM_AUTHINFO_UNAVAIL (9)!
+Sep 04 22:26:50 kali sshd-session[285085]: pam_winbind(sshd:auth): internal module error (retval = PAM_AUTHINFO_UNAVAIL(9), user = 'postgres')
+Sep 04 22:26:50 kali sshd-session[285086]: Connection closed by authenticating user postgres 127.0.0.1 port 54138 [preauth]
+Sep 04 22:26:50 kali sshd-session[285086]: PAM 1 more authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=127.0.0.1  user=postgres
+Sep 04 22:26:50 kali sshd-session[285084]: pam_winbind(sshd:auth): getting password (0x00000388)
+Sep 04 22:26:50 kali sshd-session[285084]: pam_winbind(sshd:auth): pam_get_item returned a password
+Sep 04 22:26:50 kali sshd-session[285084]: pam_winbind(sshd:auth): request wbcLogonUser failed: WBC_ERR_WINBIND_NOT_AVAILABLE, PAM error: PAM_AUTHINFO_UNAVAIL (9)!
+Sep 04 22:26:50 kali sshd-session[285084]: pam_winbind(sshd:auth): internal module error (retval = PAM_AUTHINFO_UNAVAIL(9), user = 'postgres')
+Sep 04 22:26:50 kali sshd-session[285083]: Connection closed by authenticating user postgres 127.0.0.1 port 54118 [preauth]
+Sep 04 22:26:50 kali sshd-session[285083]: PAM 1 more authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=127.0.0.1  user=postgres
+Sep 04 22:26:51 kali sshd-session[285085]: Failed password for postgres from 127.0.0.1 port 54116 ssh2
+Sep 04 22:26:52 kali sshd-session[285084]: Failed password for postgres from 127.0.0.1 port 54120 ssh2
+Sep 04 22:26:53 kali sshd-session[285085]: Connection closed by authenticating user postgres 127.0.0.1 port 54116 [preauth]
+Sep 04 22:26:53 kali sshd-session[285085]: PAM 2 more authentication failures; logname= uid=0 euid=0 tty=ssh ruser= rhost=127.0.0.1  user=postgres
+Sep 04 22:26:53 kali sshd-session[285084]: Connection closed by authenticating user postgres 127.0.0.1 port 54120 [preauth]
+Sep 04 22:26:53 kali sshd-session[285084]: PAM 2 more authentication failures; logname= uid=0 euid=0 tty=ssh ruser= rhost=127.0.0.1  user=postgres
+Sep 04 22:26:53 kali sshd[155771]: srclimit_penalise: 127.0.0.1/32: activating ipv4 penalty of 17.047 seconds for penalty: failed authentication

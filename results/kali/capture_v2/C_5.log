@@ -1,0 +1,10 @@
+Sep 04 22:31:10 kali sshd-session[286999]: Invalid user sysadmin from 127.0.0.15 port 58743
+Sep 04 22:31:10 kali sshd-session[286999]: Connection closed by invalid user sysadmin 127.0.0.15 port 58743 [preauth]
+Sep 04 22:31:10 kali sshd-session[287002]: Invalid user operator from 127.0.0.15 port 40327
+Sep 04 22:31:10 kali sshd-session[287002]: Connection closed by invalid user operator 127.0.0.15 port 40327 [preauth]
+Sep 04 22:31:10 kali sshd-session[287005]: Invalid user guest from 127.0.0.15 port 47117
+Sep 04 22:31:10 kali sshd-session[287005]: Connection closed by invalid user guest 127.0.0.15 port 47117 [preauth]
+Sep 04 22:31:10 kali sshd-session[287014]: Invalid user tomcat from 127.0.0.15 port 41409
+Sep 04 22:31:10 kali sshd-session[287014]: Connection closed by invalid user tomcat 127.0.0.15 port 41409 [preauth]
+Sep 04 22:31:10 kali sshd[155771]: srclimit_penalise: 127.0.0.15/32: activating ipv4 penalty of 19.610 seconds for penalty: attempted authentication by invalid user
+Sep 04 22:31:10 kali sshd[155771]: drop connection #0 from [127.0.0.15]:48497 on [127.0.0.1]:22 penalty: attempted authentication by invalid user

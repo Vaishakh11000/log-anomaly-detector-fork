@@ -74,17 +74,28 @@ def capture_file(path: str, year: int, start_line: int = 1) -> list[CapturedLine
 
 
 def capture_journald(unit: str | None, year: int, since: str | None = None,
-                     runner=subprocess.run) -> list[CapturedLine]:
+                     runner=subprocess.run,
+                     identifiers: list[str] | None = None) -> list[CapturedLine]:
     """Read the journal in syslog form. `runner` is injectable for tests.
 
     Uses `-o short-iso` and rebuilds the syslog-shaped line, mirroring the
     analyzer's journald source (CLAUDE.md section 2, Decision Log 2026-08-30:
     the short form is fine for capture; the analyzer needs JSON for its cursor,
     which this layer does not).
+
+    On modern systemd sshd auth events are logged under the syslog identifiers
+    `sshd` and `sshd-session` (OpenSSH 9.8+ splits the listener from the
+    per-connection session process), and the `ssh.service` unit journal
+    (`-u ssh`) does not carry the sshd-session children. So `identifiers` (one
+    or more `-t` filters) is the reliable selector on a journald box; `unit`
+    remains for the older single-process case. When both are given, `-u` and
+    `-t` combine, which journalctl treats as an OR.
     """
     cmd = ["journalctl", "-o", "short", "--no-pager"]
     if unit:
         cmd += ["-u", unit]
+    for ident in identifiers or []:
+        cmd += ["-t", ident]
     if since:
         cmd += ["--since", since]
     proc = runner(cmd, capture_output=True, text=True, check=True)

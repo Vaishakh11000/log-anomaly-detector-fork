@@ -1,0 +1,16 @@
+[
+  {
+    "scenario": "A",
+    "instance": 2,
+    "camouflage": [],
+    "target_user": "admin",
+    "source_ips": [
+      "127.0.0.1"
+    ],
+    "t_start": "2026-09-04T22:24:58.213298",
+    "t_end": "2026-09-04T22:25:07.387503",
+    "tool": "hydra",
+    "synthetic": false,
+    "description": "brute force, 12 attempts via hydra"
+  }
+]

@@ -219,3 +219,80 @@ reproduced on authentic lines.
 - **The contrast is attack-shape vs the detector, not us vs a SIEM.** Nothing
   here re-tests the kill point; it says the shipped camouflage recipes were
   tuned to a synthetic shape and have less grip on the authentic one.
+
+---
+
+## v2 — five distinct captures per scenario (2026-09-04, `injected_v2/`)
+
+The limit above ("still three captures per scenario, placed five ways") is now
+closed. The boxes are cabled (§2c), so a fresh capture run was driven on Kali
+over the Cat6 link producing **ten distinct authentic instances** — five brute
+force (`A_1..A_5`, target users root/admin/oracle/postgres/service, 10–20 hydra
+attempts each) and five enumeration (`C_1..C_5`, disjoint five-user candidate
+sets, each from its own loopback source `127.0.0.11..15`). Captures live in
+`results/kali/capture_v2/`. Pooled over five seeds this is **50/50 per condition
+and 25/25 per scenario** — an effective independent sample of **five** per
+scenario, where the earlier run rested on three.
+
+Two runner fixes made the captures richer and cleaner, and both are authentic
+tool behaviour rather than authored log content:
+
+- **Brute force now uses a password *list* (`hydra -P`), not a single `-p`.** A
+  real brute force tries a wordlist, and each wrong password is its own `Failed
+  password` line. Instances now carry **10–21 `Failed password` lines** (25–45
+  attributed lines total) against the earlier run's ~1 — roughly an order of
+  magnitude more of the signal the detector keys on. A rate-limiting modern
+  sshd (`srclimit_penalise`) still caps the burst, which stays visible in the
+  captures; we do not fight it.
+- **Enumeration binds a distinct loopback source per instance (`ssh -b`).**
+  sshd's penalty is keyed per source `/32`, so a distinct source per instance
+  stops one instance's failed-auth penalty from emptying the next — the artefact
+  that left C_2/C_3 empty on the first offline run. Each C instance now lands
+  all five `Invalid user` lines cleanly. Enumeration is still one source varying
+  the username *within* an instance, so scenario C's shape is unchanged.
+
+  (A capture-only bug was found and fixed on the way: the whole five-user list
+  was reaching sshd as a single username because Kali's default shell, zsh, does
+  not word-split an unquoted `${var}`. The batch uses `${=var}`; it never
+  touched the runner.)
+
+**The finding is unchanged and now stronger.** Authentic attacks hold **100%
+instance detection on every one of the nine conditions**; the synthetic arm,
+drawing fresh instances per seed, loses instances on four:
+
+| condition | authentic instance | synthetic instance |
+|---|---|---|
+| baseline | 100% (50/50) | 100% (45/45) |
+| slow | **100%** | **86.7% (−13.3)** |
+| rephrase | **100%** | 95.6% (−4.4) |
+| ip_rotate | **100%** | 93.3% (−6.7) |
+| realistic-combo | **100%** | **77.8% (−22.2)** |
+| (temporal/mimicry/noise/volume) | 100% | 100% |
+
+This is the same **attack-shape** finding as the three-capture run, now on five
+independent captures per scenario, so §4's ≥5-seed rule is satisfied in letter
+*and* the effective independent sample is five. The reading does not change: the
+camouflage library was authored around the synthetic shape (homogeneous `Failed
+password` bursts on a fresh corpus user) and has little grip on authentic
+heterogeneous instances on a well-baselined `root`. It is **not** a robustness
+win over a SIEM and re-tests nothing about the kill point.
+
+**One number reversed direction, and the reason is the richer capture.** The
+authentic baseline line rate is now **45.0%** (over **1080** attack lines
+pooled) against the synthetic arm's **52.0%** (544 lines) — the *opposite* of
+the three-capture run, where authentic read higher (60% over 75 lines). The
+thin early captures were almost entirely the one highly-anomalous `Failed
+password` line; the richer captures add many `pam_unix` auth-failure,
+`Connection closed`, `Disconnected` and penalty lines, which also occur in the
+OpenSSH background and are therefore *less* individually anomalous — so the
+per-line rate falls even as the absolute evidence per instance rises ~14×.
+Instance detection, the metric that matters, stays 100%. `rephrase` still lifts
+the authentic line rate (+2.9) and `volume`/`realistic-combo` raise it by
+deleting self-similar inliers; `noise` dilutes it (−3.8) and inflates volume
+(319 → 538 flagged). The mechanisms are the documented ones.
+
+**Limits that remain.** Scenario B (impossible travel) is still synthetic-only
+by necessity (§2d). One background at one ambient ratio (0.05). And the source
+IP stays `127.0.0.1`/`127.0.0.1x`, masked by `template_message` before
+embedding, with the target `root`, which has genuine history in this background
+— the same deliberate choices as the three-capture run, for the same reasons.

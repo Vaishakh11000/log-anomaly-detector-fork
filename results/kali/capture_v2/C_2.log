@@ -1,0 +1,9 @@
+Sep 04 22:30:41 kali sshd-session[286748]: Invalid user ubuntu from 127.0.0.12 port 55663
+Sep 04 22:30:41 kali sshd-session[286748]: Connection closed by invalid user ubuntu 127.0.0.12 port 55663 [preauth]
+Sep 04 22:30:41 kali sshd-session[286751]: Invalid user deploy from 127.0.0.12 port 56403
+Sep 04 22:30:41 kali sshd-session[286751]: Connection closed by invalid user deploy 127.0.0.12 port 56403 [preauth]
+Sep 04 22:30:41 kali sshd-session[286760]: Invalid user jenkins from 127.0.0.12 port 46241
+Sep 04 22:30:41 kali sshd-session[286760]: Connection closed by invalid user jenkins 127.0.0.12 port 46241 [preauth]
+Sep 04 22:30:41 kali sshd-session[286763]: Connection closed by authenticating user www-data 127.0.0.12 port 33169 [preauth]
+Sep 04 22:30:41 kali sshd[155771]: srclimit_penalise: 127.0.0.12/32: activating ipv4 penalty of 15.615 seconds for penalty: connections without attempting authentication
+Sep 04 22:30:41 kali sshd[155771]: drop connection #0 from [127.0.0.12]:34125 on [127.0.0.1]:22 penalty: connections without attempting authentication

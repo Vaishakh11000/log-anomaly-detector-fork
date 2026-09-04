@@ -54,9 +54,17 @@ def main(argv: list[str] | None = None) -> int:
                         "(applied to captured lines by the shared camouflage.py)")
     p.add_argument("--year", type=int, default=None,
                    help="year for the syslog timestamps (defaults to this year)")
+    p.add_argument("--attempts", type=int, default=20,
+                   help="brute force: password-list length (a rate-limiting sshd "
+                        "will still cap how many attempts actually land)")
     # capture source
     p.add_argument("--auth-file", help="capture from this auth.log-style file")
     p.add_argument("--journald-unit", help="capture from journald for this unit")
+    p.add_argument("--journald-identifier", nargs="+",
+                   help="capture from journald by syslog identifier, e.g. "
+                        "`sshd sshd-session`. On modern systemd this is the "
+                        "reliable selector; `-u ssh` misses the sshd-session "
+                        "children that carry the auth lines.")
     # shipping
     p.add_argument("--peer", help="analyzer base URL, e.g. http://10.10.10.2:8000")
     p.add_argument("--spool", default="./spool", help="disk-backed shipping buffer")
@@ -76,6 +84,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.attack == "brute_force":
         record = attacks.brute_force(args.target_host, args.target_port, args.user,
                                      args.source_ip, args.instance,
+                                     attempts=args.attempts,
                                      camouflage=args.camouflage)
     elif args.attack == "enumeration":
         record = attacks.enumeration(args.target_host, args.target_port, args.users,
@@ -91,8 +100,16 @@ def main(argv: list[str] | None = None) -> int:
     # 2. capture
     if args.auth_file:
         lines = capture_file(args.auth_file, year)
-    elif args.journald_unit:
-        lines = capture_journald(args.journald_unit, year)
+    elif args.journald_unit or args.journald_identifier:
+        import time as _time
+        _time.sleep(1.0)   # let journald flush the attack's lines
+        # Window the capture to a few seconds before the attack started, so the
+        # corpus is this instance's traffic rather than the whole journal, and
+        # so successive instances do not each re-read every earlier one.
+        from datetime import timedelta
+        since = (record.t_start - timedelta(seconds=3)).strftime("%Y-%m-%d %H:%M:%S")
+        lines = capture_journald(args.journald_unit, year, since=since,
+                                 identifiers=args.journald_identifier)
     else:
         print("no capture source (--auth-file or --journald-unit); "
               "recorded the launch only", file=sys.stderr)

@@ -1,0 +1,9 @@
+Sep 04 22:30:51 kali sshd-session[286826]: Connection closed by authenticating user mysql 127.0.0.13 port 51791 [preauth]
+Sep 04 22:30:51 kali sshd-session[286829]: Connection closed by authenticating user redis 127.0.0.13 port 55017 [preauth]
+Sep 04 22:30:51 kali sshd-session[286832]: Invalid user mongo from 127.0.0.13 port 32987
+Sep 04 22:30:51 kali sshd-session[286832]: Connection closed by invalid user mongo 127.0.0.13 port 32987 [preauth]
+Sep 04 22:30:51 kali sshd-session[286835]: Invalid user elastic from 127.0.0.13 port 46575
+Sep 04 22:30:51 kali sshd-session[286835]: Connection closed by invalid user elastic 127.0.0.13 port 46575 [preauth]
+Sep 04 22:30:51 kali sshd-session[286838]: Invalid user kibana from 127.0.0.13 port 39351
+Sep 04 22:30:51 kali sshd-session[286838]: Connection closed by invalid user kibana 127.0.0.13 port 39351 [preauth]
+Sep 04 22:30:51 kali sshd[155771]: srclimit_penalise: 127.0.0.13/32: activating ipv4 penalty of 16.499 seconds for penalty: attempted authentication by invalid user

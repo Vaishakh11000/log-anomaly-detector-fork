@@ -1,0 +1,16 @@
+[
+  {
+    "scenario": "C",
+    "instance": 1,
+    "camouflage": [],
+    "target_user": null,
+    "source_ips": [
+      "127.0.0.11"
+    ],
+    "t_start": "2026-09-04T22:30:31.882046",
+    "t_end": "2026-09-04T22:30:32.383707",
+    "tool": "ssh",
+    "synthetic": false,
+    "description": "enumeration of 5 candidate users"
+  }
+]

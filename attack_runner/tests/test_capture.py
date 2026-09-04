@@ -44,3 +44,24 @@ def test_capture_journald_with_injected_runner():
                   "from 10.10.10.1 port 1 ssh2\n")
     lines = capture_journald("sshd", year=2026, runner=lambda *a, **k: Proc())
     assert len(lines) == 1 and lines[0].source_ip == "10.10.10.1"
+
+
+def test_capture_journald_identifiers_build_t_flags():
+    captured = {}
+
+    class Proc:
+        stdout = ("Sep 04 10:00:00 host sshd-session[9]: Invalid user oracle "
+                  "from 127.0.0.11 port 2 ssh2\n")
+
+    def fake_runner(cmd, **k):
+        captured["cmd"] = cmd
+        return Proc()
+
+    lines = capture_journald(None, year=2026, runner=fake_runner,
+                             identifiers=["sshd", "sshd-session"])
+    assert "-t" in captured["cmd"]
+    assert captured["cmd"].count("-t") == 2
+    assert "sshd-session" in captured["cmd"]
+    # unit is absent, so no -u flag was added
+    assert "-u" not in captured["cmd"]
+    assert len(lines) == 1 and lines[0].user == "oracle"

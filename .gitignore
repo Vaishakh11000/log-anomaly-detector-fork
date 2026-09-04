@@ -27,3 +27,4 @@ data/live/
 # Parsed intermediates written beside a report (regenerable from the raw log by
 # re-running the report; the report itself is the artifact worth keeping).
 results/**/parsed_templates.csv
+attack_runner_kali.tgz

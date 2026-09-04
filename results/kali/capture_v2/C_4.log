@@ -1,0 +1,9 @@
+Sep 04 22:31:00 kali sshd-session[286905]: Connection closed by authenticating user backup 127.0.0.14 port 38189 [preauth]
+Sep 04 22:31:00 kali sshd-session[286908]: Invalid user nagios from 127.0.0.14 port 34753
+Sep 04 22:31:00 kali sshd-session[286908]: Connection closed by invalid user nagios 127.0.0.14 port 34753 [preauth]
+Sep 04 22:31:01 kali sshd-session[286912]: Invalid user zabbix from 127.0.0.14 port 59835
+Sep 04 22:31:01 kali sshd-session[286912]: Connection closed by invalid user zabbix 127.0.0.14 port 59835 [preauth]
+Sep 04 22:31:01 kali sshd-session[286915]: Invalid user vagrant from 127.0.0.14 port 50477
+Sep 04 22:31:01 kali sshd-session[286915]: Connection closed by invalid user vagrant 127.0.0.14 port 50477 [preauth]
+Sep 04 22:31:01 kali sshd[155771]: srclimit_penalise: 127.0.0.14/32: activating ipv4 penalty of 15.630 seconds for penalty: attempted authentication by invalid user
+Sep 04 22:31:01 kali sshd[155771]: drop connection #0 from [127.0.0.14]:55255 on [127.0.0.1]:22 penalty: attempted authentication by invalid user

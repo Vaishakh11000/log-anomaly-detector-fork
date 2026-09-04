@@ -57,15 +57,24 @@ def brute_force(target_host: str, target_port: int, user: str, source_ip: str,
     tool = _which("hydra", "medusa") or "ssh"
 
     if tool in ("hydra", "medusa"):
-        # A tiny wordlist of wrong passwords; the point is the failed attempts,
-        # not a real crack. Real invocation; output goes to the sshd's auth log.
-        cmd = [tool, "-l", user, "-p", "wrongpass", "-t", "4",
+        # A short list of wrong passwords -- a real brute force tries a wordlist,
+        # not one password, and each wrong password is a separate "Failed
+        # password" line in the auth log. `attempts` sets the list length. A
+        # single `-p` (the earlier form) produced exactly one Failed-password
+        # line, which understated how much signal an authentic burst carries;
+        # a rate-limiting modern sshd (srclimit_penalise) still caps the burst,
+        # which is itself an authentic finding, so we do not fight the penalty.
+        import tempfile
+        pw = tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False)
+        pw.write("\n".join(f"wrongpass{i}" for i in range(attempts)) + "\n")
+        pw.close()
+        cmd = [tool, "-l", user, "-P", pw.name, "-t", "4",
                f"ssh://{target_host}:{target_port}"]
         runner(cmd, capture_output=True, text=True)
     else:
         for _ in range(attempts):
             cmd = ["ssh", "-o", "BatchMode=yes", "-o", "StrictHostKeyChecking=no",
-                   "-o", "ConnectTimeout=2", "-p", str(target_port),
+                   "-o", "ConnectTimeout=2", "-b", source_ip, "-p", str(target_port),
                    f"{user}@{target_host}", "true"]
             runner(cmd, capture_output=True, text=True)
 
@@ -89,8 +98,16 @@ def enumeration(target_host: str, target_port: int, users: list[str],
     """
     t_start = now()
     for user in users:
+        # `-b source_ip` binds the local source address, so each instance can run
+        # from a distinct loopback source (127.0.0.11, .12, ...). sshd's
+        # PerSourcePenalties is keyed per source /32, so a distinct source per
+        # instance stops one instance's failed-auth penalty from clipping the
+        # next -- which is what emptied C_2/C_3 on the first capture run (all
+        # three fired back-to-back from 127.0.0.1). Enumeration is still one
+        # source varying the username within an instance, so scenario C's shape
+        # is unchanged.
         cmd = ["ssh", "-o", "BatchMode=yes", "-o", "StrictHostKeyChecking=no",
-               "-o", "ConnectTimeout=2", "-p", str(target_port),
+               "-o", "ConnectTimeout=2", "-b", source_ip, "-p", str(target_port),
                f"{user}@{target_host}", "true"]
         runner(cmd, capture_output=True, text=True)
     t_end = now()
