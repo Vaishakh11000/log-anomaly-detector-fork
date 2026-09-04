@@ -1,5 +1,11 @@
 # attack_runner
 
+> **Setting this up on Kali? Jump to [KALI_RUNBOOK.md](KALI_RUNBOOK.md).**
+> That is the full step-by-step: what to install, start the sshd, run the
+> attacks, and carry the results back to the analyzer. A short setup summary is
+> in the [Kali quick start](#kali-quick-start) below.
+
+
 The Kali adversary component of the log-anomaly detector's adversarial track
 (CLAUDE.md §2d). It runs **real attack tools against a real sshd**, captures
 the genuine auth lines they produce, records **ground truth at generation
@@ -34,6 +40,39 @@ out**. Therefore:
 | `linkcheck.py` | transport-agnostic link verifier — L2 → L3 → L7 → lag |
 | `camouflage.py` | vendored shared camouflage transforms |
 | `cli.py` | `attack-run`: launch → capture → attribute → ship |
+
+## Kali quick start
+
+Full details in **[KALI_RUNBOOK.md](KALI_RUNBOOK.md)**. In short, on the Kali box:
+
+```bash
+# 1. one-time: install what is needed (Kali usually has all of these already)
+sudo apt update
+sudo apt install -y git python3 openssh-server hydra   # hydra optional; ssh loop is the fallback
+
+# 2. get the code (this repo is private, so log in to GitHub on Kali first)
+gh auth login                       # or use an HTTPS personal-access token
+git clone https://github.com/Vaishakh11000/log-anomaly-attack-runner.git
+cd log-anomaly-attack-runner
+python3 -m attack_runner.cli --help # sanity check -- stdlib only, no pip install
+
+# 3. start a real sshd to attack (nothing gets cracked; failed logins only)
+sudo systemctl start ssh
+ss -ltnp | grep :22
+
+# 4. run an authentic attack against it, writing a scoreable pair to disk
+mkdir -p capture
+sudo python3 -m attack_runner.cli brute_force \
+     --target-host 127.0.0.1 --target-port 22 --user root \
+     --source-ip 127.0.0.1 --instance 1 \
+     --auth-file /var/log/auth.log --year "$(date +%Y)" \
+     --corpus-out capture/A_1.log --ground-truth-out capture/A_1_gt.csv \
+     --records-out capture/A_1_rec.json
+```
+
+Then copy `capture/` back to the analyzer and score it there
+(`results/kali/score_captured.py` in the main project). Updating later on Kali is
+just `git pull`. The two-box live link (`--peer`) is not needed for any of this.
 
 ## Run
 
