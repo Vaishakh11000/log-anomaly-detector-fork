@@ -62,6 +62,11 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--spool", default="./spool", help="disk-backed shipping buffer")
     p.add_argument("--ground-truth-out", default="ground_truth.csv")
     p.add_argument("--records-out", default="attack_records.json")
+    p.add_argument("--corpus-out",
+                   help="write the captured raw lines to this .log file. Its line "
+                        "numbers match --ground-truth-out, so the pair scores on the "
+                        "analyzer with no link -- this is the offline path while the "
+                        "boxes are apart (CLAUDE.md section 2c)")
     args = p.parse_args(argv)
 
     from datetime import datetime
@@ -100,6 +105,15 @@ def main(argv: list[str] | None = None) -> int:
     print(f"attributed {n} line(s) to instance {args.instance}")
     write_ground_truth_csv(result["labels"], args.ground_truth_out, lines)
     dump_records([record], args.records_out)
+
+    if args.corpus_out:
+        # The captured lines in line_number order, so line K here is the line
+        # ground truth calls K. Carry this pair back to the analyzer and score
+        # with logdet_eval.scoring; no link needed.
+        with open(args.corpus_out, "w") as f:
+            for ln in sorted(lines, key=lambda x: x.line_number):
+                f.write(ln.raw.rstrip("\n") + "\n")
+        print(f"wrote {len(lines)} captured line(s) -> {args.corpus_out}")
 
     # 4. ship
     if args.peer:
