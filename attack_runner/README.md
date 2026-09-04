@@ -43,6 +43,31 @@ out**. Therefore:
 
 ## Kali quick start
 
+### Driving this with Claude Code on Kali (recommended)
+
+This repo ships a **`CLAUDE.md`** written for the Kali box. Clone the repo, open
+Claude Code inside it, and the agent has the full playbook — it can check the
+environment, start the sshd, run the attacks, and leave a bundle for you to carry
+back, all with the honesty rules baked in.
+
+```bash
+# on Kali, one time
+sudo apt update && sudo apt install -y git python3 openssh-server hydra
+gh auth login                       # this repo is private
+git clone https://github.com/Vaishakh11000/log-anomaly-attack-runner.git
+cd log-anomaly-attack-runner
+
+# install Claude Code if it is not already on this box, then:
+claude                              # opens a chat in this directory; it reads CLAUDE.md
+```
+
+Then just tell it what you want, e.g. *"run three brute-force and three
+enumeration instances against the local sshd and bundle the captures"*. It will
+confirm before touching the system. To update the code later: `git pull`.
+
+If you would rather run the commands yourself, the manual steps are below and the
+full walkthrough is in **[KALI_RUNBOOK.md](KALI_RUNBOOK.md)**.
+
 Full details in **[KALI_RUNBOOK.md](KALI_RUNBOOK.md)**. In short, on the Kali box:
 
 ```bash
