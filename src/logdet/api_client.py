@@ -95,9 +95,9 @@ class ApiClient:
     def incident(self, incident_id: int) -> dict:
         return self._request("GET", f"/incidents/{incident_id}")
 
-    def narrate(self, incident_id: int) -> dict:
+    def narrate(self, incident_id: int, tier: str = "full") -> dict:
         return self._request("POST", f"/incidents/{incident_id}/narrate",
-                             timeout=NARRATE_TIMEOUT)
+                             params={"tier": tier}, timeout=NARRATE_TIMEOUT)
 
     def start_stream(self, **payload) -> dict:
         return self._request("POST", "/stream/start", json=payload)

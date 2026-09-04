@@ -86,7 +86,8 @@ from logdet.config import LLM_MODEL, PROCESSED_DATA_DIR, RESULTS_DIR
 from logdet.embedding import add_embeddings_to_df
 from logdet.entity_graph import normalise_identity
 from logdet.llm_narrative import (build_prompt, build_structured_prompt,
-                                  generate_narrative, generate_structured)
+                                  build_triage_prompt, generate_narrative,
+                                  generate_structured, generate_triage)
 from logdet.pipeline import build_incident_entry, should_narrate
 from logdet.sequence_grouping import group_anomalies
 
@@ -402,13 +403,19 @@ def score_and_group(input_csv: str
 
 
 def run(input_csv: str, model: str = LLM_MODEL, limit: int | None = None,
-        narrate_all: bool = True, structured: bool = False) -> list[Check]:
+        narrate_all: bool = True, structured: bool = False,
+        triage: bool = False) -> list[Check]:
     """Narrate, then check each narrative against the prompt that produced it.
 
     `structured` swaps in the JSON arm: the model's technique claim goes into a
     field that `validate_structured` checks against the grounded list, and what
     is checked here is the *rendered* narrative -- what an analyst would read
     after the rejected IDs were dropped.
+
+    `triage` swaps in the cheap tier: one sentence, with every technique ID
+    removed from it rather than validated in place. What is checked is again
+    the text a reader sees, so an ID that survived the strip would be caught
+    here as an ungrounded claim like any other.
     """
     incidents, entries, vocabulary = score_and_group(input_csv)
     targets = [e for e in entries
@@ -416,18 +423,26 @@ def run(input_csv: str, model: str = LLM_MODEL, limit: int | None = None,
     if limit is not None:
         targets = targets[:limit]
 
-    print(f"{len(entries)} incidents, narrating {len(targets)} with {model}"
-          f"{' (structured JSON output)' if structured else ''}")
+    arm = " (triage tier, one sentence)" if triage else (
+        " (structured JSON output)" if structured else "")
+    print(f"{len(entries)} incidents, narrating {len(targets)} with {model}{arm}")
     checks: list[Check] = []
     for n, entry in enumerate(targets, start=1):
         incident = incidents[entry["incident_id"]]
-        build = build_structured_prompt if structured else build_prompt
+        if triage:
+            build = build_triage_prompt
+        else:
+            build = build_structured_prompt if structured else build_prompt
         prompt = build(incident, context_events=entry["context_events"])
         started = time.time()
         dropped: list[str] = []
         parse_failed = False
         try:
-            if structured:
+            if triage:
+                result = generate_triage(incident, model=model,
+                                         context_events=entry["context_events"])
+                narrative, dropped = result.line, result.dropped
+            elif structured:
                 result = generate_structured(incident, model=model,
                                              context_events=entry["context_events"])
                 narrative = result.render(entry["mitre_techniques"])
@@ -532,12 +547,14 @@ def _rate(bad: int, total: int) -> str:
 
 
 def render(checks: list[Check], model: str, corpus: str,
-           structured: bool = False) -> str:
+           structured: bool = False, triage: bool = False) -> str:
     counts = tally(checks)
+    mode = ("triage tier (one sentence, technique IDs stripped)" if triage
+            else "structured JSON" if structured else "free prose")
     lines = [
         "# Narrative faithfulness",
         "",
-        f"Output mode: **{'structured JSON' if structured else 'free prose'}**",
+        f"Output mode: **{mode}**",
         "",
         f"Corpus: `{corpus}` | model: `{model}` | "
         f"{counts['narratives']} narratives | "
@@ -641,15 +658,17 @@ def render(checks: list[Check], model: str, corpus: str,
 
 
 def write_report(checks: list[Check], output_dir: str, model: str,
-                 corpus: str, structured: bool = False) -> None:
+                 corpus: str, structured: bool = False,
+                 triage: bool = False) -> None:
     directory = Path(output_dir)
     directory.mkdir(parents=True, exist_ok=True)
     (directory / "faithfulness.md").write_text(
-        render(checks, model, corpus, structured))
+        render(checks, model, corpus, structured, triage))
     payload = {
         "corpus": corpus,
         "model": model,
         "structured": structured,
+        "triage": triage,
         "summary": tally(checks),
         "checks": [
             {"incident_id": c.incident_id, "grounded_arm": c.grounded_arm,
@@ -680,6 +699,9 @@ def cli() -> None:
                         help="narrate as validated JSON instead of free prose: "
                              "technique IDs the grounded lookup did not hand "
                              "over are dropped before rendering")
+    parser.add_argument("--triage", action="store_true",
+                        help="the cheap tier: one sentence on LLM_TRIAGE_MODEL "
+                             "with every technique ID stripped out of it")
     parser.add_argument("--narrate-policy", action="store_true",
                         help="narrate only what the pipeline would narrate "
                              "(default: every incident, for a wider sample)")
@@ -690,9 +712,9 @@ def cli() -> None:
     else:
         checks = run(args.input, model=args.model, limit=args.limit,
                      narrate_all=not args.narrate_policy,
-                     structured=args.structured)
+                     structured=args.structured, triage=args.triage)
     write_report(checks, args.output, args.model, args.input,
-                 structured=args.structured)
+                 structured=args.structured, triage=args.triage)
 
 
 if __name__ == "__main__":

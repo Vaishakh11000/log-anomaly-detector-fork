@@ -35,7 +35,8 @@ import requests
 from logdet.mitre_mapping import map_incident_to_mitre
 from logdet.config import (OLLAMA_URL, LLM_MODEL, LLM_TIMEOUT_SECONDS, LLM_NUM_PREDICT,
                     LLM_TEMPERATURE, NARRATIVE_SENTENCE_RANGE, NARRATIVE_MAX_EVENTS,
-                    LLM_STRUCTURED_OUTPUT)
+                    LLM_STRUCTURED_OUTPUT, LLM_TRIAGE_MODEL, LLM_NARRATIVE_MODEL,
+                    LLM_TRIAGE_NUM_PREDICT, TRIAGE_SENTENCE_RANGE)
 
 TECHNIQUE_ID_RE = re.compile(r"\bT\d{4}(?:\.\d{3})?\b")
 
@@ -393,14 +394,20 @@ def build_prompt(incident_df: pd.DataFrame,
     return prompt
 
 
-def _complete(prompt: str, model: str = LLM_MODEL, json_mode: bool = False) -> str:
-    """One Ollama completion. `json_mode` constrains the decoder to valid JSON."""
+def _complete(prompt: str, model: str = LLM_MODEL, json_mode: bool = False,
+              num_predict: int = LLM_NUM_PREDICT) -> str:
+    """One Ollama completion. `json_mode` constrains the decoder to valid JSON.
+
+    `num_predict` is the tier knob: the prompt is the same size either way, so
+    the generated length is what separates a triage line from a narrative in
+    both latency and cost.
+    """
     payload = {
         "model": model,
         "prompt": prompt,
         "stream": False,
         "options": {
-            "num_predict": LLM_NUM_PREDICT,
+            "num_predict": num_predict,
             "temperature": LLM_TEMPERATURE,
         },
     }
@@ -427,6 +434,127 @@ def generate_narrative(incident_df: pd.DataFrame, model: str = LLM_MODEL,
                                      context_events=context_events)
         return result.render(map_incident_to_mitre(incident_df))
     return _complete(build_prompt(incident_df, context_events), model=model)
+
+
+# --- triage tier (Stage 5 model routing) ------------------------------------
+#
+# The full narrative is not the only thing an analyst needs, and it is not
+# affordable for every incident: 75 of the synthetic corpus's 94 incidents are
+# below the NARRATE_* threshold and carry no prose at all, because narrating
+# them costs ~3.9s each on the 4060 and ~18.2s on its CPU. A triage line is the
+# cheap tier -- one sentence, capped at LLM_TRIAGE_NUM_PREDICT tokens, so the
+# cost is the prompt plus a fraction of the generation.
+#
+# Technique IDs are removed from the sentence rather than validated in place.
+# The full tier can keep them because structured output gives the claim its own
+# field; a one-liner has no field, and editing an ID out of the middle of a
+# sentence would leave prose the model did not write. So the rule is simpler
+# and enforceable: the triage line carries no ID at all, and the incident's
+# techniques are the retrieval's to state, exactly as they already are in the
+# dashboard and the API.
+TRIAGE_TEMPLATE = """You are a SOC analyst assistant. Below is one anomaly incident from a log
+detector. An analyst is scanning a list of these and needs a single line.
+
+Incident summary:
+{summary}
+
+Incident events (chronological):
+{events}
+
+Matched MITRE ATT&CK techniques (grounded lookup):
+{mitre_matches}
+
+Write {sentences} sentence of plain English: who did what, from where, and
+whether it looks like an attack or like routine activity.
+
+Name no technique IDs. The techniques are shown to the analyst from the
+grounded lookup, and any ID written here is removed before it is displayed.
+No heading, no bullet points, no preamble -- the sentence only.
+"""
+
+
+@dataclass
+class TriageLine:
+    """One triage sentence after the technique IDs have been taken out.
+
+    `dropped` records what the model wrote and lost, for the same reason
+    `StructuredNarrative.dropped` does: a silent removal would hide the
+    behaviour this tier is enforcing against.
+    """
+
+    line: str = ""
+    dropped: list[str] = dataclass_field(default_factory=list)
+    raw: str = ""
+
+    def render(self) -> str:
+        return self.line
+
+
+# An ID with whatever bracket, colon or dash the model wrapped around it, so
+# removing "(T1110)" does not leave an empty pair of brackets behind.
+_TECHNIQUE_MENTION_RE = re.compile(
+    r"\s*[\(\[]?\bT\d{4}(?:\.\d{3})?\b[\)\]]?\s*[:,;-]?")
+
+
+def strip_technique_ids(text: str) -> tuple[str, list[str]]:
+    """Return the text with every technique ID removed, and the IDs removed."""
+    found: list[str] = []
+    seen: set[str] = set()
+    for match in TECHNIQUE_ID_RE.findall(text):
+        if match not in seen:
+            seen.add(match)
+            found.append(match)
+    clean = _TECHNIQUE_MENTION_RE.sub(" ", text)
+    clean = re.sub(r"\(\s*\)|\[\s*\]", "", clean)
+    clean = re.sub(r"\s+([.,;:])", r"\1", clean)
+    clean = re.sub(r"[ \t]+", " ", clean).strip()
+    return clean, found
+
+
+def build_triage_prompt(incident_df: pd.DataFrame,
+                        context_events: list[dict] | None = None) -> str:
+    """The triage-tier prompt, built from the same blocks as the other two."""
+    events_str, mitre_str = format_incident_for_prompt(incident_df)
+    prompt = TRIAGE_TEMPLATE.format(
+        summary=summarise_incident(incident_df),
+        events=events_str,
+        mitre_matches=mitre_str,
+        sentences=TRIAGE_SENTENCE_RANGE,
+    )
+    context_str = _context_lines(context_events)
+    if context_str:
+        prompt = prompt.replace(
+            "Matched MITRE ATT&CK techniques",
+            CONTEXT_BLOCK.format(context=context_str) + "Matched MITRE ATT&CK techniques",
+            1)
+    return prompt
+
+
+def generate_triage(incident_df: pd.DataFrame, model: str = LLM_TRIAGE_MODEL,
+                    context_events: list[dict] | None = None) -> TriageLine:
+    """One sentence for the incident list, on the small model."""
+    text = _complete(build_triage_prompt(incident_df, context_events), model=model,
+                     num_predict=LLM_TRIAGE_NUM_PREDICT)
+    line, found = strip_technique_ids(text)
+    return TriageLine(line=line, dropped=found, raw=text)
+
+
+def narrate(incident_df: pd.DataFrame, tier: str = "full",
+            context_events: list[dict] | None = None,
+            model: str | None = None) -> str:
+    """Route one incident to a tier and return the text a reader sees.
+
+    `tier="triage"` is one sentence on LLM_TRIAGE_MODEL; `tier="full"` is the
+    existing narrative on LLM_NARRATIVE_MODEL. Both models default to LLM_MODEL,
+    so routing is a token-budget split until a second model is measured.
+    """
+    if tier == "triage":
+        return generate_triage(incident_df, model=model or LLM_TRIAGE_MODEL,
+                               context_events=context_events).render()
+    if tier != "full":
+        raise ValueError(f"unknown narration tier: {tier!r}")
+    return generate_narrative(incident_df, model=model or LLM_NARRATIVE_MODEL,
+                              context_events=context_events)
 
 
 if __name__ == "__main__":

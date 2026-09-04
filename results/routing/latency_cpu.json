@@ -1,0 +1,54 @@
+{
+  "prompt_chars": {
+    "triage": 1363,
+    "full": 1630,
+    "prose (reference)": 1447
+  },
+  "repeats": 3,
+  "rows": [
+    {
+      "tier": "triage",
+      "model": "phi3",
+      "median_seconds": 5.06,
+      "seconds": [
+        5.08,
+        4.53,
+        5.06
+      ],
+      "median_chars": 275
+    },
+    {
+      "tier": "full",
+      "model": "phi3",
+      "median_seconds": 18.0,
+      "seconds": [
+        24.86,
+        16.56,
+        18.0
+      ],
+      "median_chars": 830
+    },
+    {
+      "tier": "triage",
+      "model": "llama3",
+      "median_seconds": 3.73,
+      "seconds": [
+        3.14,
+        4.34,
+        3.73
+      ],
+      "median_chars": 200
+    },
+    {
+      "tier": "full",
+      "model": "llama3",
+      "median_seconds": 16.81,
+      "seconds": [
+        16.81,
+        16.68,
+        17.62
+      ],
+      "median_chars": 647
+    }
+  ]
+}

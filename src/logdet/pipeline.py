@@ -19,7 +19,7 @@ from logdet.anomaly_detection import (run_anomaly_detection, highest_severity,
                                       travel_evidence)
 from logdet.sequence_grouping import group_anomalies, describe_incident
 from logdet.mitre_mapping import kill_chain_of, map_incident_to_mitre
-from logdet.llm_narrative import generate_narrative
+from logdet.llm_narrative import generate_narrative, generate_triage
 from logdet.sequence_model import TransitionModel
 from logdet.config import (
     NARRATE_SEVERITIES,
@@ -27,6 +27,8 @@ from logdet.config import (
     DEFAULT_INCIDENTS_PATH,
     DEFAULT_SEQUENCE_MODEL_PATH,
     SEQUENCE_SUPPRESSION,
+    LLM_TRIAGE_MODEL,
+    LLM_TRIAGE_NUM_PREDICT,
 )
 
 
@@ -110,7 +112,8 @@ def build_incident_entry(incident_id: int, incident: pd.DataFrame,
 
 def run_pipeline(input_csv: str, output_json: str, use_llm: bool = True,
                  narrate_all: bool = False, sequence_model_path: str | None = None,
-                 suppress: bool = SEQUENCE_SUPPRESSION):
+                 suppress: bool = SEQUENCE_SUPPRESSION,
+                 triage_lines: bool = False):
     df = pd.read_csv(input_csv, parse_dates=["timestamp"])
     print(f"Loaded {len(df)} parsed log rows")
 
@@ -167,6 +170,28 @@ def run_pipeline(input_csv: str, output_json: str, use_llm: bool = True,
         for entry in results:
             entry.setdefault("narrative", None)
 
+        # The cheap tier for everything the budget policy left with no prose at
+        # all. One sentence each, so 75 incidents cost what a handful of full
+        # narratives do.
+        if triage_lines:
+            rest = [e for e in results if not e.get("narrative")]
+            print(f"Triage line for the remaining {len(rest)} incidents "
+                  f"({LLM_TRIAGE_MODEL}, {LLM_TRIAGE_NUM_PREDICT} tokens each)")
+            for n, entry in enumerate(rest, start=1):
+                try:
+                    result = generate_triage(
+                        incidents[entry["incident_id"]],
+                        context_events=entry["context_events"])
+                    entry["triage_line"] = result.line
+                    if result.dropped:
+                        print(f"  [{n}/{len(rest)}] incident {entry['incident_id']}: "
+                              f"dropped {', '.join(result.dropped)}")
+                except Exception as e:
+                    entry["triage_line"] = f"[triage line generation failed: {e}]"
+
+        for entry in results:
+            entry.setdefault("triage_line", None)
+
     with open(output_json, "w") as f:
         json.dump(results, f, indent=2, default=str)
     print(f"Wrote {len(results)} incidents -> {output_json}")
@@ -181,6 +206,10 @@ def cli() -> None:
     parser.add_argument("--no-llm", action="store_true", help="Skip LLM narrative generation")
     parser.add_argument("--narrate-all", action="store_true",
                         help="Narrate every incident, ignoring the NARRATE_* budget policy (slow)")
+    parser.add_argument("--triage-lines", action="store_true",
+                        help="Also give every un-narrated incident a one-sentence triage "
+                             "line on the small model (LLM_TRIAGE_MODEL). Cheap per "
+                             "incident, but there are many of them -- see config.py.")
     parser.add_argument("--sequence-model", nargs="?", const=DEFAULT_SEQUENCE_MODEL_PATH,
                         default=None,
                         help="Adjust severity tiers with a fitted transition model over "
@@ -196,7 +225,8 @@ def cli() -> None:
     run_pipeline(args.input, args.output, use_llm=not args.no_llm,
                  narrate_all=args.narrate_all,
                  sequence_model_path=args.sequence_model,
-                 suppress=args.suppress)
+                 suppress=args.suppress,
+                 triage_lines=args.triage_lines)
 
 
 if __name__ == "__main__":

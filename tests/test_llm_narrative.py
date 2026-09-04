@@ -13,10 +13,16 @@ before it.
 import pandas as pd
 import pytest
 
+from logdet import llm_narrative
+from logdet.config import (LLM_NARRATIVE_MODEL, LLM_TRIAGE_MODEL,
+                           LLM_TRIAGE_NUM_PREDICT)
+
 from logdet.llm_narrative import (
     EMPTY_MATCHES,
     build_prompt,
+    build_triage_prompt,
     format_incident_for_prompt,
+    strip_technique_ids,
 )
 
 
@@ -157,3 +163,79 @@ def test_structured_output_is_the_default_and_the_flip_is_deliberate():
     an edit with a failing test attached rather than a quiet change."""
     from logdet.config import LLM_STRUCTURED_OUTPUT
     assert LLM_STRUCTURED_OUTPUT is True
+
+
+# --- triage tier (Stage 5 model routing) ------------------------------------
+#
+# The tier's whole enforcement is that a technique ID cannot reach a triage
+# line, so these tests plant one and assert it does not survive.
+
+def test_a_triage_line_carries_no_technique_id_even_a_grounded_one():
+    """The one-liner has no field for a technique claim, so it makes none --
+    the incident's techniques are the retrieval's to state beside it."""
+    clean, dropped = strip_technique_ids(
+        "Repeated failed logins for alice from 203.0.113.5, consistent with "
+        "T1110 (Brute Force).")
+    assert "T1110" not in clean
+    assert dropped == ["T1110"]
+
+
+def test_an_invented_id_in_a_triage_line_is_recorded_not_silently_lost():
+    clean, dropped = strip_technique_ids("Looks like T1047 and T1207 activity.")
+    assert dropped == ["T1047", "T1207"]
+    assert "T" not in clean.replace("Looks", "")
+
+
+def test_stripping_an_id_leaves_no_empty_brackets_behind():
+    clean, _ = strip_technique_ids("Brute force (T1110). Scanning [T1046] seen.")
+    assert "()" not in clean and "[]" not in clean
+    assert clean == "Brute force. Scanning seen."
+
+
+def test_a_line_with_no_technique_id_is_returned_untouched():
+    text = "One failed sudo attempt for bob from 10.0.0.4; looks routine."
+    assert strip_technique_ids(text) == (text, [])
+
+
+def test_the_triage_prompt_forbids_ids_and_asks_for_one_sentence():
+    prompt = build_triage_prompt(MATCHED)
+    assert "Name no technique IDs" in prompt
+    assert "removed before it is displayed" in prompt
+    # the same blocks as the other two tiers, so the arms stay comparable
+    assert "Incident events (chronological):" in prompt
+    assert "Matched MITRE ATT&CK techniques" in prompt
+
+
+def test_the_triage_prompt_is_shorter_than_the_full_one():
+    """The prompt is nearly the same size; the saving is the generation cap.
+    Pinned so a future edit cannot quietly make the cheap tier the expensive
+    one."""
+    assert len(build_triage_prompt(MATCHED)) < len(build_prompt(MATCHED)) * 1.2
+
+
+def test_narrate_routes_to_the_tier_it_is_given(monkeypatch):
+    seen = {}
+
+    def fake_complete(prompt, model="m", json_mode=False, num_predict=0):
+        seen.update(model=model, num_predict=num_predict, json_mode=json_mode)
+        return "Failed logins for alice from 203.0.113.5."
+
+    monkeypatch.setattr(llm_narrative, "_complete", fake_complete)
+    text = llm_narrative.narrate(MATCHED, tier="triage")
+    assert text == "Failed logins for alice from 203.0.113.5."
+    assert seen["num_predict"] == LLM_TRIAGE_NUM_PREDICT
+    assert seen["model"] == LLM_TRIAGE_MODEL
+    assert seen["json_mode"] is False
+
+
+def test_narrate_refuses_an_unknown_tier():
+    with pytest.raises(ValueError):
+        llm_narrative.narrate(MATCHED, tier="medium")
+
+
+def test_both_tiers_default_to_one_model_until_a_second_is_measured():
+    """Routing is a token-budget split first. Pointing the full tier at a
+    larger model is a config edit made on measured evidence, not a default."""
+    from logdet.config import LLM_MODEL
+    assert LLM_TRIAGE_MODEL == LLM_MODEL
+    assert LLM_NARRATIVE_MODEL == LLM_MODEL

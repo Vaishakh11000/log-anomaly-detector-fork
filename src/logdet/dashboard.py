@@ -269,22 +269,42 @@ for incident in filtered:
             narrative = incident.get("narrative")
             if narrative:
                 st.write(narrative)
-            elif client is not None:
-                # On demand, one incident at a time: narration costs ~5s per
-                # incident on the dev-box GPU and ~24s on its CPU, so an
-                # analyst asks for the ones they care about.
-                st.info("Not narrated yet.")
-                if st.button("Narrate now", key=f"narrate-{incident['incident_id']}"):
-                    with st.spinner("Running the local LLM…"):
-                        try:
-                            client.narrate(incident["incident_id"])
-                            st.rerun()
-                        except ApiError as exc:
-                            st.error(f"{exc}\n\nIs `ollama serve` running?")
             else:
-                st.info("Not narrated — below the narrative budget threshold "
-                        "(see `NARRATE_*` in `config.py`). Re-run the pipeline "
-                        "with `--narrate-all` to narrate every incident.")
+                # The cheap tier, when the pipeline or an earlier click made
+                # one: a single sentence, with the techniques stated by the
+                # retrieval beside it rather than by the model.
+                triage_line = incident.get("triage_line")
+                if triage_line:
+                    st.caption("Triage line (one sentence, small model)")
+                    st.write(triage_line)
+
+                if client is not None:
+                    # On demand, one incident at a time: a full narrative costs
+                    # ~3.9s per incident on the demo-box GPU and ~18.2s on its
+                    # CPU, so an analyst asks for the ones they care about.
+                    if not triage_line:
+                        st.info("Not narrated yet.")
+                    b1, b2 = st.columns(2)
+                    if b1.button("Narrate now", key=f"narrate-{incident['incident_id']}"):
+                        with st.spinner("Running the local LLM…"):
+                            try:
+                                client.narrate(incident["incident_id"])
+                                st.rerun()
+                            except ApiError as exc:
+                                st.error(f"{exc}\n\nIs `ollama serve` running?")
+                    if not triage_line and b2.button(
+                            "Triage line", key=f"triage-{incident['incident_id']}"):
+                        with st.spinner("One sentence on the small model…"):
+                            try:
+                                client.narrate(incident["incident_id"], tier="triage")
+                                st.rerun()
+                            except ApiError as exc:
+                                st.error(f"{exc}\n\nIs `ollama serve` running?")
+                elif not triage_line:
+                    st.info("Not narrated — below the narrative budget threshold "
+                            "(see `NARRATE_*` in `config.py`). Re-run the pipeline "
+                            "with `--narrate-all`, or `--triage-lines` for a "
+                            "one-sentence summary of every incident.")
 
 st.sidebar.markdown("---")
 st.sidebar.caption(

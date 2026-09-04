@@ -472,29 +472,36 @@ def create_app(service: StreamService | None = None) -> FastAPI:
         return found
 
     @app.post("/incidents/{incident_id}/narrate")
-    def narrate_incident(incident_id: int) -> dict:
-        """Generate the LLM narrative for one incident, on demand.
+    def narrate_incident(incident_id: int, tier: str = "full") -> dict:
+        """Generate the LLM text for one incident, on demand, at one tier.
 
-        On demand rather than automatic, and one at a time: narration costs
-        ~5s per incident on the dev-box GPU and ~24s on its CPU (CLAUDE.md 3),
-        so narrating every incident as it closed would put the scoring thread
-        minutes behind the log it is meant to be following.
+        On demand rather than automatic, and one at a time: a full narrative
+        costs ~3.9s per incident on the demo-box GPU and ~18.2s on its CPU
+        (CLAUDE.md 2c), so narrating every incident as it closed would put the
+        scoring thread minutes behind the log it is meant to be following.
+
+        `tier=triage` is the cheap one-sentence route on the small model, for
+        the incidents the narrative budget would otherwise leave with no prose.
+        The two are stored in different fields, so a triage line can never be
+        mistaken for a narrative that was actually written.
         """
+        if tier not in {"full", "triage"}:
+            raise HTTPException(status_code=422, detail=f"unknown tier: {tier}")
         found = service.incident(incident_id)
         if found is None:
             raise HTTPException(status_code=404, detail=f"no incident {incident_id}")
-        if found.get("narrative"):
+        field = "narrative" if tier == "full" else "triage_line"
+        if found.get(field):
             return found
 
-        from logdet.llm_narrative import generate_narrative
+        from logdet.llm_narrative import narrate
         try:
-            narrative = generate_narrative(
-                pd.DataFrame(found["events"]),
-                context_events=found.get("context_events"))
+            text = narrate(pd.DataFrame(found["events"]), tier=tier,
+                           context_events=found.get("context_events"))
         except Exception as exc:                          # noqa: BLE001
             raise HTTPException(status_code=503,
                                 detail=f"narrative generation failed: {exc}")
-        return service.annotate(incident_id, narrative=narrative) or found
+        return service.annotate(incident_id, **{field: text}) or found
 
     @app.get("/events")
     async def events(request: Request) -> StreamingResponse:

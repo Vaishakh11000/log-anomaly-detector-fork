@@ -102,6 +102,18 @@ def test_narrate_gets_a_long_timeout():
     assert session.calls[0]["timeout"] >= 60
 
 
+def test_narrate_asks_for_the_full_tier_unless_told_otherwise():
+    session = FakeSession(FakeResponse(payload={"narrative": "..."}))
+    ApiClient("http://h", session=session).narrate(7)
+    assert session.calls[0]["params"] == {"tier": "full"}
+
+
+def test_narrate_can_ask_for_the_cheap_tier():
+    session = FakeSession(FakeResponse(payload={"triage_line": "..."}))
+    ApiClient("http://h", session=session).narrate(7, tier="triage")
+    assert session.calls[0]["params"] == {"tier": "triage"}
+
+
 # --- failure paths ----------------------------------------------------------
 
 

@@ -265,6 +265,27 @@ NARRATIVE_MAX_EVENTS = 25     # cap events pasted into one prompt; the rest are 
 # the flip is deliberate.
 LLM_STRUCTURED_OUTPUT = True
 
+# --- narration tiers (Stage 5 model routing) ---
+#
+# A full narrative costs ~3.9s per incident on the 4060 and ~18.2s on its CPU
+# (section 2c), so narrating all 94 synthetic incidents is minutes of GPU and
+# the better part of half an hour of CPU. That is why NARRATE_* exists at all:
+# 75 of 94 incidents currently get no prose whatsoever, and an analyst scanning
+# the list reads raw fields for them.
+#
+# The tiers split that budget instead of raising it. A *triage* line is one
+# sentence with a hard 80-token cap, which is where nearly all the latency is
+# -- the prompt is the same size, only the generation is short. A *full*
+# narrative is the structured JSON path, unchanged.
+#
+# Both models default to LLM_MODEL so this is a token-budget split until a
+# second model has been measured on both corpora; pointing the full tier at a
+# larger model is a config edit, not a code change.
+LLM_TRIAGE_MODEL = LLM_MODEL
+LLM_NARRATIVE_MODEL = LLM_MODEL
+LLM_TRIAGE_NUM_PREDICT = 80    # one sentence fits; 400 lets phi3 write five
+TRIAGE_SENTENCE_RANGE = "1"
+
 # Which incidents get an LLM narrative. phi3 costs ~40-60s per incident on this
 # CPU, so narrating all 94 would run about an hour -- unusable for a demo or an
 # iteration loop. Narrating only high-severity or multi-event incidents covers
