@@ -1,0 +1,127 @@
+Sep 04 15:54:00 kali systemd[1]: Starting ssh.service - OpenBSD Secure Shell server...
+Sep 04 15:54:00 kali sshd[155771]: Server listening on 0.0.0.0 port 22.
+Sep 04 15:54:00 kali sshd[155771]: Server listening on :: port 22.
+Sep 04 15:54:00 kali systemd[1]: Started ssh.service - OpenBSD Secure Shell server.
+Sep 04 15:56:14 kali sshd-session[157533]: Received disconnect from 127.0.0.1 port 55668:11: Bye Bye [preauth]
+Sep 04 15:56:14 kali sshd-session[157533]: Disconnected from authenticating user root 127.0.0.1 port 55668 [preauth]
+Sep 04 15:56:14 kali sshd-session[157542]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=127.0.0.1  user=root
+Sep 04 15:56:14 kali sshd-session[157542]: pam_winbind(sshd:auth): getting password (0x00000388)
+Sep 04 15:56:14 kali sshd-session[157542]: pam_winbind(sshd:auth): pam_get_item returned a password
+Sep 04 15:56:14 kali sshd-session[157542]: pam_winbind(sshd:auth): request wbcLogonUser failed: WBC_ERR_WINBIND_NOT_AVAILABLE, PAM error: PAM_AUTHINFO_UNAVAIL (9)!
+Sep 04 15:56:14 kali sshd-session[157542]: pam_winbind(sshd:auth): internal module error (retval = PAM_AUTHINFO_UNAVAIL(9), user = 'root')
+Sep 04 15:56:16 kali sshd-session[157542]: Failed password for root from 127.0.0.1 port 55672 ssh2
+Sep 04 15:56:16 kali sshd-session[157542]: Connection closed by authenticating user root 127.0.0.1 port 55672 [preauth]
+Sep 04 15:56:33 kali sshd-session[157774]: Received disconnect from 127.0.0.1 port 58142:11: Bye Bye [preauth]
+Sep 04 15:56:33 kali sshd-session[157774]: Disconnected from authenticating user root 127.0.0.1 port 58142 [preauth]
+Sep 04 15:56:33 kali sshd-session[157783]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=127.0.0.1  user=root
+Sep 04 15:56:33 kali sshd-session[157783]: pam_winbind(sshd:auth): getting password (0x00000388)
+Sep 04 15:56:33 kali sshd-session[157783]: pam_winbind(sshd:auth): pam_get_item returned a password
+Sep 04 15:56:33 kali sshd-session[157783]: pam_winbind(sshd:auth): request wbcLogonUser failed: WBC_ERR_WINBIND_NOT_AVAILABLE, PAM error: PAM_AUTHINFO_UNAVAIL (9)!
+Sep 04 15:56:33 kali sshd-session[157783]: pam_winbind(sshd:auth): internal module error (retval = PAM_AUTHINFO_UNAVAIL(9), user = 'root')
+Sep 04 15:56:35 kali sshd-session[157783]: Failed password for root from 127.0.0.1 port 58144 ssh2
+Sep 04 15:56:35 kali sshd-session[157783]: Connection closed by authenticating user root 127.0.0.1 port 58144 [preauth]
+Sep 04 15:56:35 kali sshd-session[157813]: Received disconnect from 127.0.0.1 port 58152:11: Bye Bye [preauth]
+Sep 04 15:56:35 kali sshd-session[157813]: Disconnected from authenticating user root 127.0.0.1 port 58152 [preauth]
+Sep 04 15:56:36 kali sshd-session[157816]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=127.0.0.1  user=root
+Sep 04 15:56:36 kali sshd-session[157816]: pam_winbind(sshd:auth): getting password (0x00000388)
+Sep 04 15:56:36 kali sshd-session[157816]: pam_winbind(sshd:auth): pam_get_item returned a password
+Sep 04 15:56:36 kali sshd-session[157816]: pam_winbind(sshd:auth): request wbcLogonUser failed: WBC_ERR_WINBIND_NOT_AVAILABLE, PAM error: PAM_AUTHINFO_UNAVAIL (9)!
+Sep 04 15:56:36 kali sshd-session[157816]: pam_winbind(sshd:auth): internal module error (retval = PAM_AUTHINFO_UNAVAIL(9), user = 'root')
+Sep 04 15:56:37 kali sshd-session[157816]: Failed password for root from 127.0.0.1 port 58156 ssh2
+Sep 04 15:56:38 kali sshd-session[157816]: Connection closed by authenticating user root 127.0.0.1 port 58156 [preauth]
+Sep 04 15:56:38 kali sshd-session[157853]: Invalid user admin from 127.0.0.1 port 58170
+Sep 04 15:56:38 kali sshd-session[157853]: Connection closed by invalid user admin 127.0.0.1 port 58170 [preauth]
+Sep 04 15:56:38 kali sshd-session[157858]: Invalid user test from 127.0.0.1 port 58178
+Sep 04 15:56:38 kali sshd-session[157858]: Connection closed by invalid user test 127.0.0.1 port 58178 [preauth]
+Sep 04 15:56:38 kali sshd[155771]: srclimit_penalise: 127.0.0.1/32: activating ipv4 penalty of 18.002 seconds for penalty: attempted authentication by invalid user
+Sep 04 15:56:38 kali sshd[155771]: drop connection #0 from [127.0.0.1]:58184 on [127.0.0.1]:22 penalty: attempted authentication by invalid user
+Sep 04 15:56:38 kali sshd[155771]: drop connection #0 from [127.0.0.1]:58196 on [127.0.0.1]:22 penalty: attempted authentication by invalid user
+Sep 04 15:56:38 kali sshd[155771]: drop connection #0 from [127.0.0.1]:58212 on [127.0.0.1]:22 penalty: attempted authentication by invalid user
+Sep 04 15:56:38 kali sshd[155771]: drop connection #0 from [127.0.0.1]:58218 on [127.0.0.1]:22 penalty: attempted authentication by invalid user
+Sep 04 15:56:38 kali sshd[155771]: drop connection #0 from [127.0.0.1]:58220 on [127.0.0.1]:22 penalty: attempted authentication by invalid user
+Sep 04 15:56:38 kali sshd[155771]: drop connection #0 from [127.0.0.1]:58228 on [127.0.0.1]:22 penalty: attempted authentication by invalid user
+Sep 04 15:56:38 kali sshd[155771]: drop connection #0 from [127.0.0.1]:58238 on [127.0.0.1]:22 penalty: attempted authentication by invalid user
+Sep 04 16:00:56 kali sshd-session[160968]: Received disconnect from 127.0.0.1 port 48930:11: Bye Bye [preauth]
+Sep 04 16:00:56 kali sshd-session[160968]: Disconnected from authenticating user root 127.0.0.1 port 48930 [preauth]
+Sep 04 16:00:56 kali sshd-session[160977]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=127.0.0.1  user=root
+Sep 04 16:00:56 kali sshd-session[160977]: pam_winbind(sshd:auth): getting password (0x00000388)
+Sep 04 16:00:56 kali sshd-session[160977]: pam_winbind(sshd:auth): pam_get_item returned a password
+Sep 04 16:00:56 kali sshd-session[160977]: pam_winbind(sshd:auth): request wbcLogonUser failed: WBC_ERR_WINBIND_NOT_AVAILABLE, PAM error: PAM_AUTHINFO_UNAVAIL (9)!
+Sep 04 16:00:56 kali sshd-session[160977]: pam_winbind(sshd:auth): internal module error (retval = PAM_AUTHINFO_UNAVAIL(9), user = 'root')
+Sep 04 16:00:58 kali sshd-session[160977]: Failed password for root from 127.0.0.1 port 48944 ssh2
+Sep 04 16:00:58 kali sshd-session[160977]: Connection closed by authenticating user root 127.0.0.1 port 48944 [preauth]
+Sep 04 16:00:58 kali sshd-session[161022]: Received disconnect from 127.0.0.1 port 48946:11: Bye Bye [preauth]
+Sep 04 16:00:58 kali sshd-session[161022]: Disconnected from authenticating user root 127.0.0.1 port 48946 [preauth]
+Sep 04 16:00:59 kali sshd-session[161025]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=127.0.0.1  user=root
+Sep 04 16:00:59 kali sshd-session[161025]: pam_winbind(sshd:auth): getting password (0x00000388)
+Sep 04 16:00:59 kali sshd-session[161025]: pam_winbind(sshd:auth): pam_get_item returned a password
+Sep 04 16:00:59 kali sshd-session[161025]: pam_winbind(sshd:auth): request wbcLogonUser failed: WBC_ERR_WINBIND_NOT_AVAILABLE, PAM error: PAM_AUTHINFO_UNAVAIL (9)!
+Sep 04 16:00:59 kali sshd-session[161025]: pam_winbind(sshd:auth): internal module error (retval = PAM_AUTHINFO_UNAVAIL(9), user = 'root')
+Sep 04 16:01:00 kali sshd-session[161025]: Failed password for root from 127.0.0.1 port 48962 ssh2
+Sep 04 16:01:01 kali sshd-session[161025]: Connection closed by authenticating user root 127.0.0.1 port 48962 [preauth]
+Sep 04 16:01:01 kali sshd-session[161062]: Received disconnect from 127.0.0.1 port 48970:11: Bye Bye [preauth]
+Sep 04 16:01:01 kali sshd-session[161062]: Disconnected from authenticating user root 127.0.0.1 port 48970 [preauth]
+Sep 04 16:01:01 kali sshd-session[161065]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=127.0.0.1  user=root
+Sep 04 16:01:01 kali sshd-session[161065]: pam_winbind(sshd:auth): getting password (0x00000388)
+Sep 04 16:01:01 kali sshd-session[161065]: pam_winbind(sshd:auth): pam_get_item returned a password
+Sep 04 16:01:01 kali sshd-session[161065]: pam_winbind(sshd:auth): request wbcLogonUser failed: WBC_ERR_WINBIND_NOT_AVAILABLE, PAM error: PAM_AUTHINFO_UNAVAIL (9)!
+Sep 04 16:01:01 kali sshd-session[161065]: pam_winbind(sshd:auth): internal module error (retval = PAM_AUTHINFO_UNAVAIL(9), user = 'root')
+Sep 04 16:01:04 kali sshd-session[161065]: Failed password for root from 127.0.0.1 port 48986 ssh2
+Sep 04 16:01:05 kali sshd-session[161065]: Connection closed by authenticating user root 127.0.0.1 port 48986 [preauth]
+Sep 04 16:01:06 kali sshd-session[161119]: Invalid user admin from 127.0.0.1 port 54092
+Sep 04 16:01:06 kali sshd-session[161119]: Connection closed by invalid user admin 127.0.0.1 port 54092 [preauth]
+Sep 04 16:01:06 kali sshd-session[161123]: Invalid user test from 127.0.0.1 port 54104
+Sep 04 16:01:06 kali sshd-session[161123]: Connection closed by invalid user test 127.0.0.1 port 54104 [preauth]
+Sep 04 16:01:06 kali sshd[155771]: srclimit_penalise: 127.0.0.1/32: activating ipv4 penalty of 19.250 seconds for penalty: attempted authentication by invalid user
+Sep 04 16:01:06 kali sshd[155771]: drop connection #0 from [127.0.0.1]:54110 on [127.0.0.1]:22 penalty: attempted authentication by invalid user
+Sep 04 16:01:06 kali sshd[155771]: PerSourcePenalties logging rate-limited: additional 9 connections dropped
+Sep 04 16:01:06 kali sshd[155771]: drop connection #0 from [127.0.0.1]:54118 on [127.0.0.1]:22 penalty: attempted authentication by invalid user
+Sep 04 16:01:06 kali sshd[155771]: drop connection #0 from [127.0.0.1]:54128 on [127.0.0.1]:22 penalty: attempted authentication by invalid user
+Sep 04 16:01:06 kali sshd[155771]: drop connection #0 from [127.0.0.1]:54138 on [127.0.0.1]:22 penalty: attempted authentication by invalid user
+Sep 04 16:01:06 kali sshd[155771]: drop connection #0 from [127.0.0.1]:54142 on [127.0.0.1]:22 penalty: attempted authentication by invalid user
+Sep 04 16:01:06 kali sshd[155771]: drop connection #0 from [127.0.0.1]:54156 on [127.0.0.1]:22 penalty: attempted authentication by invalid user
+Sep 04 16:01:06 kali sshd[155771]: drop connection #0 from [127.0.0.1]:54160 on [127.0.0.1]:22 penalty: attempted authentication by invalid user
+Sep 04 16:02:20 kali sshd-session[162081]: Received disconnect from 127.0.0.1 port 59006:11: Bye Bye [preauth]
+Sep 04 16:02:20 kali sshd-session[162081]: Disconnected from authenticating user root 127.0.0.1 port 59006 [preauth]
+Sep 04 16:02:20 kali sshd-session[162084]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=127.0.0.1  user=root
+Sep 04 16:02:20 kali sshd-session[162084]: pam_winbind(sshd:auth): getting password (0x00000388)
+Sep 04 16:02:20 kali sshd-session[162084]: pam_winbind(sshd:auth): pam_get_item returned a password
+Sep 04 16:02:20 kali sshd-session[162084]: pam_winbind(sshd:auth): request wbcLogonUser failed: WBC_ERR_WINBIND_NOT_AVAILABLE, PAM error: PAM_AUTHINFO_UNAVAIL (9)!
+Sep 04 16:02:20 kali sshd-session[162084]: pam_winbind(sshd:auth): internal module error (retval = PAM_AUTHINFO_UNAVAIL(9), user = 'root')
+Sep 04 16:02:23 kali sshd-session[162084]: Failed password for root from 127.0.0.1 port 59010 ssh2
+Sep 04 16:02:25 kali sshd-session[162084]: Connection closed by authenticating user root 127.0.0.1 port 59010 [preauth]
+Sep 04 16:02:27 kali sshd-session[162165]: Received disconnect from 127.0.0.1 port 44882:11: Bye Bye [preauth]
+Sep 04 16:02:27 kali sshd-session[162165]: Disconnected from authenticating user root 127.0.0.1 port 44882 [preauth]
+Sep 04 16:02:28 kali sshd-session[162180]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=127.0.0.1  user=root
+Sep 04 16:02:28 kali sshd-session[162180]: pam_winbind(sshd:auth): getting password (0x00000388)
+Sep 04 16:02:28 kali sshd-session[162180]: pam_winbind(sshd:auth): pam_get_item returned a password
+Sep 04 16:02:28 kali sshd-session[162180]: pam_winbind(sshd:auth): request wbcLogonUser failed: WBC_ERR_WINBIND_NOT_AVAILABLE, PAM error: PAM_AUTHINFO_UNAVAIL (9)!
+Sep 04 16:02:28 kali sshd-session[162180]: pam_winbind(sshd:auth): internal module error (retval = PAM_AUTHINFO_UNAVAIL(9), user = 'root')
+Sep 04 16:02:30 kali sshd-session[162180]: Failed password for root from 127.0.0.1 port 44890 ssh2
+Sep 04 16:02:32 kali sshd-session[162180]: Connection closed by authenticating user root 127.0.0.1 port 44890 [preauth]
+Sep 04 16:02:35 kali sshd-session[162266]: Received disconnect from 127.0.0.1 port 50002:11: Bye Bye [preauth]
+Sep 04 16:02:35 kali sshd-session[162266]: Disconnected from authenticating user root 127.0.0.1 port 50002 [preauth]
+Sep 04 16:02:35 kali sshd-session[162275]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=127.0.0.1  user=root
+Sep 04 16:02:35 kali sshd-session[162275]: pam_winbind(sshd:auth): getting password (0x00000388)
+Sep 04 16:02:35 kali sshd-session[162275]: pam_winbind(sshd:auth): pam_get_item returned a password
+Sep 04 16:02:35 kali sshd-session[162275]: pam_winbind(sshd:auth): request wbcLogonUser failed: WBC_ERR_WINBIND_NOT_AVAILABLE, PAM error: PAM_AUTHINFO_UNAVAIL (9)!
+Sep 04 16:02:35 kali sshd-session[162275]: pam_winbind(sshd:auth): internal module error (retval = PAM_AUTHINFO_UNAVAIL(9), user = 'root')
+Sep 04 16:02:37 kali sshd-session[162275]: Failed password for root from 127.0.0.1 port 50016 ssh2
+Sep 04 16:02:39 kali sshd-session[162275]: Connection closed by authenticating user root 127.0.0.1 port 50016 [preauth]
+Sep 04 16:02:42 kali sshd-session[162372]: Invalid user admin from 127.0.0.1 port 36894
+Sep 04 16:02:42 kali sshd-session[162372]: Connection closed by invalid user admin 127.0.0.1 port 36894 [preauth]
+Sep 04 16:02:42 kali sshd-session[162382]: Invalid user test from 127.0.0.1 port 36904
+Sep 04 16:02:42 kali sshd-session[162382]: Connection closed by invalid user test 127.0.0.1 port 36904 [preauth]
+Sep 04 16:02:42 kali sshd-session[162385]: Invalid user oracle from 127.0.0.1 port 36908
+Sep 04 16:02:42 kali sshd-session[162385]: Connection closed by invalid user oracle 127.0.0.1 port 36908 [preauth]
+Sep 04 16:02:42 kali sshd[155771]: srclimit_penalise: 127.0.0.1/32: activating ipv4 penalty of 17.024 seconds for penalty: attempted authentication by invalid user
+Sep 04 16:02:42 kali sshd[155771]: drop connection #0 from [127.0.0.1]:36922 on [127.0.0.1]:22 penalty: attempted authentication by invalid user
+Sep 04 16:02:42 kali sshd[155771]: PerSourcePenalties logging rate-limited: additional 9 connections dropped
+Sep 04 16:02:42 kali sshd[155771]: drop connection #0 from [127.0.0.1]:36926 on [127.0.0.1]:22 penalty: attempted authentication by invalid user
+Sep 04 16:02:42 kali sshd[155771]: drop connection #0 from [127.0.0.1]:36940 on [127.0.0.1]:22 penalty: attempted authentication by invalid user
+Sep 04 16:02:45 kali sshd[155771]: drop connection #0 from [127.0.0.1]:36942 on [127.0.0.1]:22 penalty: attempted authentication by invalid user
+Sep 04 16:02:45 kali sshd[155771]: drop connection #0 from [127.0.0.1]:36954 on [127.0.0.1]:22 penalty: attempted authentication by invalid user
+Sep 04 16:02:45 kali sshd[155771]: drop connection #0 from [127.0.0.1]:36966 on [127.0.0.1]:22 penalty: attempted authentication by invalid user
+Sep 04 16:02:45 kali sshd[155771]: drop connection #0 from [127.0.0.1]:36976 on [127.0.0.1]:22 penalty: attempted authentication by invalid user
+Sep 04 16:02:45 kali sshd[155771]: drop connection #0 from [127.0.0.1]:36978 on [127.0.0.1]:22 penalty: attempted authentication by invalid user
+Sep 04 16:02:45 kali sshd[155771]: drop connection #0 from [127.0.0.1]:36988 on [127.0.0.1]:22 penalty: attempted authentication by invalid user

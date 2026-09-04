@@ -48,3 +48,21 @@ def test_line_without_timestamp_is_skipped():
     rec = AttackRecord(scenario="A", instance=1, source_ips=["10.10.10.1"],
                        t_start=datetime(2026, 9, 4, 10, 0), t_end=datetime(2026, 9, 4, 10, 5))
     assert attribute([L(1, None, "10.10.10.1")], [rec])["labels"] == {}
+
+
+def test_whole_second_line_is_kept_when_the_window_starts_mid_second():
+    """Regression: syslog stamps whole seconds, the window carries microseconds.
+
+    An enumeration that fires in ~30ms has a window like 10:00:00.870-.902; its
+    real lines are stamped 10:00:00.000000. Comparing directly dropped every one
+    (`0.000 < 0.870`), so every enumeration instance attributed 0. The start
+    bound is floored to the whole second. Found on the Kali box.
+    """
+    rec = AttackRecord(
+        scenario="C", instance=1, source_ips=["127.0.0.1"],
+        t_start=datetime(2026, 9, 4, 10, 0, 0, 870000),
+        t_end=datetime(2026, 9, 4, 10, 0, 0, 902000))
+    lines = [L(1, datetime(2026, 9, 4, 10, 0, 0), "127.0.0.1"),   # whole-second, in window
+             L(2, datetime(2026, 9, 4, 9, 59, 59), "127.0.0.1")]  # genuinely before
+    result = attribute(lines, [rec])
+    assert set(result["labels"]) == {1}

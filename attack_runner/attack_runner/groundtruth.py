@@ -53,8 +53,25 @@ class AttackRecord:
     description: str = ""
 
     def covers(self, ts: datetime, source_ip: str | None) -> bool:
-        """Does a captured line at `ts` from `source_ip` belong to this instance?"""
-        if self.t_start is not None and ts < self.t_start:
+        """Does a captured line at `ts` from `source_ip` belong to this instance?
+
+        The window bounds carry microsecond precision (they come from
+        `datetime.now()` at launch), but syslog and journald stamp lines to the
+        **whole second** only, so a captured line reads as `S.000000`. Comparing
+        those directly drops every line of a sub-second attack: an enumeration
+        that fires all its ssh attempts in ~30ms has a window like
+        38.870-38.902, and each real line at 38.000000 fails `ts < t_start` and
+        is judged "before the attack". So the start bound is floored to the whole
+        second before comparing -- consistent with the conservative philosophy in
+        this module's docstring: where the log cannot express sub-second
+        ordering, include rather than assert precision we do not have. Found on
+        the Kali box when every enumeration instance attributed 0 lines.
+
+        Consequence for the runner: space attack instances into distinct,
+        non-adjacent whole seconds (this project uses ~2.5s), or two same-second
+        instances will attribute each other's lines once the bound floors.
+        """
+        if self.t_start is not None and ts < self.t_start.replace(microsecond=0):
             return False
         if self.t_end is not None and ts > self.t_end:
             return False

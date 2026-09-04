@@ -1,0 +1,10 @@
+results/kali/capture/A_1.log: instance 0% line 0% (5 attack lines, 15 flagged)
+results/kali/capture/A_2.log: instance 0% line 0% (5 attack lines, 15 flagged)
+results/kali/capture/A_3.log: instance 0% line 0% (5 attack lines, 15 flagged)
+results/kali/capture/C_1.log: instance 100% line 30% (10 attack lines, 11 flagged)
+results/kali/capture/C_2.log: instance 0% line 0% (6 attack lines, 11 flagged)
+results/kali/capture/C_3.log: instance 0% line 0% (3 attack lines, 11 flagged)
+
+Pooled by scenario (kill point's pooler, rates from summed counts):
+  scenario A: instance 0% line 0% over 3 instance(s)
+  scenario C: instance 33% line 16% over 3 instance(s)
