@@ -44,6 +44,7 @@ logdet-suppression-report = "logdet_eval.suppression_report:cli"
 logdet-adaptive = "logdet_eval.adaptive:cli"
 logdet-adaptive-wazuh = "logdet_eval.adaptive_wazuh:cli"
 logdet-bakeoff     = "logdet_eval.bakeoff:cli"
+logdet-live-bakeoff = "logdet_eval.live_bakeoff:cli"
 logdet-coverage    = "logdet_eval.coverage_report:cli"
 logdet-faithfulness = "logdet_eval.faithfulness:cli"
 
