@@ -1,0 +1,37 @@
+# The light half of the collector/analyzer split (CLAUDE.md 2c/2d).
+#
+# This image receives shipped log lines and appends them to the file the
+# analyzer tails. It runs NO detection, so it installs only the web stack and
+# copies only the three light modules -- config, collector, collector_app --
+# never the project (which would pull torch and sentence-transformers through
+# pyproject). The result starts in well under a second and is a few tens of MB,
+# which is the whole point: the receiver can stay up and keep buffering while
+# the heavy analyzer restarts.
+FROM python:3.12-slim
+
+# Pinned to the versions the test suite runs against, so the container behaves
+# as tested. curl is for the compose healthcheck.
+RUN pip install --no-cache-dir \
+        "fastapi==0.141.1" \
+        "uvicorn==0.52.3" \
+        "pydantic==2.13.5" \
+    && apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+# LOGDET_PROJECT_ROOT anchors config's paths at /app, so the collector file
+# lands at /app/data/live/collector.log -- the directory the shared volume is
+# mounted on.
+ENV PYTHONPATH=/app \
+    LOGDET_PROJECT_ROOT=/app \
+    PYTHONUNBUFFERED=1
+
+# Only the light modules. Copying the whole src/ would still be safe (the app
+# imports nothing heavy) but this makes the "no detection here" guarantee
+# visible in the Dockerfile itself.
+COPY src/logdet/__init__.py    src/logdet/config.py \
+     src/logdet/collector.py   src/logdet/collector_app.py \
+     /app/logdet/
+
+EXPOSE 8001
+CMD ["python", "-m", "logdet.collector_app", "--host", "0.0.0.0", "--port", "8001"]

@@ -1,0 +1,61 @@
+# Collector/analyzer split (CLAUDE.md 2c/2d, Stage 7 deployment half).
+#
+# Two services, split by role, not clustered for compute:
+#
+#   collector -- the light receiver. Kali's shipper (attack_runner/ship.py)
+#                POSTs authentic attack lines to :8001/collector/ingest, and it
+#                appends them to the shared collector file. No detection stack,
+#                so it starts instantly and stays up while the analyzer restarts
+#                -- which is the durability the split exists to buy.
+#
+#   analyzer  -- the heavy detector. Tails the SAME shared file (over a named
+#                volume, not over HTTP), scores it, and serves incidents on
+#                :8000. It depends on the collector only for start order; for
+#                correctness it just reads the file, so a collector restart
+#                never drops a line the analyzer needs.
+#
+# The two meet at the file on the `collector-log` volume, never on the network
+# -- the same decoupling the single-box code already had between CollectorSink
+# and the stream, now made physical.
+#
+# Prerequisites, stated honestly:
+#   * A fitted detector at ./models/detector.joblib (run `logdet-fit` on the
+#     host first). It is mounted read-only; without it the analyzer's API comes
+#     up but /stream/start fails, visibly, on /stream/status.
+#   * Narration (LLM) is optional and not wired here -- point the analyzer at a
+#     host Ollama if you want it; it degrades to 503 on /narrate without one.
+
+services:
+  collector:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.collector
+    image: logdet-collector
+    ports:
+      - "8001:8001"          # Kali ships here over the direct link
+    volumes:
+      - collector-log:/app/data/live
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:8001/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  analyzer:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.analyzer
+    image: logdet-analyzer
+    ports:
+      - "8000:8000"          # incidents API / dashboard reads this
+    volumes:
+      - collector-log:/app/data/live         # the shared file, tailed here
+      - ./models:/app/models:ro              # the fitted detector
+    depends_on:
+      collector:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  collector-log:

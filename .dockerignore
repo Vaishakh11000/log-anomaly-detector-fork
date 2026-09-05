@@ -1,0 +1,21 @@
+# Keep the build context small and the images clean. Nothing here is needed to
+# build either service: data and models are mounted as volumes at run time, and
+# the eval track, results and docs never ship in a runtime image.
+.venv/
+.git/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# Mounted at run time, not built in.
+data/
+models/
+
+# Not part of a runtime image.
+results/
+docs/
+tests/
+attack_runner/
+*.tgz
+.mypy_cache/

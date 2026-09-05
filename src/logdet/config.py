@@ -398,5 +398,14 @@ API_PORT = 8000
 # its own offset into it.
 COLLECTOR_LOG_PATH = str(PROJECT_ROOT / "data" / "live" / "collector.log")
 
+# The standalone collector process (logdet-collector, collector_app.py) binds
+# these. It is the light half of the container split: a tiny FastAPI app that
+# only receives shipped lines and appends them to COLLECTOR_LOG_PATH, with none
+# of the detection stack imported, so its image starts fast and stays small.
+# Loopback by default for the same reason API_HOST is -- it has no auth; the
+# two-machine demo binds 0.0.0.0 inside the container and publishes the port.
+COLLECTOR_HOST = "127.0.0.1"
+COLLECTOR_PORT = 8001
+
 API_EVENT_QUEUE_SIZE = 1000
 API_SSE_POLL_SECONDS = 0.25
