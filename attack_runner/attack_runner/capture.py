@@ -73,6 +73,52 @@ def capture_file(path: str, year: int, start_line: int = 1) -> list[CapturedLine
     return out
 
 
+# nginx/Apache "combined" access line: leading client IP, then a bracketed
+# local time "[dd/Mon/yyyy:HH:MM:SS +zzzz]". Only the IP and the time are
+# needed for attribution -- the analyzer re-parses the line properly with
+# logdet's WebLogParser (weblog.py), exactly as it re-parses the syslog lines.
+_ACCESS_RE = re.compile(
+    r"^(?P<ip>\S+)\s+\S+\s+\S+\s+\[(?P<time>[^\]]+)\]")
+_ACCESS_TIME_FORMAT = "%d/%b/%Y:%H:%M:%S %z"
+
+
+def parse_access_line(raw: str, line_number: int) -> CapturedLine:
+    """Parse one access-log line into the fields attribution needs.
+
+    Unlike the syslog form, an access line carries its own year *and* UTC
+    offset, so no `year` argument is required. The timestamp is converted to
+    the machine's local naive time, which is the clock the attack window
+    (`datetime.now()`) is on -- attribution compares the two, so they must be
+    on one clock. A web access log has no username to lift (remote_user is `-`
+    on nearly every line), so `user` is left None; the source IP is the signal
+    that joins a web line to an ssh line in correlation.
+    """
+    raw = raw.rstrip("\n")
+    m = _ACCESS_RE.match(raw)
+    ts = source_ip = None
+    if m:
+        source_ip = m["ip"]
+        try:
+            aware = datetime.strptime(m["time"], _ACCESS_TIME_FORMAT)
+            # to local naive, matching datetime.now() the launch window uses
+            ts = aware.astimezone().replace(tzinfo=None)
+        except ValueError:
+            ts = None
+    return CapturedLine(line_number=line_number, raw=raw, ts=ts,
+                        source_ip=source_ip, user=None)
+
+
+def capture_access_file(path: str, start_line: int = 1) -> list[CapturedLine]:
+    """Read a whole nginx/Apache access log. `start_line` lets a caller resume."""
+    out = []
+    with open(path, "r", errors="replace") as f:
+        for i, raw in enumerate(f, start=1):
+            if i < start_line:
+                continue
+            out.append(parse_access_line(raw, i))
+    return out
+
+
 def capture_journald(unit: str | None, year: int, since: str | None = None,
                      runner=subprocess.run,
                      identifiers: list[str] | None = None) -> list[CapturedLine]:

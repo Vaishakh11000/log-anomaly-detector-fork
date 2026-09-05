@@ -15,6 +15,12 @@ point: we do not get to decide what the log says.
   impossible_travel (B)     a real login, plus a second login the runner cannot
                             genuinely source from a distant IP, so that leg is
                             marked synthetic (section 2d says to state this)
+  web_bruteforce (W)        hydra http-post-form if present, else a curl loop --
+                            authentic 401 bursts in an nginx/Apache access log,
+                            the second source for multi-source correlation
+                            (Stage 7). Same rule as the ssh drivers: the tool is
+                            run, the access-log lines are read back by capture.py,
+                            and only the (ip, time) window is trusted.
 
 Only the camouflage layer is authored, and it is applied by the caller to the
 *captured* lines via the vendored camouflage.py -- identical transforms to the
@@ -117,6 +123,70 @@ def enumeration(target_host: str, target_port: int, users: list[str],
         target_user=None, source_ips=[source_ip],
         t_start=t_start, t_end=t_end, tool="ssh",
         description=f"enumeration of {len(users)} candidate users",
+    )
+
+
+def web_bruteforce(target_url: str, source_ip: str, instance: int,
+                   user: str = "admin", attempts: int = 20, camouflage=None,
+                   runner=subprocess.run, now=datetime.now) -> AttackRecord:
+    """Authentic credential-stuffing burst against a web login endpoint.
+
+    The web counterpart of `brute_force`: it drives a real tool at a URL that
+    answers wrong credentials with 401, and the burst of `... 401` lines lands
+    in the server's own access log, which `capture.capture_access_file` reads.
+    The attack base is real tool output -- we do not write the access lines.
+
+    Prefers hydra's `http-post-form` module (Kali carries hydra); falls back to
+    a bounded `curl` loop, which every box has and which produces the same 401
+    access-log lines one request at a time. `target_url` is the login endpoint,
+    e.g. `http://127.0.0.1/wp-login.php`. `source_ip` is the address the
+    analyzer attributes to -- on a loopback run that is 127.0.0.1, and the
+    multi-source corpus builder is what harmonises it with the ssh half's IP.
+
+    Scenario "W", kept distinct from A/B/C so the ssh and web halves of one
+    cross-source attack carry different labels and the scorer can tell which
+    surviving lines came from which source.
+    """
+    t_start = now()
+    tool = _which("hydra") or "curl"
+
+    if tool == "hydra":
+        # hydra's http-post-form tries a wordlist against a form. The exact
+        # form fields vary by target; a generic user/pass form with a 401 on
+        # failure is the shape here. As with ssh, `attempts` sets the list
+        # length so one instance carries a burst rather than a single line.
+        import tempfile
+        from urllib.parse import urlsplit
+        parts = urlsplit(target_url)
+        pw = tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False)
+        pw.write("\n".join(f"wrongpass{i}" for i in range(attempts)) + "\n")
+        pw.close()
+        # module string: path:body:failure-condition. F=401 marks a failed try.
+        form = f"{parts.path or '/'}:username=^USER^&password=^PASS^:F=401"
+        target = parts.hostname or "127.0.0.1"
+        cmd = [tool, "-l", user, "-P", pw.name, "-t", "4",
+               "-s", str(parts.port or 80), target,
+               "http-post-form" if parts.scheme != "https" else "https-post-form",
+               form]
+        runner(cmd, capture_output=True, text=True)
+    else:
+        for i in range(attempts):
+            # A POST with wrong credentials. `--data` makes it a POST; the
+            # endpoint returns 401 and the access log records the request line
+            # and the status. `-s`/`-o /dev/null` keep the run quiet.
+            cmd = ["curl", "-s", "-o", "/dev/null", "-X", "POST",
+                   "--data", f"username={user}&password=wrongpass{i}",
+                   "--max-time", "5", target_url]
+            runner(cmd, capture_output=True, text=True)
+
+    t_end = now()
+    return AttackRecord(
+        scenario="W", instance=instance,
+        camouflage=list(camouflage or []),
+        target_user=user, source_ips=[source_ip],
+        t_start=t_start, t_end=t_end, tool=tool,
+        description=f"web credential-stuffing, {attempts} attempts via {tool} "
+                    f"against {target_url}",
     )
 
 

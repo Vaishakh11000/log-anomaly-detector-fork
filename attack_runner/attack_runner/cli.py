@@ -27,11 +27,11 @@ import sys
 
 from . import attacks
 from .camouflage import STRATEGIES
-from .capture import capture_file, capture_journald
+from .capture import capture_access_file, capture_file, capture_journald
 from .groundtruth import attribute, dump_records, write_ground_truth_csv
 from .ship import Shipper
 
-ATTACKS = {"brute_force", "enumeration", "impossible_travel"}
+ATTACKS = {"brute_force", "enumeration", "impossible_travel", "web_bruteforce"}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -48,6 +48,9 @@ def main(argv: list[str] | None = None) -> int:
                    help="the address the analyzer will attribute lines to")
     p.add_argument("--distant-ip", default="203.0.113.7",
                    help="synthetic distant leg for impossible travel")
+    p.add_argument("--target-url", default="http://127.0.0.1/wp-login.php",
+                   help="web_bruteforce: the login endpoint to POST wrong "
+                        "credentials at (should answer 401 on failure)")
     p.add_argument("--instance", type=int, default=1)
     p.add_argument("--camouflage", nargs="*", default=[], choices=STRATEGIES,
                    help="camouflage strategies to note on the record "
@@ -59,6 +62,8 @@ def main(argv: list[str] | None = None) -> int:
                         "will still cap how many attempts actually land)")
     # capture source
     p.add_argument("--auth-file", help="capture from this auth.log-style file")
+    p.add_argument("--access-file",
+                   help="web_bruteforce: capture from this nginx/Apache access log")
     p.add_argument("--journald-unit", help="capture from journald for this unit")
     p.add_argument("--journald-identifier", nargs="+",
                    help="capture from journald by syslog identifier, e.g. "
@@ -90,6 +95,11 @@ def main(argv: list[str] | None = None) -> int:
         record = attacks.enumeration(args.target_host, args.target_port, args.users,
                                      args.source_ip, args.instance,
                                      camouflage=args.camouflage)
+    elif args.attack == "web_bruteforce":
+        record = attacks.web_bruteforce(args.target_url, args.source_ip,
+                                        args.instance, user=args.user,
+                                        attempts=args.attempts,
+                                        camouflage=args.camouflage)
     else:
         record = attacks.impossible_travel(args.target_host, args.target_port, args.user,
                                            args.source_ip, args.distant_ip, args.instance,
@@ -98,7 +108,9 @@ def main(argv: list[str] | None = None) -> int:
           + (" (distant leg synthetic)" if record.synthetic else ""))
 
     # 2. capture
-    if args.auth_file:
+    if args.access_file:
+        lines = capture_access_file(args.access_file)
+    elif args.auth_file:
         lines = capture_file(args.auth_file, year)
     elif args.journald_unit or args.journald_identifier:
         import time as _time
@@ -111,7 +123,7 @@ def main(argv: list[str] | None = None) -> int:
         lines = capture_journald(args.journald_unit, year, since=since,
                                  identifiers=args.journald_identifier)
     else:
-        print("no capture source (--auth-file or --journald-unit); "
+        print("no capture source (--access-file, --auth-file or --journald-unit); "
               "recorded the launch only", file=sys.stderr)
         dump_records([record], args.records_out)
         return 0

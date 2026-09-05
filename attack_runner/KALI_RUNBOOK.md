@@ -127,6 +127,52 @@ state the synthetic leg in any write-up.
 
 ---
 
+## Step 2b — the web second source (for multi-source correlation)
+
+This is the newer arm: an authentic **web** attack, so the analyzer can measure
+whether an ssh attack and a web attack from the *same* host are correlated into
+one alert (Stage 7). It needs a web server writing an access log.
+
+**Get an nginx (or any web server) listening with a login-ish endpoint that
+answers 401.** Ask the human before installing anything — this changes the box:
+
+```bash
+sudo apt-get install -y nginx          # if not already present
+sudo systemctl start nginx
+# nginx returns 404 for a missing /wp-login.php, which is fine — the point is a
+# burst of requests from one IP in the access log. If you want real 401s, point
+# --target-url at any endpoint behind HTTP basic-auth. 404 or 401 both work; the
+# analyzer keys on the status being an anomalous burst, not on the exact code.
+ls -l /var/log/nginx/access.log
+```
+
+**Run the web credential-stuffing attack**, capturing from the access log:
+
+```bash
+mkdir -p capture
+for i in 1 2 3; do
+  python3 -m attack_runner.cli web_bruteforce \
+    --target-url http://127.0.0.1/wp-login.php \
+    --source-ip 127.0.0.1 --instance $i --attempts 20 \
+    --access-file /var/log/nginx/access.log \
+    --corpus-out capture/W_${i}.log \
+    --ground-truth-out capture/W_${i}_gt.csv \
+    --records-out capture/W_${i}_rec.json
+done
+```
+
+`web_bruteforce` uses `hydra http-post-form` if hydra is present, else a `curl`
+loop — both produce a burst of same-IP request lines in the access log. Check the
+printed `attributed N line(s)` is non-zero, exactly as for the ssh attacks. As
+always: **do not** hand-edit the captured lines; if a run attributed nothing, the
+access log path is wrong or the server did not log the requests — report it.
+
+Carry the `capture/W_*` files back alongside the `A_*`/`C_*` ssh captures. The
+analyzer pairs an ssh capture with a web capture by index into one cross-source
+attack (see Step 4b).
+
+---
+
 ## Step 3 — carry the files back
 
 Copy the whole `capture/` directory back to the analyzer. Each scenario/instance
@@ -154,6 +200,29 @@ It runs this project's real detection chain over each captured corpus and prints
 instance/line detection per pair, then pools by scenario through the kill point's
 own pooler. These numbers are directly comparable to the injected-synthetic
 numbers in `results/`, because they go through the identical scorer.
+
+---
+
+## Step 4b — multi-source correlation (ssh + web from one IP)
+
+If you captured both ssh (`A_*`/`C_*`) and web (`W_*`) attacks, score the
+cross-source measurement on the analyzer:
+
+```bash
+uv run python results/kali/multisource_run.py \
+  --ssh capture/A_1.log:capture/A_1_gt.csv \
+        capture/A_2.log:capture/A_2_gt.csv \
+        capture/A_3.log:capture/A_3_gt.csv \
+  --web capture/W_1.log:capture/W_1_gt.csv \
+        capture/W_2.log:capture/W_2_gt.csv \
+        capture/W_3.log:capture/W_3_gt.csv \
+  --seeds 5
+```
+
+It injects both halves into the real OpenSSH background sharing one source IP,
+runs the real detection chain, and reports **cross-source incidents** — how many
+alerts carry *both* an ssh line and a web line. That is the Stage 7 question:
+one host attacking two services should be one incident, not two.
 
 ---
 
