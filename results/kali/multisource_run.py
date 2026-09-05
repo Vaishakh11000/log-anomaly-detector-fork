@@ -56,8 +56,13 @@ def score_once(ssh_pairs, web_pairs, shared_ip, ambient_ratio, seed,
     rates = scoring.measure_lines(flagged, gt, total_lines=len(scored))
 
     incidents = group_anomalies(scored)
-    cross = [g for g in incidents
-             if set(g["process"].dropna()) >= {"nginx", "sshd"}]
+    # A cross-source incident carries a web line (process "nginx") and an ssh
+    # line in the same alert. Authentic captures from a modern OpenSSH log the
+    # per-connection worker as "sshd-session", not "sshd" (see KALI captures),
+    # so match any "sshd" variant rather than the bare name.
+    def _cross(procs: set[str]) -> bool:
+        return "nginx" in procs and any(p.startswith("sshd") for p in procs)
+    cross = [g for g in incidents if _cross(set(g["process"].dropna()))]
     return {
         "seed": seed,
         "rates": rates,

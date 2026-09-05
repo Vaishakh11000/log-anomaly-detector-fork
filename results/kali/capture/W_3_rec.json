@@ -1,0 +1,16 @@
+[
+  {
+    "scenario": "W",
+    "instance": 3,
+    "camouflage": [],
+    "target_user": "root",
+    "source_ips": [
+      "127.0.0.1"
+    ],
+    "t_start": "2026-09-05T10:53:09.982947",
+    "t_end": "2026-09-05T10:53:10.089135",
+    "tool": "curl",
+    "synthetic": false,
+    "description": "web credential-stuffing, 20 attempts via curl against http://127.0.0.1:8080/wp-login.php"
+  }
+]

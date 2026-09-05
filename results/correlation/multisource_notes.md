@@ -67,21 +67,60 @@ the smoke fixtures it reads **1 cross-source incident, overall line rate 1.000**
 — both halves detected and correlated into one alert.
 
 That is a wiring check, not a measurement: one toy instance per source is not
-§4-admissible (needs ≥5 recorded seeds over real captures, and one instance has
-no independent sample). The real measurement is one command once the authentic
-captures exist:
+§4-admissible. The real measurement is one command, and it has now been run —
+see below.
+
+## The real measurement (2026-09-05)
+
+Authentic captures were produced on the Kali box (`KALI_RUNBOOK.md` Step 2b):
+three `web_bruteforce` instances (W_1..W_3) captured from a live nginx access
+log, paired by index with three real ssh brute-force instances (A_1..A_3). Both
+halves were injected into the real OpenSSH benign background sharing one source
+IP, and the full detection chain (embed → Isolation Forest → grouping) was run
+over five seeds:
 
 ```bash
 uv run python results/kali/multisource_run.py \
-  --ssh capture/A_1.log:capture/A_1_gt.csv ... \
-  --web capture/W_1.log:capture/W_1_gt.csv ... --seeds 5
+  --ssh results/kali/capture/A_{1,2,3}.log:..._gt.csv \
+  --web results/kali/capture/W_{1,2,3}.log:..._gt.csv --seeds 5
 ```
 
-### What the Kali session must produce
+Result (`results/kali/multisource_AW.json/multisource.json`):
 
-`attack_runner/KALI_RUNBOOK.md` Step 2b: install/start nginx, run
-`web_bruteforce` three times (W_1..W_3) capturing from `access.log`, alongside
-the usual A_*/C_* ssh captures. Carry `capture/` back and run the command above.
+| seed | cross-source incidents | ssh (A) instances | web (W) instances | overall line rate |
+|---|---|---|---|---|
+| 42–46 (each) | **3 / 3** | 3/3 (line 0.60) | 3/3 (line 1.00) | 0.956 |
+
+**Every ssh+web pair from one IP was correlated into a single alert, on all five
+seeds.** Each such incident carries both an `nginx` line and an ssh line
+(`sshd-session` on the modern captures) on the shared IP `203.0.113.66` — one
+host attacking two services is one incident, not two, which is the Stage 7
+question answered as a number. The web half is detected at 100% of its lines (an
+anomalous 401 burst grouped by source IP, exactly as predicted for user-less
+traffic); the ssh half at 100% of instances (0.60 of lines, the authentic
+brute-force shape — few `Failed password` lines against a rate-limiting modern
+sshd, as in every authentic run). ~187–191 incidents per seed overall.
+
+**One counter bug found and fixed.** The first run reported 0 cross-source
+incidents while both halves were plainly detected: the correlation counter
+required the literal process name `sshd`, but authentic modern-OpenSSH captures
+log the per-connection worker as `sshd-session`. The counter now matches any
+`sshd`-prefixed process. The correlation itself never failed — the grouping had
+produced the three `nginx`+`sshd-session` incidents all along.
+
+**Honest scope.** This is authentic on both sides and ≥5 seeds, but the five
+seeds are five placements of the *same* three ssh + three web captures, so the
+effective independent sample is three per source (§4's ≥5-seed rule met in
+letter; the fix is capture variety, as for every authentic run). The web attack
+ran against a user-space nginx on Kali (`127.0.0.1:8080`, no sudo available for
+the system service) via the `curl` path, because `hydra http-post-form` bails on
+a bare-401 endpoint; both produce the same authentic same-IP 401 burst.
+
+### What the Kali session produced
+
+`attack_runner/KALI_RUNBOOK.md` Step 2b: start nginx, run `web_bruteforce` three
+times (W_1..W_3) capturing from `access.log`, alongside the A_*/C_* ssh captures.
+Carried `capture/W_*` back and ran the command above.
 
 ### Limits carried in advance (the same shape as every authentic run)
 
