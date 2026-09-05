@@ -162,6 +162,12 @@ def _prune(doc: dict) -> dict:
     return cleaned
 
 
+# Public name for the same thing: any module that *builds* an ECS document --
+# a source parser mapping its own format in, for instance -- needs the same
+# empty-field discipline, and should not be reaching for a private helper.
+prune = _prune
+
+
 # --- event record -> ECS ----------------------------------------------------
 
 def event_to_ecs(record: dict, *,

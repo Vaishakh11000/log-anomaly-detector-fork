@@ -196,14 +196,31 @@ def cli() -> None:
     parser.add_argument("--input", required=True, help="Path to raw log file")
     parser.add_argument("--output", required=True, help="Path to write parsed CSV")
     parser.add_argument("--year", type=int, default=None, help="Year to assume (syslogs omit year)")
+    parser.add_argument("--format", choices=["syslog", "nginx"], default="syslog",
+                        help="Source format (default: syslog). 'nginx' reads an "
+                             "nginx/Apache access log via the ECS boundary.")
+    parser.add_argument("--host", default=None,
+                        help="Hostname to record (nginx only; access logs carry none)")
     parser.add_argument("--drain3", action="store_true",
                         help="Also mine Drain3 templates into a template_id column")
     parser.add_argument("--template-state", default=None,
                         help="Where to write the mined template table (implies --drain3)")
     args = parser.parse_args()
 
+    mine = args.drain3 or bool(args.template_state)
+    if args.format == "nginx":
+        # Imported here, not at module scope: weblog imports this module for
+        # `template_message`, so a top-level import would be circular. The
+        # syslog branch below is the untouched original path -- a default run
+        # produces exactly the columns every number in `results/` came from.
+        from .weblog import preprocess_web_file
+        preprocess_web_file(args.input, args.output, host=args.host,
+                            mine_templates=mine,
+                            template_state_path=args.template_state)
+        return
+
     preprocess_file(args.input, args.output, year=args.year,
-                    mine_templates=args.drain3 or bool(args.template_state),
+                    mine_templates=mine,
                     template_state_path=args.template_state)
 
 
