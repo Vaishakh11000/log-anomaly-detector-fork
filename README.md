@@ -39,6 +39,14 @@ The one win is `rephrase` at **+31.1pt**, which clears the pre-registered ≥25p
 property**: Wazuh's sshd rules match literal strings, so rewording a line drops it out
 of the decoder, while an embedding of a reworded line stays near the original.
 
+**Four results are not differentials and cannot come back negative** — 1,415 incidents
+against Wazuh's 4,546 alerts on the clean corpus (~3.2× more from the SIEM); Wazuh's
+100% being level-3 saturation, since at level 7 it detects 11.1% on the *clean* corpus;
+invented MITRE technique IDs going 47/142 and 119/197 → **0 and 0** under structured,
+validated output, on two corpora and two models; and authentic `hydra`/`ssh` attacks
+holding **100% instance detection on all nine camouflage conditions** (50/50 pooled).
+[`docs/FINDINGS.md`](docs/FINDINGS.md) §4.
+
 Caveat that travels with every alert-volume figure here: **incident and flagged-line
 counts reproduce to about ±0.5% across machines; detection rates are exact**
 (`results/adversarial_notes.md`).

@@ -33,6 +33,17 @@ answer — never findable only deep inside one:
 The one win is `rephrase` at **+31.1pt**, which cleared the pre-registered ≥25pt bar
 (§1b) and is why the roadmap continued.
 
+**Four results are not differentials and cannot come back negative — say these too, they
+were under-stated for weeks** (`docs/FINDINGS.md` §4): alert volume flipped v1's story
+(**1,415 incidents against Wazuh's 4,546 alerts** on the clean corpus, ~3.2×, and the gap
+holds on all nine conditions); Wazuh's 100% is **level-3 saturation**, since at L7/L10 it
+detects **11.1% on the clean corpus** before any camouflage; invented MITRE technique IDs
+went **47/142 and 119/197 → 0 and 0** under structured validated output, on two corpora
+and two models; and authentic `hydra`/`ssh` attacks hold **100% instance detection on all
+nine camouflage conditions** (50/50 pooled — stated with its attack-shape qualification).
+The method is a result too: five precision levers measured and rejected is the rarest
+thing in the write-up.
+
 Standing caveat on every alert-volume figure: **incident and flagged-line counts
 reproduce to about ±0.5% across machines; detection rates are exact**
 (`results/adversarial_notes.md`). Quote an alert-volume number as approximate and name

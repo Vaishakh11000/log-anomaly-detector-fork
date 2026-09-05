@@ -21,6 +21,10 @@ This is deliberately narrower than "more robust to camouflage", which the measur
 do not support. It is stated first because a narrow claim stated first reads as rigour,
 and the same claim discovered by a reader reads as concealment.
 
+Not everything here is qualified, though. **Four results are unambiguous and are stated
+as wins in §4** — they are measured on this system alone or on the comparator's own
+output, so no differential can take them back.
+
 ## 2. The three numbers that qualify it
 
 | | Number | Where |
@@ -91,7 +95,58 @@ and the optimiser could find nothing better to do to a signature engine than rew
   widened to 61 minutes — i.e. it located the system's own 60-minute impossible-travel
   window from the scores alone (`results/adaptive/notes.md`).
 
-## 4. Precision is a measured negative result, not an open task
+## 4. Four results that are wins, and are stated as wins
+
+The three qualifying numbers above are all *differentials* — this system measured against
+another. These four are not: each is measured on this system alone, or on the
+comparator's own output, so there is no arm in which they come back negative. They were
+under-stated in earlier drafts, which is its own kind of inaccuracy.
+
+**1. Alert volume flipped v1's story — we are not the noisier system on real data.**
+On the clean kill-point corpus this detector raises **1,415 incidents** against Wazuh's
+**4,546 alerts** at its own default level — roughly **3.2×** more from the SIEM, and the
+gap holds across all nine camouflage conditions. Precision is still this project's
+weakest number in absolute terms (0.29 line-level), and it is worth being precise about
+the comparison: these are *our incidents* against *its alerts*, not the same unit. But
+the direction is the opposite of what v1 assumed, and it is measured on real traffic.
+`results/killpoint/killpoint_ambient0.05.md`
+
+**2. The comparator's headline score is level-3 saturation, not correlation.**
+Wazuh reads 100% instance detection at level 3 because a single successful login is
+already an alert (rule 5715) — it flags the attack's lines without ever correlating
+them. Raise the threshold to level 7 or 10 and it detects **11.1% — one instance in nine
+— on the *clean* corpus**, before any camouflage. So its robustness at L3 is a ceiling
+effect and its stability at L7/L10 is a floor effect. This was checked rather than
+assumed, and it is a finding about the comparator that no differential expresses.
+`results/killpoint/killpoint_paced_ambient0.05.md`
+
+**3. The LLM stopped inventing MITRE technique IDs, and it is measured on two corpora
+and two models.** The system's stated design constraint — the LLM never invents
+technique IDs — was *false* when first measured: **47 of 142** technique mentions on the
+synthetic corpus and **119 of 197** on OpenSSH were fabricated, several of them real but
+revoked ATT&CK identifiers. Rewording the empty-match prompt plus structured JSON output
+with the technique field validated against the grounded list takes that to **0 of 65 and
+0 of 58**, with the fabricated incident-summary blocks gone (7 → 0). Confirmed on a
+second model (llama3 as well as phi3). A constraint that was an assertion is now an
+enforced property with a regression harness behind it. `results/faithfulness/arms/notes.md`
+
+**4. Authentic attacks from real tooling hold 100% instance detection under every
+camouflage condition.** Real `hydra` and `ssh` runs against a real sshd on a separate
+machine, ground truth captured at generation time, injected into the real OpenSSH
+background: **50/50 pooled per condition, 25/25 per scenario, across all nine
+conditions.** State the qualification with it — this is an *attack-shape* finding, since
+the camouflage library was authored around the synthetic attack shape and grips
+authentic heterogeneous instances less well — but the end-to-end result is that
+third-party attack tooling does not evade this detector.
+`results/kali/injected_notes.md`
+
+**And the method itself is a result.** Five precision levers measured and rejected (§5),
+a kill point registered before the code existed and honoured when it returned an
+uncomfortable shape, a comparator run as its own engine rather than reimplemented, and
+a camouflage arm made mandatory on every detection change. Almost nobody publishes the
+rejections, because doing so requires having run all five.
+
+## 5. Precision is a measured negative result, not an open task
 
 Precision is 0.29 with 94 incidents for 9 attacks on the synthetic corpus, and 193
 incidents on the real corpus. **Five levers were tried against it and five were
@@ -115,7 +170,7 @@ So the defensible claim is stronger than "precision is bad and we did not fix it
 adversarial margin, and each rejection is a measurement rather than an opinion.*
 Artifacts: `results/suppression/`, `docs/results.v1/contamination_retune.md`.
 
-## 5. What makes these numbers worth believing
+## 6. What makes these numbers worth believing
 
 Each of these removes a specific way the author could have graded their own homework:
 
@@ -138,7 +193,7 @@ Each of these removes a specific way the author could have graded their own home
 - **The evaluation track may never be imported by the pipeline**, enforced statically in
   `tests/test_layering.py` rather than by convention.
 
-## 6. Limits, stated here rather than found later
+## 7. Limits, stated here rather than found later
 
 - **Alert-volume figures reproduce to about ±0.5% across machines; detection rates are
   exact.** Incident and flagged-line counts shift with CPU thread count — BLAS reorders
@@ -162,7 +217,7 @@ Each of these removes a specific way the author could have graded their own home
   that hid** — on some seeds it thins a 6-line enumeration to 2 lines. No verdict rests
   on it.
 
-## 7. Where the artifacts are
+## 8. Where the artifacts are
 
 | Question | File |
 |---|---|
