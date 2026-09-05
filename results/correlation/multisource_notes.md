@@ -122,6 +122,35 @@ a bare-401 endpoint; both produce the same authentic same-IP 401 burst.
 times (W_1..W_3) capturing from `access.log`, alongside the A_*/C_* ssh captures.
 Carried `capture/W_*` back and ran the command above.
 
+## A second pairing: enumeration × web (2026-09-05)
+
+The A×W run pairs a brute force with the web attack; correlation joins on
+`source_ip` and does not read scenario, so it should hold for *any* ssh scenario
+from the shared IP. Confirmed by pairing the enumeration captures (scenario **C**,
+`capture_v2/C_1..C_3`) with the same three web captures over five seeds:
+
+```bash
+uv run python results/kali/multisource_run.py \
+  --ssh results/kali/capture_v2/C_{1,2,3}.log:..._gt.csv \
+  --web results/kali/capture/W_{1,2,3}.log:..._gt.csv --seeds 5 \
+  --output results/kali/multisource_CW
+```
+
+Result (`results/kali/multisource_CW/multisource.json`):
+
+| seed | cross-source incidents | ssh (C) instances | web (W) instances | overall line rate |
+|---|---|---|---|---|
+| 42–46 (each) | **3 / 3** | 3/3 (line 0.889–1.00) | 3/3 (line 1.00) | 0.98–1.00 |
+
+**Every enumeration+web pair from one IP correlated into a single alert, on all
+five seeds** — same 3/3 as the brute-force pairing. Each cross-source incident
+carries an `nginx` line and an `sshd`/`sshd-session` line on the shared IP. The
+enumeration half detects at a higher line rate than the brute-force half (0.889–
+1.00 against A's 0.60), because authentic `Invalid user` enumeration lines are
+individually more anomalous than the thin `Failed password` shape a rate-limiting
+sshd leaves. Same honest scope: five placements of the same 3 C + 3 W captures,
+so the effective independent sample is three per source.
+
 ### Limits carried in advance (the same shape as every authentic run)
 
 - Web traffic is mostly **user-less**, so the per-user Isolation Forest has

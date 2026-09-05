@@ -25,7 +25,10 @@ The two meet **at the file on the `collector-log` volume, never on the
 network**. That is the durability the split buys: the collector stays up and
 keeps buffering while the analyzer restarts, and the analyzer's stream resumes
 from its own byte offset into the file, so a restart neither skips nor
-re-scores.
+re-scores. That byte-offset store lives on the writable `collector-log` volume
+(`data/live/stream_offset.json`), **not** under `models/` — which is mounted
+read-only and would crash the stream on its first offset commit if the offset
+went there (found and fixed when the image was first built and run).
 
 ## Prerequisites (stated honestly)
 
@@ -65,6 +68,17 @@ the monitored side, which is why it carries none of the detector.
 
 The collector image is built and exercised in CI-shaped tests
 (`tests/test_collector_app.py`), including a check that importing it pulls in
-**no** torch / sentence-transformers / scikit-learn. The analyzer image is
-authored here but the full torch build is heavy; build it with
-`docker compose build analyzer` when you need it.
+**no** torch / sentence-transformers / scikit-learn.
+
+The analyzer image is now **built and verified end to end** (2026-09-05,
+~4.3 GB on disk). Booted from the fitted detector mounted read-only, its
+entrypoint auto-started a follow-stream on the shared collector file with no
+manual `/stream/start`; a `Failed password` burst appended to that file was
+parsed 14/14, scored, and grouped into one incident (`incidents_total: 1`,
+`error: null`). The offset-store bug above surfaced on that first run and is
+fixed in `analyzer-entrypoint.sh`.
+
+`docker compose` was not available on the build box, so the compose file was
+validated as YAML and the collector and analyzer images were each built and run
+directly (`docker build -f docker/Dockerfile.<role>`); `docker compose up
+--build` is the intended one-command path once the plugin is installed.

@@ -7,6 +7,10 @@
 set -euo pipefail
 
 COLLECTOR_LOG="${LOGDET_PROJECT_ROOT:-/app}/data/live/collector.log"
+# The stream's byte-offset store must live on a writable path. models/ is mounted
+# read-only (it carries only the fitted detector), so the offset goes on the
+# shared collector-log volume, which is writable and is where the tailed file is.
+OFFSET_STORE="${LOGDET_PROJECT_ROOT:-/app}/data/live/stream_offset.json"
 API="http://127.0.0.1:8000"
 
 # The API owns the stream; run it in the background and auto-start once healthy.
@@ -33,7 +37,7 @@ touch "${COLLECTOR_LOG}"
 # fatal -- the API stays up so the failure is visible on /stream/status.
 curl -sf -X POST "${API}/stream/start" \
     -H 'content-type: application/json' \
-    -d "{\"source\":\"file\",\"path\":\"${COLLECTOR_LOG}\",\"from_start\":true}" \
+    -d "{\"source\":\"file\",\"path\":\"${COLLECTOR_LOG}\",\"from_start\":true,\"offset_store\":\"${OFFSET_STORE}\"}" \
     || echo "analyzer: /stream/start failed -- is a detector mounted at models/detector.joblib? API stays up; check /stream/status"
 
 wait "${API_PID}"
