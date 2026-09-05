@@ -429,8 +429,8 @@
       "instance_detection_rate": 0.911,
       "instances": 45,
       "instances_detected": 41,
-      "total_flagged_lines": 703,
-      "incidents": 670
+      "total_flagged_lines": 705,
+      "incidents": 673
     },
     "per_scenario": {
       "A": {

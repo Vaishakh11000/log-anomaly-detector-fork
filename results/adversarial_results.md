@@ -110,4 +110,4 @@ so it is a rule, not a semantic signal -- this row shows how it holds up.
 | noise | 734 | 548 |
 | volume | 643 | 519 |
 | ip_rotate | 695 | 602 |
-| realistic-combo | 703 | 670 |
+| realistic-combo | 705 | 673 |
