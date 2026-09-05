@@ -359,10 +359,13 @@ four results that are wins (§6); the live two-box run, labelled a demonstration
 than a measurement (§7); limits (§8); what makes the numbers believable (§9); and an
 artifact index (§10).
 
-**Conclusion** — *not yet drafted.* It has to do three things and no more: restate the
-narrow claim without widening it, say what an independent red team would be asked to
-attack first, and name what the field would gain if degradation-under-evasion were a
-reported number rather than an unasked question.
+**Conclusion** (`docs/writeup/conclusion.md`) — the narrow claim restated without widening,
+with the three sentences this project may not write (§1); what the four non-differential
+wins settle, as distinct from what they report (§2); precision as a closed negative result
+rather than an open task (§3); the brief an independent red team should be handed, in
+priority order (§4); what the field would gain if degradation-under-evasion were a reported
+number, with the compute it costs (§5); and future work priced by the benchmark rule rather
+than by the size of the diff (§6).
 
 **Supporting material.** `docs/FINDINGS.md` is the source of record for every number and
 is the document to hand an examiner first. `docs/writeup/abstract.md` carries the abstract
