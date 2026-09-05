@@ -12,6 +12,37 @@ degrades when the attacker actively tries to hide.**
 > project state, constraints, the staged roadmap, and the benchmark rule that keeps the
 > numbers honest.
 
+## The result, up front
+
+Full reading in **[`docs/FINDINGS.md`](docs/FINDINGS.md)** — read that before anything
+else here.
+
+Against **Wazuh** (the real manager, its own rules and engine) on real LogHub OpenSSH
+traffic with attacks injected, pooled over 5 seeds:
+
+> **Against reworded attacks, signature rules break and embeddings do not — a real,
+> explainable, reproducible mechanism. Against timing and IP rotation the embedding
+> detector is the *weaker* system. Under an attacker that optimises rather than picking
+> from a fixed menu, the advantage disappears entirely. And precision resists five
+> separate fixes, each measured and rejected because it cost adversarial margin.**
+
+Three numbers qualify that, and they are stated first on purpose:
+
+| | Number |
+|---|---|
+| Tally across the eight camouflage strategies | **1 win, 4 ties, 3 losses** |
+| `realistic-combo` — the strategy closest to a real attacker — is a loss | **−13.3pt** |
+| Conservative differential under an *optimising* attacker | **−2.2pt** (negative) |
+
+The one win is `rephrase` at **+31.1pt**, which clears the pre-registered ≥25pt bar
+(`CLAUDE.md` §1b) and is why the roadmap continued. It is **one mechanism, not a general
+property**: Wazuh's sshd rules match literal strings, so rewording a line drops it out
+of the decoder, while an embedding of a reworded line stays near the original.
+
+Caveat that travels with every alert-volume figure here: **incident and flagged-line
+counts reproduce to about ±0.5% across machines; detection rates are exact**
+(`results/adversarial_notes.md`).
+
 ## Where things live
 
 | Repo | Role |
@@ -27,25 +58,27 @@ Inherited context lives in [`docs/`](docs/):
 
 ## Status
 
-**Stage 0 — foundation.** Package restructure, test suite, and CI are in; the
-persistence layer is deferred to Stage 2, where streaming actually needs it. Detection
-behaviour is unchanged from v1 and verified so — see the stage checklist in
-`CLAUDE.md` §3.
+**All eight stages are closed** (foundation, benchmark platform, live ingestion, live
+bake-off, detection depth, correlation + ATT&CK, LLM maturity, adversarial platform,
+multi-source + deployment). The project is in **finishing** mode, not building mode: the
+default answer to "what next" is nothing, and `CLAUDE.md` §3 records which remaining
+ideas were declined and on what measured grounds.
 
-Roadmap in brief: foundation → benchmark platform (third-party SIEM baselines, real
-LogHub data) → live ingestion → detection depth (Drain3, sequence modelling) →
+What was built, in order: foundation → benchmark platform (third-party SIEM baselines,
+real LogHub data) → live ingestion → detection depth (Drain3, sequence modelling) →
 entity-graph correlation + ATT&CK STIX → LLM faithfulness evaluation → adaptive
-adversary → multi-source.
+adversary + authentic Kali attacks over a two-machine link → multi-source + Docker
+split.
 
-Benchmark platform comes before detection work on purpose: without automated
-measurement you cannot tell whether a change helped, and detection changes *feel*
-better far more often than they measure better.
+Benchmark platform came before detection work on purpose: without automated measurement
+you cannot tell whether a change helped, and detection changes *feel* better far more
+often than they measure better.
 
-**The roadmap is gated.** A kill point is pre-registered in `CLAUDE.md` §1b: Stage 1
-tests whether v1's robustness gap survives against a ruleset the author did not write,
-in batch mode on one machine, within 4 weeks. ≥25pt differential → build the rest;
-&lt;10pt → stop and publish the negative result. Everything past Stage 1 is contingent
-on that number.
+**The roadmap was gated.** A kill point was pre-registered in `CLAUDE.md` §1b before any
+Stage 1 code existed: ≥25pt differential against a ruleset the author did not write →
+build the rest; &lt;10pt → stop and publish the negative result. It returned **CONTINUE
+at 31.1pt on 2026-08-19**, on one strategy, with three losses beside it — see
+[`docs/FINDINGS.md`](docs/FINDINGS.md).
 
 ## The numbers to beat
 
@@ -57,8 +90,14 @@ on that number.
 | Recall under realistic camouflage — system vs rule baseline | 0.78 vs 0.07 |
 | Alert volume | 94 incidents for 9 real attacks |
 
-Precision and alert volume are the weakest and the main target. Robustness under
-camouflage is the strongest and must not regress to fix them.
+Precision is no longer an open target: **five levers were tried against it and five were
+measured and rejected**, four because clean data hid a cost the camouflage suite could
+see. What survived is alert suppression at q0.90 — real but modest (194 → 147 incidents
+on the real corpus, precision 0.206 → 0.248, recall untouched). Table in
+[`docs/FINDINGS.md`](docs/FINDINGS.md) §4.
+
+Robustness under camouflage is the strongest result here and must not regress to fix
+precision — but it is **one mechanism** (`rephrase`), not a general property.
 
 ## Setup
 
